@@ -6,14 +6,11 @@ PRIMAL KNIGHT is an original, free, iPhone-first landscape browser game. A lone 
 
 ## Play on GitHub Pages
 
-The GitHub repository is [hdog960/Primal-Knight](https://github.com/hdog960/Primal-Knight).
+All Alpha 0.1 source code, pixel-art assets, and documentation have already been uploaded to this repository and verified by the [automated import and smoke test](https://github.com/hdog960/Primal-Knight/actions). **No ZIP upload is required.**
 
-1. In **Settings → Pages → Build and deployment**, select **GitHub Actions** as the source.
-2. Upload the single `Primal_Knight_Onslaught_Alpha_0.1.zip` file to the repository root using **Add file → Upload files**, then commit it. The `Import Primal KnIght game bundle` action safely extracts the assets and code, commits the actual game files, removes the archive, and publishes GitHub Pages.
-3. If the deploy action ran before Pages was enabled, go to **Actions → Import Primal KnIght game bundle → Run workflow** after enabling Pages.
-4. Open [the game](https://hdog960.github.io/Primal-Knight/) on your iPhone in landscape orientation. The link works only after the GitHub Pages deployment has succeeded.
+**One-time repository owner action:** in [Settings → Pages](https://github.com/hdog960/Primal-Knight/settings/pages), under **Build and deployment**, select **GitHub Actions** as the source. The project itself is complete and committed; GitHub requires an owner to enable Pages because the workflow token cannot create the Pages site.
 
-Alternatively, manually extract the ZIP, upload its **contents** into the repository root (where `index.html` must sit), and publish with Pages source **Deploy from a branch → main → /(root)**.
+After Pages is enabled, rerun [the import-and-publish workflow](https://github.com/hdog960/Primal-Knight/actions/workflows/import-game.yml) using **Run workflow** (or ask ChatGPT to retry the failed run). Once successful, the game will be at [hdog960.github.io/Primal-Knight](https://hdog960.github.io/Primal-Knight/).
 
 The site is pure HTML/CSS/JavaScript. No packages, build step, backend, account, subscription, database, purchased assets, or game engine are necessary. The only required service is free GitHub Pages hosting.
 
