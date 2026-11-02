@@ -1,0 +1,41 @@
+name: Generate Alpha 0.3 illustrated menu atlas
+on:
+  push:
+    paths:
+      - 'menu_art.py'
+      - '.github/workflows/alpha03-menu-art.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  generate-menu-art:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source and illustration
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Build original pixel art icons
+        run: |
+          python3 -m pip install pillow
+          python3 menu_art.py
+          python3 - <<'PY'
+          from PIL import Image
+          image=Image.open('assets/menu_icons.png')
+          assert image.size == (552,168), image.size
+          print('Verified original pixel-art atlas',image.size)
+          PY
+      - name: Check game and all progression chambers
+        run: |
+          node --check game.js
+          node tests/smoke.js
+      - name: Commit menu artwork for GitHub Pages
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/menu_icons.png
+          if ! git diff --cached --quiet; then
+            git commit -m 'Add original illustrated icons to redesigned navigation and menus'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

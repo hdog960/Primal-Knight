@@ -1,14 +1,43 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#151a25"><meta name="description" content="Primal KnIght - Onslaught: A one-hero fortress defense RPG featuring auto-combat, gear, runes and endless upgrades."><title>Primal KnIght - Onslaught</title><link rel="icon" href="assets/icon.png"><link rel="apple-touch-icon" href="assets/icon.png"><link rel="stylesheet" href="style.css?v=0.2"></head>
-<body>
-<div id="app">
- <header class="top"><div class="branding"><div class="emblem">✦</div><div><div class="brand">PRIMAL KNIGHT</div><div class="subtitle">ONSLAUGHT <span class="version">ALPHA 0.2</span></div></div></div><div class="resources" id="resources"></div><button class="tiny-icon" id="settingsButton" aria-label="Settings">⚙</button></header>
- <div class="game-shell">
-   <div class="battlefield" id="battlefield"><canvas id="game" width="960" height="540" aria-label="Animated fortress battle"></canvas><div class="hud-top"><div class="hudbox"><span class="small">THE VERDANT MARCH</span><strong id="stageName">Forest Front • Stage 1</strong></div><div class="hudbox center"><span class="small">INCOMING WAVE</span><strong id="waveName">WAVE 1 / 10</strong><div class="wave-track"><div id="waveFill"></div></div></div><div class="hudbox right"><span class="small">FORTRESS INTEGRITY</span><strong id="wallText">100 / 100</strong><div class="hp-track"><div id="wallFill"></div></div></div></div>
-    <div class="hero-tag" id="heroTag">✦ LEVEL 1 <span>0 / 80 XP</span></div><div class="combat-msg" id="combatMessage">THE SIEGE AWAITS</div>
-    <div class="fight-actions"><button id="startButton" class="action-primary">⚔ BEGIN SIEGE</button><button id="speedButton" class="action-secondary" title="Battle speed">1×</button><button id="pauseButton" class="action-secondary" title="Pause">Ⅱ</button></div>
-   </div>
-   <section class="panel" id="panel" aria-label="Upgrade screen" hidden><div class="panel-head"><div><p id="panelEyebrow">YOUR HERO</p><h1 id="panelTitle">HERO</h1></div><button id="closePanel">✕</button></div><div id="panelContent"></div></section>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#10151d"><meta name="description" content="Primal KnIght – Onslaught. One hero, endless growth, one fortress to defend."><title>Primal KnIght – Onslaught</title><link rel="icon" href="assets/icon.png"><link rel="apple-touch-icon" href="assets/icon.png"><link rel="stylesheet" href="style.css?v=0.3"></head>
+<body><div id="app">
+<header class="top">
+ <div class="branding"><div class="crest-icon"><img src="assets/icon.png" alt=""></div><div class="wordmark"><strong>PRIMAL KNIGHT</strong><span>✦ ONSLAUGHT <em>ALPHA 0.3</em> ✦</span></div></div>
+ <div class="resources" id="resources" aria-label="Your currencies"></div>
+ <button class="utility-button" id="settingsButton" aria-label="Settings and save backup" title="Settings and save backup">⚙</button>
+</header>
+<div class="game-shell">
+ <div class="battlefield" id="battlefield"><canvas id="game" width="960" height="540" aria-label="Animated siege battlefield"></canvas>
+  <div class="hud-top"><div class="hudbox"><span class="small">THE VERDANT MARCH</span><strong id="stageName">Forest Front • Stage 1</strong></div><div class="hudbox center"><span class="small">INCOMING WAVE</span><strong id="waveName">WAVE 1 / 10</strong><div class="wave-track"><div id="waveFill"></div></div></div><div class="hudbox right"><span class="small">FORTRESS INTEGRITY</span><strong id="wallText">100 / 100</strong><div class="hp-track"><div id="wallFill"></div></div></div></div>
+  <div class="hero-tag" id="heroTag">✦ LEVEL 1 <span>0 / 80 XP</span></div>
+  <div class="combat-msg" id="combatMessage" aria-live="polite">THE SIEGE AWAITS</div>
+  <div class="fight-actions"><button id="startButton" class="action-primary">⚔ BEGIN SIEGE</button><button id="speedButton" class="action-secondary" aria-label="Toggle battle speed">1×</button><button id="pauseButton" class="action-secondary" aria-label="Pause or resume battle">Ⅱ</button></div>
  </div>
- <footer class="nav" id="nav"><button class="nav-item selected" data-tab="battle"><span>⚔</span><b>BATTLE</b></button><button class="nav-item" data-tab="hero"><span>♜</span><b>HERO</b></button><button class="nav-item" data-tab="skills"><span>✧</span><b>SKILLS</b></button><button class="nav-item" data-tab="equipment"><span>🛡</span><b>GEAR</b></button><button class="nav-item" data-tab="runes"><span>◇</span><b>RUNES</b></button><button class="nav-item" data-tab="stations"><span>♙</span><b>STATIONS</b></button><button class="nav-item" data-tab="research"><span>⚗</span><b>RESEARCH</b></button><button class="nav-item" data-tab="training"><span>⬆</span><b>TRAINING</b></button><button class="nav-item" data-tab="suppression"><span>☠</span><b>SUPPRESS</b></button></footer>
- <div class="toast" id="toast" role="status"></div>
-</div><script src="game.js?v=0.2"></script></body></html>
+ <section class="panel" id="panel" aria-label="Progression chamber" hidden>
+  <aside class="chamber-aside" id="chamberAside">
+   <div class="aside-crest"><span id="asideIcon" class="pixel-symbol pixel-symbol-hero"></span></div>
+   <p class="aside-kicker">THE KINGDOM OF AETHRA</p>
+   <h2 id="asideTitle">The Warden</h2>
+   <div class="aside-illustration" id="asideIllustration"><img src="assets/hero.png" alt="Primal Knight defender" /></div>
+   <p class="aside-description" id="asideDescription"></p>
+   <div class="aside-crest-bottom">✦ &nbsp; HONOR THROUGH ENDURANCE &nbsp; ✦</div>
+  </aside>
+  <div class="chamber-main">
+   <div class="panel-head">
+    <div class="head-title"><div class="panel-eyebrow" id="panelEyebrow">YOUR LEGEND CONTINUES</div><h1 id="panelTitle">THE WARDEN</h1></div>
+    <button class="close-panel" id="closePanel" aria-label="Return to battle">✕ <span>BACK TO BATTLE</span></button>
+   </div>
+   <div class="chamber-tabs" id="subnav" aria-label="Sections in this hub"></div>
+   <div class="panel-content-scroll" id="panelContent" role="region" aria-label="Menu content" tabindex="0"></div>
+  </div>
+ </section>
+</div>
+<footer class="nav" id="nav" aria-label="Main game navigation">
+ <button class="nav-item selected" data-hub="battle"><span class="pixel-symbol pixel-symbol-battle" aria-hidden="true"></span><b>BATTLE</b><small>Defend</small></button>
+ <button class="nav-item" data-hub="hero"><span class="pixel-symbol pixel-symbol-hero" aria-hidden="true"></span><b>HERO</b><small>Become stronger</small></button>
+ <button class="nav-item" data-hub="power"><span class="pixel-symbol pixel-symbol-power" aria-hidden="true"></span><b>POWER</b><small>Invest &amp; grow</small></button>
+ <button class="nav-item" data-hub="gear"><span class="pixel-symbol pixel-symbol-gear" aria-hidden="true"></span><b>GEAR</b><small>Equip &amp; forge</small></button>
+ <button class="nav-item" data-hub="fortress"><span class="pixel-symbol pixel-symbol-fortress" aria-hidden="true"></span><b>FORTRESS</b><small>Build &amp; weaken</small></button>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div><script src="game.js?v=0.3"></script></body></html>

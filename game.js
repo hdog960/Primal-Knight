@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.2. Clean layered battlefield. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.3. Rebuilt fantasy progression chambers. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -68,7 +68,8 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  const time=performance.now()/1000;let gd=ctx.createLinearGradient(0,96,0,415);gd.addColorStop(0,'rgba(5,25,39,.08)');gd.addColorStop(1,'rgba(18,10,21,.13)');ctx.fillStyle=gd;ctx.fillRect(0,90,960,350);
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
  for(const e of [...run.enemies].filter(e=>!e.dead).sort((a,b)=>a.y-b.y)){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='ogre'?2.25:1);let im=sprites[e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;ctx.drawImage(im,e.x-sw/2,py,sw,sh);ctx.restore();if(e.slow>0){ctx.strokeStyle='#91f1f9';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.36,6*s,0,0,7);ctx.stroke();}if(e.burn>0){ctx.fillStyle='#ffa554';ctx.fillRect(e.x-6,e.y-sh*.45-4,5,8);}let barW=clamp(26*s,20,64);ctx.fillStyle='#1e1b25';ctx.fillRect(e.x-barW/2,py-7,barW,4);ctx.fillStyle=e.type==='ogre'?'#ed796e':'#a8d675';ctx.fillRect(e.x-barW/2,py-7,barW*clamp(e.hp/e.max,0,1),4);}
- // Independent foreground: live monsters are behind the battlements and defender.
+ // Fortress battlements and hero are their own painted foreground layer.
+ // Draw AFTER enemies: attackers remain behind the wall, never over it.
  if(foreground.complete&&foreground.naturalWidth){ctx.drawImage(foreground,0,0,w,h);}
  for(const s of run.shots){ctx.beginPath();ctx.lineWidth=s.kind==='lightning'?3:2;ctx.strokeStyle=s.kind==='lightning'?'#90f2ff':s.kind==='ballista'?'#ffd285':'#ffe8a9';ctx.moveTo(s.x,s.y);let tail=s.trail[0]||[s.x-7,s.y+6];ctx.lineTo(tail[0],tail[1]);ctx.stroke();ctx.fillStyle='#fff5b9';ctx.fillRect(s.x-2,s.y-2,4,4);}
  for(let i=run.particles.length-1;i>=0;i--){let t=run.particles[i];t.life-=1/60;t.x+=t.vx/60;t.y+=t.vy/60;t.vy+=48/60;if(t.life<=0){run.particles.splice(i,1);continue}ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.fillRect(t.x,t.y,t.size,t.size)}ctx.globalAlpha=1;
@@ -76,27 +77,123 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  // Animated bow glow and string release marks the single hero as the shooter.
  if(run.flashes>0){run.flashes-=1/60;ctx.fillStyle=`rgba(255,226,142,${clamp(run.flashes*3,0,.68)})`;ctx.beginPath();ctx.arc(540,360,20+run.flashes*70,0,Math.PI*2);ctx.fill();}ctx.restore();}
 function refreshHUD(){let r=[['🟡','GOLD',p.gold],['🔷','ESSENCE',p.essence],['📖','KNOWLEDGE',p.knowledge],['✦','SKILL POINTS',p.points]];$('resources').innerHTML=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');$('stageName').textContent='Forest Front • Stage '+(1+Math.floor((run.wave-1)/10));$('waveName').textContent='WAVE '+run.wave+' / '+(10*Math.ceil(run.wave/10));$('waveFill').style.width=(run.phase==='fighting'?100*run.kills/(run.total||1):run.phase==='cleared'?100:0)+'%';$('wallText').textContent=Math.ceil(run.health)+' / '+run.maxHealth;$('wallFill').style.width=(100*run.health/(run.maxHealth||1))+'%';$('heroTag').innerHTML='✦ LEVEL '+p.level+' <span>'+fmt(p.xp)+' / '+fmt(lvlNeed())+' XP</span>';}
-function card(title,description,level,cost,label,action,disabled=false,accent=''){return `<article class="upgrade-card"><h3>${accent}${title}</h3><p>${description}</p><div class="level">${level}</div><button data-action="${action}" ${disabled?'disabled':''}>${label} ${cost!=null?'• '+fmt(cost):''}</button></article>`}
-function section(head,body){return `<h2 class="section-title">${head}</h2>${body}`}
-function renderPanel(){if(tab==='battle')return;let html='',lead='';const cards=arr=>`<div class="cards">${arr.join('')}</div>`;
- if(tab==='hero'){lead='One hero. Every system exists to strengthen the defender on the wall.';html=`<div class="hero-grid"><div class="hero-frame"><img src="assets/hero.png" alt="The lone red-cloaked fortress defender, seen from behind"></div><div><h2 class="section-title">PRIMAL KNIGHT</h2><span class="pill">LEVEL ${p.level}</span><span class="pill">${p.points} UNSPENT SKILL POINTS</span><p class="statline">Progress to next level: ${fmt(p.xp)} / ${fmt(lvlNeed())} XP</p><div class="meter"><div style="width:${p.xp/lvlNeed()*100}%"></div></div>${[['Base attack',Math.floor(damage())],['Attack interval',attackInterval().toFixed(2)+' sec'],['Fortress HP',fmt(maxWall())],['Critical chance',Math.floor((.06+t('crit')*.002)*100)+'%'],['Highest wave',fmt(p.best)],['Cleared waves',fmt(p.clears)]].map(v=>`<p class="statline"><b>${v[0]}</b> — ${v[1]}</p>`).join('')}<p class="lead">Attacks are automatic. Skill points come from leveling. Gold improves equipment and stations; Essence powers Hero Training; Knowledge funds research.</p></div></div>`;}
- if(tab==='training'){lead='Long-running permanent upgrades purchased with Hero Essence. Many lines have hundreds of levels; costs increase gradually.';html=cards(training.map(row=>{const [id,title,desc,base,mult,max]=row,cost=trainCost(row),level=t(id);return card(title,desc,'RANK '+fmt(level)+' / '+fmt(max),cost,'🔷 TRAIN','train:'+id,level>=max||p.essence<cost)}));}
- if(tab==='skills'){lead='Two skill points per level. Each school has an ordered path, plus the freedom to invest in multiple disciplines. Later talents require higher hero levels.';for(let [school,nodes] of Object.entries(skills)){html+=section(school.toUpperCase(),cards(nodes.map(([id,title,desc],i)=>{let v=skill(id),need=1+i*3,prior=i===0?true:skill(nodes[i-1][0])>0,ok=p.level>=need&&prior;return card(title,desc,`RANK ${v} / 5 • ${i===0?'STARTER':'REQUIRES LV '+need}`,1,'✧ LEARN','skill:'+id,v>=5||p.points<1||!ok)})));}}
- if(tab==='stations'){lead='Permanent fortress machinery. Every station has its own deep upgrade ladder and produces a genuine effect during the siege.';html=cards(stationData.map(row=>{let[id,sym,title,desc,,,max]=row,cost=stationCost(row);return card(title,desc,'RANK '+station(id)+' / '+max,cost,sym+' BUILD','station:'+id,station(id)>=max||p.gold<cost)}));}
- if(tab==='research'){lead='Permanent economic infrastructure, paid with Knowledge. The discounts are intentionally capped to keep the game economy balanced.';html=cards(research.map(row=>{let[id,title,desc,,,max]=row,cost=researchCost(row,p.research);return card(title,desc,'RESEARCH '+res(id)+' / '+max,cost,'📖 RESEARCH','research:'+id,res(id)>=max||p.knowledge<cost)}));}
- if(tab==='suppression'){lead='Understand enemy weaknesses and weaken all future invaders. Effects have limits so advanced stages remain challenging.';html=cards(suppression.map(row=>{let[id,title,desc,,,max]=row,cost=researchCost(row,p.suppression);return card(title,desc,'RESEARCH '+sup(id)+' / '+max,cost,'📖 WEAKEN','suppress:'+id,sup(id)>=max||p.knowledge<cost)}));}
- if(tab==='equipment'){lead='Find loot by surviving waves. Equip a weapon, armor, and charm, then upgrade them with Gold. Every piece has a tier and enhancement rank.';html=section('EQUIPPED',cards(['weapon','armor','charm'].map(slot=>{let g=p.inventory.find(g=>g.id===p.equipped[slot]);let cost=gearCost(g);return card(`<span class="badge-rarity rarity-${g.rarity}">${rarities[g.rarity]}</span> ${gearNames[slot][g.rarity]}`,`+${g.plus} enhancement • ${slot.toUpperCase()} • ${g.slot==='weapon'?'Increases outgoing damage':g.slot==='armor'?'Reinforces the wall':'Improves overall power'}`,'ENHANCEMENT +'+g.plus+' / 50',cost,'🟡 ENHANCE','enhance:'+g.id,g.plus>=50||p.gold<cost)})));
- html+=section(`INVENTORY (${p.inventory.length}/100)`,cards(p.inventory.map(g=>card(`<span class="badge-rarity rarity-${g.rarity}">${rarities[g.rarity]}</span> ${gearNames[g.slot][g.rarity]}`,`${g.slot.toUpperCase()} • +${g.plus} enhancement`,p.equipped[g.slot]===g.id?'EQUIPPED':'UNEQUIPPED',null,p.equipped[g.slot]===g.id?'✓ EQUIPPED':'EQUIP','equip:'+g.id,p.equipped[g.slot]===g.id))));
- }
- if(tab==='runes'){lead='Collect Ember, Frost, Fortune, and Storm runes. Fuse three matching runes of the same tier into one higher-tier rune for Gold. Socket a rune into each equipped item.';html=section('RUNE COLLECTION ('+p.runes.length+')',cards(p.runes.map(r=>{const [sym,title,desc]=runeNames[r.type];let usage=Object.entries(p.socketed).find(([slot,id])=>id===r.id),fusionCost=Math.floor(85*r.tier*r.tier*(1-Math.min(.4,res('fusion')*.012)));let same=p.runes.filter(a=>a.type===r.type&&a.tier===r.tier&&!Object.values(p.socketed).includes(a.id)).length;return card(sym+' '+title+' Rune',desc+' • Tier '+r.tier,usage?'SOCKETED IN '+usage[0].toUpperCase():`TIER ${r.tier} / 12`,fusionCost, '◇ FUSE 3','fuse:'+r.id,usage||same<3||r.tier>=12||p.gold<fusionCost)})));
- html+=section('RUNE SOCKETS',cards(['weapon','armor','charm'].map(slot=>{let id=p.socketed[slot],r=p.runes.find(x=>x.id===id);return card(slot.toUpperCase()+' SOCKET',r?`${runeNames[r.type][1]} Rune • Tier ${r.tier}`:'Empty rune socket',r?'SLOTTED':'NO RUNE',null,r?'REMOVE RUNE':'ADD RUNE','socket:'+slot,false)})));
- }
- if(tab==='settings'){lead='Local saves work in normal browser tabs. Export a backup before clearing browser data or switching devices.';html=`<div class="setting-row"><span>Save a backup of your permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore from a previously exported JSON save</span><input id="importFile" type="file" accept="application/json,.json"></div><div class="setting-row"><span>Current run state: ${run.phase} • Progress saved after purchases and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">PRIMAL KNIGHT Alpha 0.1. No subscriptions, no paid purchases, no backend, and no external services required to play after loading the static site.</p>`;}
- const titles={hero:'THE WARDEN',training:'HERO TRAINING',skills:'PATHS OF POWER',equipment:'FORGE & ARMORY',runes:'RUNIC WORKSHOP',stations:'DEFENSIVE STATIONS',research:'ROYAL RESEARCH',suppression:'ENEMY SUPPRESSION',settings:'SETTINGS'};$('panelTitle').textContent=titles[tab]||tab.toUpperCase();$('panelEyebrow').textContent='PRIMAL KNIGHT • PERMANENT PROGRESSION';$('panelContent').innerHTML=`<p class="lead">${lead}</p>${html}`;
- let imp=$('importFile');if(imp)imp.onchange=async(ev)=>{let f=ev.target.files?.[0];if(!f)return;try{let obj=JSON.parse(await f.text());if(!obj.inventory||!obj.equipped||!obj.training)throw Error('Invalid save');if(!confirm('Replace your current progression with this saved backup?'))return;p={...defaultState(),...obj};save();initRun();refreshHUD();renderPanel();notice('SAVE RESTORED')}catch(e){notice('Invalid save file')}};
+// ALPHA 0.3 — hub navigation and progression chambers, completely rebuilt UI.
+const hubs={battle:['battle'],hero:['hero','skills'],power:['training','research'],gear:['equipment','runes'],fortress:['stations','suppression']};
+const hubLabels={battle:'Battle',hero:'Hero',power:'Power',gear:'Gear',fortress:'Fortress'};
+const tabIcons={hero:'hero',skills:'skills',training:'training',research:'research',equipment:'gear',runes:'runes',stations:'stations',suppression:'suppression',settings:'power'};
+const tabInfo={
+ hero:['THE WARDEN','The Defender','Your hero, your legend. Every upgrade serves this one warrior.','The heart of the fortress'],
+ skills:['PATHS OF POWER','The Hall of Talents','Spend level points on lasting specialties. Learn talents in order, or explore other schools.','Learn and specialize'],
+ training:['HERO TRAINING','The Eternal Ascent','Thousands of ranks, each making your hero stronger. Spend Essence to grow for the long haul.','Your strength never rests'],
+ research:['ROYAL RESEARCH','The Royal Archive','Make every reward go further. Invest Knowledge to reduce costs and boost future income.','Wisdom builds kingdoms'],
+ equipment:['FORGE & ARMORY','The Royal Forge','Wear your strongest discoveries, then enhance each item with Gold.','The forge burns bright'],
+ runes:['RUNIC WORKSHOP','The Rune Sanctum','Socket a rune into each item. Combine three matching runes to advance their tier.','Magic is forged here'],
+ stations:['DEFENSIVE STATIONS','The Siege Works','Strengthen permanent fortress machinery for extra firepower, control and wealth.','Guard every stone'],
+ suppression:['ENEMY SUPPRESSION','The War Council','Spend Knowledge studying the enemy and permanently weakening the invading horde.','Know your enemy'],
+ settings:['SETTINGS & SAVES','The Chronicle','Keep your progress safe with local saves and downloadable backups.','Safeguard your journey']
+};
+let activeByHub={battle:'battle',hero:'hero',power:'training',gear:'equipment',fortress:'stations'}, selectedSchool='Marksman',trainFilter='All',gearFilter='All',runePickSlot=null;
+const currencyGlyph={gold:'🟡',essence:'🔷',knowledge:'📖',points:'✦'};
+const currencyFor=action=>({train:'essence',skill:'points',station:'gold',research:'knowledge',suppress:'knowledge',enhance:'gold',fuse:'gold'}[String(action).split(':')[0]]||'gold');
+const cardArt={train:'power',skill:'skills',station:'stations',research:'research',suppress:'suppression',equip:'gear',enhance:'gear',fuse:'runes'};
+const meterPct=(n,max)=>max?Math.min(100,Math.max(0,100*n/max)):0;
+function card(title,description,level,cost,label,actionId,disabled=false,accent='',progress=null){
+ const currency=currencyFor(actionId),kind=String(actionId).split(':')[0],item=p.inventory?.find(g=>g.id===String(actionId).split(':')[1]),art=(kind==='equip'||kind==='enhance')?(item?.slot==='weapon'?'battle':item?.slot==='armor'?'gear':'runes'):(cardArt[kind]||'hero'),info=level||'',max=info.match(/(?:RANK|RESEARCH|ENHANCEMENT\s*\+)?\s*([\d,]+)\s*\/\s*([\d,]+)/i);const pct=progress!=null?progress:max?meterPct(Number(max[1].replace(/,/g,'')),Number(max[2].replace(/,/g,''))):0;
+ return `<article class="upgrade-card art-card kind-${String(actionId).split(':')[0]}"><div class="card-heading"><div class="card-art"><span class="pixel-symbol pixel-symbol-${art}" aria-hidden="true"></span></div><h3>${accent}${title}</h3></div><p>${description}</p><div class="level">${info}</div><div class="rank-track" aria-hidden="true"><span style="width:${pct}%"></span></div><div class="card-footer">${cost!==null?`<div class="card-cost ${currency}" title="Cost in ${currency}">${currencyGlyph[currency]} ${fmt(cost)}</div>`:''}<button data-action="${actionId}" ${disabled?'disabled':''}>${label}</button></div></article>`;
 }
-function openTab(next){tab=next;for(let b of document.querySelectorAll('[data-tab]'))b.classList.toggle('selected',b.dataset.tab===next);let panel=$('panel');panel.hidden=next==='battle';if(next!=='battle'){if(run.phase==='fighting'&&run.speed!==0){storedSpeed=run.speed;run.speed=0;pausedForPanel=true;}renderPanel()}else if(pausedForPanel){run.speed=storedSpeed;pausedForPanel=false;}refreshHUD()}
-function socketChoice(slot){let choices=p.runes.filter(r=>!Object.values(p.socketed).includes(r.id));if(p.socketed[slot]){delete p.socketed[slot];save();renderPanel();notice('RUNE REMOVED');return;}if(!choices.length){notice('NO UNSOCKETED RUNES');return;}let listing=choices.map((r,i)=>`${i+1}. ${runeNames[r.type][1]} Tier ${r.tier}`).join('\n');let v=prompt('Choose rune for '+slot.toUpperCase()+' (enter number):\n'+listing);let idx=Number(v)-1;if(v!==null&&Number.isInteger(idx)&&choices[idx]){p.socketed[slot]=choices[idx].id;save();renderPanel();notice('RUNE SOCKETED');}}
+const section=(head,body)=>`<h2 class="section-title">${head}</h2>${body}`;
+const cards=arr=>`<div class="cards">${arr.join('')}</div>`;
+const highlight=(title,body,icon='✦')=>`<div class="highlight-banner"><div><b>${title}</b><small>${body}</small></div><div class="banner-emblem" aria-hidden="true">${icon}</div></div>`;
+function renderPanel(){
+ if(tab==='battle')return;
+ const [title,asideTitle,description,motto]=tabInfo[tab]||tabInfo.hero;
+ $('panel').dataset.theme=tab;
+ $('panelTitle').textContent=title;$('asideTitle').textContent=asideTitle;$('asideDescription').textContent=motto;
+ $('panelEyebrow').textContent='PRIMAL KNIGHT · '+(tab==='settings'?'GAME OPTIONS':hubLabels[Object.keys(hubs).find(key=>hubs[key].includes(tab))].toUpperCase()+' CHAMBER');
+ $('asideIcon').className='pixel-symbol pixel-symbol-'+(tabIcons[tab]||'hero');
+ const hub=Object.keys(hubs).find(key=>hubs[key].includes(tab));
+ $('subnav').innerHTML=tab==='settings'?`<span class="tag">YOUR SAVED JOURNEY</span>`:hubs[hub].map(page=>`<button data-subtab="${page}" class="${tab===page?'selected':''}" aria-current="${tab===page?'page':'false'}">${page==='hero'?'♜':page==='skills'?'✧':page==='training'?'↟':page==='research'?'⚗':page==='equipment'?'⚒':page==='runes'?'◇':page==='stations'?'♜':'☠'} ${ {hero:'Overview',skills:'Skill Trees',training:'Training',research:'Research',equipment:'Equipment',runes:'Rune Workshop',stations:'Stations',suppression:'Enemy Suppression'}[page]}</button>`).join('')+`<span class="chamber-help">Switch sections here · Back to battle ✕</span>`;
+ let html=`<div class="section-intro"><p class="lead">${description}</p><strong>${{skills:currencyGlyph.points+' '+fmt(p.points)+' POINTS',training:currencyGlyph.essence+' '+fmt(p.essence)+' ESSENCE',research:currencyGlyph.knowledge+' '+fmt(p.knowledge)+' KNOWLEDGE',equipment:currencyGlyph.gold+' '+fmt(p.gold)+' GOLD',runes:currencyGlyph.gold+' '+fmt(p.gold)+' GOLD',stations:currencyGlyph.gold+' '+fmt(p.gold)+' GOLD',suppression:currencyGlyph.knowledge+' '+fmt(p.knowledge)+' KNOWLEDGE'}[tab]||''}</strong></div>`;
+ if(tab==='hero'){
+  let percent=meterPct(p.xp,lvlNeed());
+  html+=highlight('Level '+p.level+' · '+fmt(p.points)+' unspent skill points','Gain XP in combat, then visit Skill Trees to choose your path.','♜');
+  html+=`<div class="hero-grid"><div class="hero-frame"><img src="assets/hero.png" alt="One red-cloaked defender facing the battlefield"></div><div><div class="stat-grid">
+   ${[['ATTACK POWER',fmt(damage())],['ATTACK INTERVAL',attackInterval().toFixed(2)+' sec'],['FORTRESS HEALTH',fmt(maxWall())],['CRITICAL CHANCE',Math.round((.06+t('crit')*.002)*100)+'%'],['BEST WAVE',fmt(p.best)],['WAVES CLEARED',fmt(p.clears)]].map(([name,val])=>`<div class="stat-tile"><small>${name}</small><strong>${val}</strong></div>`).join('')}</div><p class="statline">Level ${p.level} progress · ${fmt(p.xp)} / ${fmt(lvlNeed())} XP</p><div class="meter"><div style="width:${percent}%"></div></div><button class="wide-btn" data-goto="skills">OPEN YOUR SKILL TREES →</button></div></div>`;
+ }
+ if(tab==='skills'){
+  html+=highlight('Choose a discipline','Learn talents in order. Each rank costs 1 Skill Point; later ranks require higher hero levels.','✧');
+  html+=`<div class="filter-bar" role="group" aria-label="Skill discipline">${Object.keys(skills).map(s=>`<button class="${selectedSchool===s?'selected':''}" data-school="${s}">${({Marksman:'🏹',Arcanist:'✧',Guardian:'♜',Prospector:'✦'})[s]} ${s}</button>`).join('')}</div>`;
+  const school=selectedSchool in skills?selectedSchool:'Marksman';
+  html+=section(`${school.toUpperCase()} · ${skills[school].reduce((sum,n)=>sum+skill(n[0]),0)} INVESTED POINTS`,`<div class="school-path">${skills[school].map(([id,name,desc],i)=>{
+   const rank=skill(id),need=1+i*3,prior=i===0||skill(skills[school][i-1][0])>0,locked=!prior||p.level<need,full=rank>=5,afford=p.points>=1;
+   const label=full?'MASTERED':locked?(!prior?'PREVIOUS TALENT FIRST':'UNLOCKS AT LV '+need):!afford?'NEED A SKILL POINT':'LEARN TALENT';
+   return card(`${i+1}. ${name}`,desc,`RANK ${rank} / 5 • ${i===0?'STARTER':'LEVEL '+need}`,1,label,'skill:'+id,locked||full||!afford,'',20*rank);
+  }).join('')}</div>`);
+ }
+ if(tab==='training'){
+  html+=highlight('The long road to mastery','Hero Essence is separate from Gold. These upgrades are permanent and many have hundreds of levels.','↟');
+  let groups={All:training.map(x=>x[0]),Offense:['power','haste','crit','critDmg','pierce','range','multishot','boss','shock'],Defense:['fort','regen','resist'],Economy:['gold','xp','essence','loot']};
+  html+=`<div class="filter-bar" role="group" aria-label="Training category">${Object.keys(groups).map(g=>`<button class="${g===trainFilter?'selected':''}" data-train-filter="${g}">${g}</button>`).join('')}</div>`;
+  html+=cards(training.filter(row=>groups[trainFilter]?.includes(row[0])).map(row=>{const [id,name,desc,,,max]=row,rank=t(id),cost=trainCost(row);return card(name,desc,`RANK ${fmt(rank)} / ${fmt(max)}`,cost,rank>=max?'MAXED':p.essence<cost?'MORE ESSENCE NEEDED':'TRAIN +1','train:'+id,rank>=max||p.essence<cost)}));
+ }
+ if(tab==='research'){
+  html+=highlight('Invest in your future','Knowledge earned from waves builds economic advantages. Discounts are capped for balance.','⚗');
+  html+=cards(research.map(row=>{const [id,name,desc,,,max]=row,rank=res(id),cost=researchCost(row,p.research);return card(name,desc,`RESEARCH ${rank} / ${max}`,cost,rank>=max?'COMPLETE':p.knowledge<cost?'MORE KNOWLEDGE NEEDED':'RESEARCH +1','research:'+id,rank>=max||p.knowledge<cost)}));
+ }
+ if(tab==='equipment'){
+  html+=highlight('Three slots · one hero','Weapon boosts attacks, armor fortifies your wall and charms improve overall power.','⚒');
+  html+=section('EQUIPPED AT THE FORGE',cards(['weapon','armor','charm'].map(slot=>{
+   const g=p.inventory.find(g=>g.id===p.equipped[slot]);if(!g)return'';const cost=gearCost(g);
+   return card(`<span class="badge-rarity rarity-${g.rarity}">${rarities[g.rarity]}</span> ${gearNames[slot][g.rarity]}`,`${slot.toUpperCase()} · Enhancement +${g.plus} · ${slot==='weapon'?'Increases ranged damage':slot==='armor'?'Improves fortress health':'Strengthens general combat power'}`,`ENHANCEMENT +${g.plus} / 50`,cost,g.plus>=50?'MAXED':p.gold<cost?'MORE GOLD NEEDED':'ENHANCE +1','enhance:'+g.id,g.plus>=50||p.gold<cost);
+  })));
+  html+=section(`YOUR ARMORY · ${p.inventory.length} / 100`,`<div class="filter-bar">${['All','weapon','armor','charm'].map(f=>`<button data-gear-filter="${f}" class="${f===gearFilter?'selected':''}">${f==='All'?'All Items':f==='weapon'?'Weapons':f==='armor'?'Armor':'Charms'}</button>`).join('')}</div>`+cards(p.inventory.filter(g=>gearFilter==='All'||g.slot===gearFilter).map(g=>{
+   const equipped=p.equipped[g.slot]===g.id;
+   return card(`<span class="badge-rarity rarity-${g.rarity}">${rarities[g.rarity]}</span> ${gearNames[g.slot][g.rarity]}`,`${g.slot.toUpperCase()} · Enhancement +${g.plus}`,equipped?'CURRENTLY EQUIPPED':'READY TO EQUIP',null,equipped?'✓ EQUIPPED':'EQUIP ITEM','equip:'+g.id,equipped,'',equipped?100:0);
+  })));
+ }
+ if(tab==='runes'){
+  html+=highlight('Socket. Combine. Ascend.','Place a rune in each equipped item. To fuse, collect three of the same family and tier.','◇');
+  html+=section('EQUIPMENT SOCKETS',`<div class="cards">${['weapon','armor','charm'].map(slot=>{
+   const equippedId=p.socketed[slot],r=p.runes.find(x=>x.id===equippedId);
+   return `<div class="rune-socket"><strong>◇ ${slot.toUpperCase()}</strong><p>${r?`${runeNames[r.type][1]} Rune · Tier ${r.tier}`:'No rune socketed'}</p><button data-socket-slot="${slot}">${r?'CHANGE / REMOVE RUNE':'CHOOSE A RUNE'}</button></div>`;
+  }).join('')}</div>`);
+  if(runePickSlot){
+   const options=p.runes.filter(r=>!Object.values(p.socketed).includes(r.id)||p.socketed[runePickSlot]===r.id);
+   html+=`<div class="rune-picker" id="runePicker"><h3>Choose a rune for ${runePickSlot.toUpperCase()}</h3><button class="rune-option" data-socket-rune="${runePickSlot}:none">✕ Clear Socket</button>${options.map(r=>`<button class="rune-option" data-socket-rune="${runePickSlot}:${r.id}">${runeNames[r.type][0]} ${runeNames[r.type][1]} · Tier ${r.tier}${p.socketed[runePickSlot]===r.id?' · EQUIPPED':''}</button>`).join('')||'<p>No runes available. Survive waves to find more.</p>'}</div>`;
+  }
+  html+=section('RUNE COLLECTION · '+p.runes.length+' OWNED',cards(p.runes.map(r=>{
+   const [sym,name,desc]=runeNames[r.type],used=Object.values(p.socketed).includes(r.id),same=p.runes.filter(x=>x.type===r.type&&x.tier===r.tier&&!Object.values(p.socketed).includes(x.id)).length,cost=Math.floor(85*r.tier*r.tier*(1-Math.min(.4,res('fusion')*.012))),can= same>=3&&r.tier<12&&p.gold>=cost&&!used;
+   return card(`${sym} ${name} Rune`,desc+` · ${same}/3 matching un-equipped runes`,used?'SOCKETED':`TIER ${r.tier} / 12`,cost,r.tier>=12?'MAX TIER':used?'REMOVE FROM SOCKET FIRST':same<3?'COLLECT 3 TO FUSE':p.gold<cost?'MORE GOLD NEEDED':'FUSE 3 → +1 TIER','fuse:'+r.id,!can,'',r.tier/12*100);
+  })));
+ }
+ if(tab==='stations'){
+  html+=highlight('Defend beyond the bow','Each built station automatically contributes to the siege. Upgrade them permanently with Gold.','♜');
+  html+=cards(stationData.map(row=>{const [id,sym,name,desc,,,max]=row,rank=station(id),cost=stationCost(row);return card(`${sym} ${name}`,desc,`RANK ${rank} / ${max}`,cost,rank>=max?'MAXED':p.gold<cost?'MORE GOLD NEEDED':rank===0?'BUILD STATION':'UPGRADE STATION','station:'+id,rank>=max||p.gold<cost)}));
+ }
+ if(tab==='suppression'){
+  html+=highlight('Win before the enemy arrives','Research permanent weaknesses in enemy armor, movement, strength and vitality.','☠');
+  html+=cards(suppression.map(row=>{const [id,name,desc,,,max]=row,rank=sup(id),cost=researchCost(row,p.suppression);return card(name,desc,`RESEARCH ${rank} / ${max}`,cost,rank>=max?'COMPLETE':p.knowledge<cost?'MORE KNOWLEDGE NEEDED':'WEAKEN ENEMIES','suppress:'+id,rank>=max||p.knowledge<cost)}));
+ }
+ if(tab==='settings'){
+  html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div><div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.3 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+ }
+ $('panelContent').innerHTML=html;
+ const imp=$('importFile');if(imp)imp.onchange=async ev=>{let file=ev.target.files?.[0];if(!file)return;try{let obj=JSON.parse(await file.text());if(!obj.inventory||!obj.equipped||!obj.training)throw Error('Invalid save');if(!confirm('Replace your current progress with this backup?'))return;p={...defaultState(),...obj};save();initRun();refreshHUD();renderPanel();notice('SAVE RESTORED');}catch(e){notice('Invalid save file')}};
+}
+function openTab(next){
+ if(next in hubs)next=activeByHub[next];
+ if(next!=='settings'&&next!=='battle'&&!tabInfo[next])return;
+ const previous=tab;tab=next;
+ const hub=Object.keys(hubs).find(key=>hubs[key].includes(next));if(hub)activeByHub[hub]=next;
+ for(let b of document.querySelectorAll('[data-hub]'))b.classList.toggle('selected',b.dataset.hub===hub);
+ $('panel').hidden=next==='battle';
+ if(next!=='battle'){
+   if(run.phase==='fighting'&&run.speed!==0){storedSpeed=run.speed;run.speed=0;pausedForPanel=true;}
+   renderPanel();if(previous!==next)$('panelContent').scrollTop=0;
+ }else if(pausedForPanel){run.speed=storedSpeed;pausedForPanel=false;}
+ refreshHUD();
+}
 function action(text){let[type,id]=text.split(':');if(type==='train'){let row=training.find(x=>x[0]===id),cost=trainCost(row);if(p.essence>=cost&&t(id)<row[5]){p.essence-=cost;p.training[id]=t(id)+1;run.maxHealth=maxWall();run.health=Math.min(run.health+12,run.maxHealth);}}
  else if(type==='skill'){let found=Object.values(skills).flat().find(x=>x[0]===id);if(found&&p.points>0&&skill(id)<5){p.points--;p.skills[id]=skill(id)+1;run.maxHealth=maxWall();}}
  else if(type==='station'){let row=stationData.find(x=>x[0]===id),cost=stationCost(row);if(row&&p.gold>=cost&&station(id)<row[6]){p.gold-=cost;p.stations[id]=station(id)+1;}}
@@ -105,13 +202,23 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  else if(type==='equip'){let g=p.inventory.find(g=>g.id===id);if(g)p.equipped[g.slot]=g.id;}
  else if(type==='enhance'){let g=p.inventory.find(g=>g.id===id);if(g&&p.gold>=gearCost(g)&&g.plus<50){p.gold-=gearCost(g);g.plus++;}}
  else if(type==='fuse'){let r=p.runes.find(x=>x.id===id);if(!r)return;let same=p.runes.filter(x=>x.type===r.type&&x.tier===r.tier&&!Object.values(p.socketed).includes(x.id));let cost=Math.floor(85*r.tier*r.tier*(1-Math.min(.4,res('fusion')*.012)));if(same.length>=3&&p.gold>=cost&&r.tier<12){p.gold-=cost;let ids=same.slice(0,3).map(x=>x.id);p.runes=p.runes.filter(x=>!ids.includes(x.id));p.runes.push({id:'r'+Date.now()+Math.random(),type:r.type,tier:r.tier+1});notice('RUNE FUSED TO TIER '+(r.tier+1));}}
- else if(type==='socket'){socketChoice(id);return;}
+ else if(type==='socket'){runePickSlot=id;renderPanel();return;}
  else if(type==='save'){save();notice('PROGRESS SAVED')}
  else if(type==='export'){let blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='primal-knight-onslaught-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return;}
  save();refreshHUD();renderPanel();}
 function loop(tm){let dt=clamp(((tm-(loop.last||tm))/1000),0,.05);loop.last=tm;tick(dt);draw();if(tm-(loop.lastHud||0)>160){refreshHUD();loop.lastHud=tm}requestAnimationFrame(loop)}
-$('nav').addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b)openTab(b.dataset.tab)});
-$('panelContent').addEventListener('click',e=>{let b=e.target.closest('[data-action]');if(b&&!b.disabled)action(b.dataset.action)});
+$('nav').addEventListener('click',e=>{let b=e.target.closest('[data-hub]');if(b)openTab(b.dataset.hub)});
+$('subnav').addEventListener('click',e=>{let b=e.target.closest('[data-subtab]');if(b)openTab(b.dataset.subtab)});
+$('panelContent').addEventListener('click',e=>{
+ let target=e.target.closest('button');if(!target||target.disabled)return;
+ if(target.dataset.action){action(target.dataset.action);return;}
+ if(target.dataset.goto){openTab(target.dataset.goto);return;}
+ if(target.dataset.school){selectedSchool=target.dataset.school;renderPanel();return;}
+ if(target.dataset.trainFilter){trainFilter=target.dataset.trainFilter;renderPanel();return;}
+ if(target.dataset.gearFilter){gearFilter=target.dataset.gearFilter;renderPanel();return;}
+ if(target.dataset.socketSlot){runePickSlot=runePickSlot===target.dataset.socketSlot?null:target.dataset.socketSlot;renderPanel();return;}
+ if(target.dataset.socketRune){let [slot,id]=target.dataset.socketRune.split(':');if(id==='none')delete p.socketed[slot];else if(p.runes.some(r=>r.id===id))p.socketed[slot]=id;runePickSlot=null;save();refreshHUD();renderPanel();notice(id==='none'?'RUNE REMOVED':'RUNE SOCKETED');return;}
+});
 $('settingsButton').onclick=()=>openTab('settings');$('closePanel').onclick=()=>openTab('battle');
 $('startButton').onclick=()=>{if(run.phase==='fallen')initRun();beginWave()};
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
