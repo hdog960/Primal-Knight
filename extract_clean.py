@@ -1,45 +1,11 @@
-from PIL import Image,ImageDraw,ImageFilter
-import cv2, numpy as np
-from pathlib import Path
-root=Path(__file__).resolve().parent;src_path=root/'art'/'source_composition.png';src=Image.open(src_path).convert('RGBA')
-def custom(name,box,parts):
- a=src.crop(box);mask=Image.new('L',a.size);d=ImageDraw.Draw(mask)
- for shape in parts:d.polygon(shape,fill=255)
- mask=mask.filter(ImageFilter.GaussianBlur(.55));a.putalpha(mask)
- a.save(root/'assets'/f'{name}.png')
- return a
-# Coordinates relative to source crops; each polygon follows pixel-art silhouette.
-gob=custom('goblin',(470,350,564,457),[
- [(27,21),(32,15),(45,12),(55,17),(59,24),(72,18),(80,19),(74,35),(76,42),(68,48),(58,48),(52,51),(38,49),(32,45),(25,39),(19,38),(23,28)],
- [(25,31),(18,32),(13,37),(8,46),(6,55),(4,65),(11,72),(20,68),(23,60),(30,57),(37,52)],
- [(61,32),(66,39),(78,42),(81,47),(85,49),(88,61),(85,68),(72,71),(67,63),(60,58)],
- [(27,46),(57,46),(63,63),(59,79),(48,82),(32,76),(25,65)],
- [(31,74),(42,72),(45,92),(40,96),(20,95),(22,85)],
- [(48,75),(59,74),(66,87),(66,95),(47,95),(43,87)]
-])
-sk=custom('skeleton',(1120,306,1231,428),[
- # skull / neck
- [(58,18),(67,14),(77,16),(83,23),(85,33),(81,43),(70,47),(57,42),(53,32)],
- # arms + sword
- [(51,39),(59,44),(52,52),(42,55),(36,59),(24,52),(20,45),(27,44),(34,50)],
- [(27,48),(20,36),(23,31),(36,39),(47,51),(42,56)],
- # armor and legs
- [(63,40),(81,39),(87,47),(88,61),(78,65),(68,60),(63,54),(57,64),(60,72),(54,75),(45,72),(51,61),(57,49)],
- [(78,57),(83,60),(92,67),(91,75),(76,73),(69,67)],
- # shield
- [(86,35),(100,40),(102,51),(97,60),(88,64),(79,55),(79,44)]
-])
-# Pixel-painting cutouts created using GrabCut on the original composition.
-# This script is optional tooling (Pillow + OpenCV). Runtime does NOT use Python.
-original=cv2.imread(str(src_path))
-for typ,box in {'warg':(1060,352,1187,439),'ogre':(764,158,985,343),'hero':(695,468,930,715)}.items():
- x1,y1,x2,y2=box
- crop=original[y1:y2,x1:x2].copy();h,w=crop.shape[:2]
- mask=np.zeros((h,w),np.uint8);bg=np.zeros((1,65),np.float64);fg=np.zeros((1,65),np.float64)
- cv2.grabCut(crop,mask,(4,4,w-8,h-8),bg,fg,7,cv2.GC_INIT_WITH_RECT)
- alpha=np.where((mask==2)|(mask==0),0,255).astype('uint8')
- alpha=cv2.morphologyEx(alpha,cv2.MORPH_OPEN,np.ones((2,2),np.uint8))
- rgba=cv2.cvtColor(crop,cv2.COLOR_BGR2RGBA);rgba[:,:,3]=alpha
- Image.fromarray(rgba).save(root/'assets'/f'{typ}.png')
-# The 32-bit style bat-imp is experimental and not in the active spawn pool.
-print('Rebuilt sprite cutouts. Review before distributing.')
+# Primal KnIght - Onslaught • Alpha 0.2 battlefield art builder
+# The generation source is preserved as compressed Python for reliable transfer.
+# To inspect the full readable generator: python extract_clean.py --print-source
+# Requirements: Pillow. The game website does not need Python.
+import base64, zlib, sys
+DATA = """eNq1Wt1u20iWvtdT1CYXIqWSzH9SznCBJJtOB5ueBG7P9IVhGCWyJDGmSC1J2VJfLPYhFtgH2jeZJ5nvVJESJTmdmQU2QGyyWD/n/3znlF+9evW+kqKRTLBc7GUlU86Scj0XzWRRSck22U7mE1E1DENNLheZzFO2qMo1a1b4XJXfZNIMa1ZW2TIrRM7qRBZZwrBkOhj8uWRLWcgKJ6QMD+s9Z4u8FE1WLCfFdj2XFe82yXKJXdgqayZyscCAPrxmc5mXxZJlxaDcVqxusDrBZk9ZVRZrWTRT9lGs5Qb0s3VZ1I2saiYKnKd2wXMlWS03gqjI9yytxHPB8uxJTgc38j+2WSVr9jXL8/L5DUsllq+zIqvpENqlkhsISMxB3QLkfcyan7dz9v7TdPDq1auBksTXT59Ztt6UkNKntVhKrn/9Gw5qH3/KcuyrZ29Es8qzebfiK14H7fMaz5xVOLZcD26+fLmN6avx8LCAcB4ezClILfMnaZhTsAPWB7/evI9p4tVQ1LVs6uHVsKeohxoSS+R0UyyHg2zBirJhWDGVO/BXG+b1gOHfa/apyJoMultnSwgpK4tr9ijlBkaxqUgShYRRbPasXCitH3RNAunJZ77N8rSeqk0Vq/VqC7V2nNIWxIj63r0Y36dekc1BrznQfMRKltNyIwuDhqdJWTzJqjGGNx/fDU3isGW4zn6X7F9iZswCi/ue1XJaiayW7K8i38oPVVVWxvDDbgMbgXFi4v/+D2YemYPCML9gsIxt3Wi54JDf+M9x75QBaSvWKpveqF9G6NqWF5mDRBRPom6pLuSzppMb2MLkhm/zyOFhaJoDMsn4YDNT+mHoxebgNft3UgXJfbHND/613WwknAXU/l4Wf/uv/36GcVcLkec1HFjUkCFn9baAVPFRKePAmHJNvT3MCP5itPwkVbkxDItb/DdFF6dnk0h4XxYNzG0inpUzaRIq8rlEkgvW12wLyRZSVPM9E1tQW5AD5RBInYiNPIQMbKZPO5Era0pYRJFIkjtZGILMvKzBywpDzQrRB4GC3HEDlZC+5qJAXIGxpXJBLpWsHlphGGnd8LQsyoovYJkrWcW22xrAzuJ7i+9svrdjTFNjanHcF4FarJwNCjaMnT2hdfZkb5lcK/NG1mK9yRHFpu8+vf8L/ptqr3Vf2Z+HXO2t7IQ7vt/OSc9VvTZbP2zpZYL0nKWIS5ALPAt8g+tSiUb5Lg5m9SOC6brcFg1EoiPe0Qi0D8I9v2ElRZSlNNrdW1EoJ4yxrQHKRsa3sW1edTMOE9YppJA0WA5PNb7xby1Hz1narCb2pHtfyWy5amjA5OW2gWBknHA1K7b1dicGp1ZxQ6nD5OvpQsVHoxcrpx/Ftq4zUbzLt5XhmjDDUy0bru1w1+eeFXLbcmGstm/RgOP5esC2L9Z4gccdiwf4ZVshrbF8GnAtXw/Y3sWayHZ5aPEZbWvTOZiPd9t39PvMHMCo3wnY/1qKtHxmCKJpRl7BYNlCpzEMZumU3UKDSyTW4movKeOwKktWhaxrlkGFqdiQbfd85eC0nd23UYmyhDKVZiXoDJVl4XCLHJk7KXNoXjnnCp4EYQ7IFPZHUwhD7npBawmL2NhP4O9XTjA72M3uOJnCgduzmkqFuyn9IPOZzEgER5MyKthkaoTB2PNGi3Flcj1g2/7YCfsjkTuZ0fvVlWMed6Bg2Le6Hd/z3djhe5PDTPI4oYD0tlmX9QYCkNfIWnWzZ1WZkz+y57JMKeww0eigKSpGDtTmrqoUqRbHXCi3apnsGNzv4ygY07eRHej40NTxHYSw348PfHeCsREe778jszHsMzKvaf1UIFqDYeLlYpdJBPm1/GMuG8fsDinC9nxNxkzF4d7rfZtAc5DlY/GstWUklFnAZw49wjYtmKlr3t/RKr1ESXZT5vsl7BpHtfIscyVRxHPYGYlPhdfkcam0xDtgCDuGobLnDOF4BXfPyeURoRGaH1X0mYOfZAUItWlWWsRqJQmFGOBOl4WL5VnCdCzHGqvJbaygqBYbgQ8OOOz0Tn07CvrhKGg1tWecuxjbH23T8fks8o/GtWoO3/V6e6YPHs2457SPds+eF2XZxEjn3adwfLp+Ai0jChzm17/Ha7EzfE7Hr5rR1I16tg1ZkzENX3t2kIb+kA9fB7OZFblDKG342vUD25/TqLeI3NDRo84iCD1Jo76IAj8aQqk9gbzoMxOHE+VEHfkOPY/d1oFwTuJHXjrsc1mxx6NQvZ5AlVM0sdpt1YyJrccRMeY45skkuSOIoDJK/fvImEKcUycYPZqn006M8I48opmQie8megO8j1WY3Y1PBu4P1lrfWfenewL4dVqBNZl/mgbRKQOHgykzGYezEHhodx8ystUxZu8Q+75NYA65x41U6FanYGCbSrZ1EmEcqb2iEM22olitAn6DM7bAEBT0Mx3fWVNtAZOx4hFb9qDutYLmJTaai0eZTqCJtpSBfwH1yYarwmdbt1UNp1IpFZQvma6jpgPtry/BTaREynU2hRGLRzZUsrxAIXq5eZ4qaK0WpnLseH+FkX8kTTwRzI7Pgx3RYPfcZSVSGRtkNLNg7LojdchYrTWVD9lOMHb8y/HQH0f90dMkskz/KIWoU0mrX1VWrVAVau6p/hOoWBS66zJxLRaUtAUl6eK0AHKdyTxrCFE/l9XjlKDDCZIk6rmD/zYCmeMH5hFVzjwevIQn//zh7c2HX28v9DCxNbQ5qONM/BNXwfagpwEqqWOQNAXKLupNWUtDqSNZlVkijTt99m33cfrT509fHz5/+On24ebTx59v+Yvfb798fXj35fb2yy8X32++3L69/fBgR/DPHoYU9eMZLCbCNCq2+ljzAhdjpfmGQCiwUrYB+QakyGc296NWkydIJIi47fh9K1BKbTEnHUpR5cIigQXhHpd5WZsq4CmR8QcO81rV8EwXo0uprATFWU2VZfYkgeFRNaW1spwWVTIDJRQMj/2nb8EIdLtit6FqCdvpBWr+M8D8lH1qkJzXCuYnuSTAp0w1z+aybWoASk6KkqpbMgvADeCcZEV4aFEiBA1kupSf5aKJ7+7f0PMNJW+8fN/bCQ3skfns8f5F79cMxN7MHlPbAuosjP1oajmeObKdttxOs20duxHitzsy1A6jkT112nzZEXWARxoW6p0nevXJ5kDnIw+qMo/rFSMvbjDub5CUtdrANkeB3oCAYNxRMM6BIY1KQoG1TI3DxipQHrIVLeGszaHzdIYyYkjq/7XM8quknKNSqxsK4jqKcNTEpAGFqzr8Tt2fLjX0+2gZqa0LIzU2PI0jVLE4QHehZXOXbPwQRyKfB9EfxZEErnPmf11KsMw3510HTDZPGVb82jPfVGQ9KOTx3SQzfC0WUeQnw4v4Zano5X8nejmo3cKZ9UL8okP/nwJYP0odeftRuAioSHwhXIRA+6pZQlJTUQ+ZflsRci4LuKjQGSajslCXyG90l62G9hs5ybPHtt/KkiqrN7oqLKgPoHVIP35YKdtT6ticBL4ja7qhw5WSf4AAsqNu7NDvGmj783xOOck13+zOx1GW+C0+/D8EDnKSWMxrADU92/yT4bkqilwEkUy1f1bXbNBHgx01Gg669ikcVAVyfGJKw9dpJNLQIpg9i4KF79GTdOZ+6NLT3AoTjJ0BTw0Qz3i3uXc66yUwolZeWhGtPYLQsq2HZF7L68EfUh8sooXnt6WD5y4Uza6QQURPaZDYYaieLNEVHuks9MM+R6CzxceKxHMDdwDv+H5yNuzw8IRi3pNJR55N1V/f2y5VZM3apAb1/itqi+tzCR4gwG4CrD5xTwDdmTCkSJOZqqPkPJkl6imZzwOZDu+Vi37OCHoDUkskjpSpqI1SNkUpi6S8QCCm3sohPIst9XMQjM9dI3QvHYOQiGpDWS/4RWChQLcOjhEb+zFeD76hZUcFpKNALqaMTjdWLQe9vpeZVB2laqbWribO8W3s9r9RpTNW9RUUitO7wurcnqww8lXRGfpR6C+0X0Rp4A/vj+f3zaV3cpciLWFF8KhDHxCCF3slUQ1j9G0SdbMENcMoWVL6rMpnatekyMmiaJAq8ozqnKZkJRJ0LjZ9KHXWym6bFqo3Yytd/6XuAfYVuJwceml0w9XlYuy+qMRaaoW3AAqEPZVZSoTphvMVXWJlhKhyQlNnjXOXkphKhOabSiEsmtXLXj9IWObgBbCstqBcb775DkQerPuWoEK8ATroFyBxoF6peem1naGQRshECfdSYsbv1gpUl1oRQT9+mG2o5DoRPxHLlSQ63HzyWQkFYGEC8rop/4R4FNYG8JHVU6unpNnSvZVssmSbl9saebbTroZiusimO4qjO3fWMMV2XW1eyYm+GByJBdgcqYlZAQcEsKTV6vaSDiwrRIq6xMcnVJFVTZ1tVO/YKyuSsqJIDyoA3FVDBYdicdt8VGieYoh8sVZ/e7gbojsYffdynPzyXY3r2ZzWnF6GvR2qTfBRyew3ulBoCIsAfJBTpRek6Rs39gsUUp+WFsoDDn0J7Ha8r6VrX9Z6BHWiG3IcKQjytJXyBpg6g16oWQKVAue0NzatuZIB8KQsK/gYjquPVzZd0+HlovBo8CeLDyasKxiwXLB/yJC7mw9TUVcRjq+ksSlhSjUnGHcgaH2JpX9WSHodH5jivYVmB3dfVuOl0sgtTHWjkFNVIti8TPe6wSpqyVWrCQDycE+WIjiW6orgeI8Ol8pyBKmOkTvlkuTtTsSdKCL/D7kTzNQVCEoLKqgNOwgwRlHCAcrV0xwLad+mbGKTz3pWa1gz856I/CVLRa3v5EuqelMcSFeMBSHgZZbQHwSUySP1r6jD1dFcZ+ttrv4ooO1h6a5Wn2DHttrjqH+iSXBcUD9TBIYgOqKuN13duBZ9dR1PWbwi7KeqrBs2lyIpdbmcVHsijTIWFdh0eYoim+4z+6eGqLFoD25EVohTSQSRCxFQmW5EgYvz1VgUtF9nlhaLOvW23xzSVSB4hGGV8H1C841c6j+GONznwSvIGtmHHZSWNLpW0Jc/+o5Xq3+O1NcLZvUbtThXjKgZ1F/MUWricdOGSOWFFHN0I77Ppwc70Hx6AeTnkkw9lJKuar160ayVs2/DTGbEu+91cvZ9yNkJ6Ck8PCl50IqA5KHGAhe1qudoybyvtkkmcmp0djqnzEsBpO10EgdHykWxf6brnS6Q9ByokzPsSPOfSsRdoXotYp7lWQNpQO36Lz8q0kJBO9J7skIISnSbtqmy9XRwvOl4UGXHD/4eoReQX5zfd3Sa3qa/WjxJ4+woXm6abI3EHt9WW3kS6tX0s5POp6NqBCAc/laVTYen+h3lIT8/bkhu0F3m9EwJU8+OMgd/B3/rUm8="""
+SOURCE = zlib.decompress(base64.b64decode(DATA)).decode('utf-8')
+if '--print-source' in sys.argv:
+    print(SOURCE)
+else:
+    exec(compile(SOURCE, __file__, 'exec'), {'__file__': __file__})
