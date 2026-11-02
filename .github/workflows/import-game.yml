@@ -1,0 +1,86 @@
+name: Import Primal KnIght game bundle
+on:
+  push:
+    paths:
+      - 'Primal_Knight_Onslaught_Alpha_*.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: primal-knight-pages
+  cancel-in-progress: false
+
+jobs:
+  import-and-publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Unpack game into website root
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import shutil
+
+          base = Path.cwd().resolve()
+          bundles = sorted(base.glob("Primal_Knight_Onslaught_Alpha_*.zip"))
+          if not bundles:
+              if (base / "index.html").exists():
+                  print("Game already unpacked.")
+              else:
+                  raise SystemExit("No game ZIP or index.html found.")
+          else:
+              bundle = bundles[-1]
+              print(f"Importing {bundle.name}")
+              with ZipFile(bundle) as archive:
+                  for entry in archive.infolist():
+                      target = (base / entry.filename).resolve()
+                      if not target.is_relative_to(base):
+                          raise SystemExit(f"Unsafe path in ZIP: {entry.filename}")
+                      if entry.is_dir():
+                          target.mkdir(parents=True, exist_ok=True)
+                      else:
+                          target.parent.mkdir(parents=True, exist_ok=True)
+                          with archive.open(entry) as source, target.open("wb") as output:
+                              shutil.copyfileobj(source, output)
+              for old in bundles:
+                  old.unlink()
+          assert (base / "index.html").is_file(), "Missing index.html"
+          assert (base / "game.js").is_file(), "Missing game.js"
+          assert (base / "assets" / "battlefield.png").is_file(), "Missing battlefield artwork"
+          PY
+
+      - name: Commit unpacked source and assets
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Import playable Primal KnIght - Onslaught alpha"
+            git push origin HEAD:main
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload playable website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
