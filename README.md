@@ -1,5 +1,3 @@
-> **Game source delivery:** The initial game bundle is ready as `Primal_Knight_Onslaught_Alpha_0.1.zip`. Upload that ZIP to this repository's root using **Add file → Upload files**. An automated workflow extracts the entire game, commits it, and attempts a GitHub Pages deployment. For Pages, select **Settings → Pages → Build and deployment → Source: GitHub Actions**. If Pages wasn't enabled when the upload ran, visit **Actions → Import Primal KnIght game bundle → Run workflow** afterward.
-
 # Primal KnIght - Onslaught
 
 **Alpha 0.1 • Single-hero auto-attacking fortress defense RPG**
@@ -8,10 +6,14 @@ PRIMAL KNIGHT is an original, free, iPhone-first landscape browser game. A lone 
 
 ## Play on GitHub Pages
 
-1. Create a your public GitHub repository `hdog960/Primal-Knight`.
-2. Upload **the contents of this folder** to the repository root. `index.html` must be at the root, not inside an extra folder.
-3. In the repository open **Settings → Pages → Build and deployment**. Set **Deploy from a branch → main → /(root)** and Save.
-4. Open the published `https://YOUR-USERNAME.github.io/Primal-Knight/` address. Launch on your iPhone **in landscape orientation** for the intended rear-view composition.
+The GitHub repository is [hdog960/Primal-Knight](https://github.com/hdog960/Primal-Knight).
+
+1. In **Settings → Pages → Build and deployment**, select **GitHub Actions** as the source.
+2. Upload the single `Primal_Knight_Onslaught_Alpha_0.1.zip` file to the repository root using **Add file → Upload files**, then commit it. The `Import Primal KnIght game bundle` action safely extracts the assets and code, commits the actual game files, removes the archive, and publishes GitHub Pages.
+3. If the deploy action ran before Pages was enabled, go to **Actions → Import Primal KnIght game bundle → Run workflow** after enabling Pages.
+4. Open [the game](https://hdog960.github.io/Primal-Knight/) on your iPhone in landscape orientation. The link works only after the GitHub Pages deployment has succeeded.
+
+Alternatively, manually extract the ZIP, upload its **contents** into the repository root (where `index.html` must sit), and publish with Pages source **Deploy from a branch → main → /(root)**.
 
 The site is pure HTML/CSS/JavaScript. No packages, build step, backend, account, subscription, database, purchased assets, or game engine are necessary. The only required service is free GitHub Pages hosting.
 
