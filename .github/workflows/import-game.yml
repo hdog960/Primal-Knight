@@ -1,100 +1,31 @@
-name: Import Primal Knight Onslaught game
+name: Primal KnIght - Onslaught quality checks
+
 on:
   push:
-    paths:
-      - 'transfer/part-*.bin'
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: primal-knight-pages
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  import-and-publish:
+  test:
+    name: Verify game and progression
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - name: Check out repository
+      - name: Check out source
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true
 
-      - name: Reassemble and validate complete game package
+      - name: Verify required game and art files
         run: |
-          python3 - <<'PY'
-          import hashlib, shutil
-          from pathlib import Path
-          from zipfile import ZipFile
+          test -f index.html
+          test -f style.css
+          test -f game.js
+          test -f assets/battlefield.png
+          test -f assets/hero.png
+          test -f assets/goblin.png
 
-          base = Path.cwd().resolve()
-          parts = sorted((base / "transfer").glob("part-*.bin"))
-          if parts:
-              print("Restoring original 4.4 MB game package from", len(parts), "parts")
-              bundle = base / "_game_package.zip"
-              with bundle.open("wb") as output:
-                  for part in parts:
-                      with part.open("rb") as src:
-                          shutil.copyfileobj(src, output)
-              actual = hashlib.sha256(bundle.read_bytes()).hexdigest()
-              expected = "4460257da3660040bac5f341e841e5b248ff395c4c7c4aba173bb466c7c323e7"
-              if actual != expected:
-                  raise SystemExit("ZIP checksum mismatch. Expected " + expected + " got " + actual)
-              with ZipFile(bundle) as archive:
-                  if archive.testzip() is not None:
-                      raise SystemExit("ZIP corruption detected")
-                  for entry in archive.infolist():
-                      target = (base / entry.filename).resolve()
-                      if not target.is_relative_to(base):
-                          raise SystemExit("Unsafe archive path: " + entry.filename)
-                      if entry.is_dir():
-                          target.mkdir(parents=True, exist_ok=True)
-                      else:
-                          target.parent.mkdir(parents=True, exist_ok=True)
-                          with archive.open(entry) as src, target.open("wb") as dst:
-                              shutil.copyfileobj(src, dst)
-              for part in parts:
-                  part.unlink()
-              (base / "transfer").rmdir()
-              bundle.unlink()
-          assert (base / "index.html").is_file(), "Missing index.html"
-          assert (base / "game.js").is_file(), "Missing game.js"
-          assert (base / "assets" / "battlefield.png").is_file(), "Missing pixel-art battlefield"
-          assert (base / "assets" / "hero.png").is_file(), "Missing hero artwork"
-          print("Full playable game verified, ready for commit")
-          PY
-
-      - name: Verify JavaScript
+      - name: Validate JavaScript and gameplay
         run: |
           node --check game.js
           node tests/smoke.js
-
-      - name: Commit original source, artwork and docs
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Publish playable Primal KnIght - Onslaught Alpha 0.1"
-            git push origin HEAD:main
-          fi
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - name: Upload playable website
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
