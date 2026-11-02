@@ -26,3 +26,12 @@
 .school-path .upgrade-card{position:relative}.school-path .upgrade-card .card-heading h3{color:#fbe0bd}
 .school-path .upgrade-card .card-art{border-color:#bda386}
 @media(max-width:1050px){.card-heading{min-height:44px}.card-art{width:44px;height:44px}.card-art .pixel-symbol{transform:scale(.56)}.hero-grid{grid-template-columns:1fr}.hero-frame{display:none}}
+
+/* Alpha 0.3.1: Mobile usability pass. Illustrated icons must never obscure item names. */
+.card-art{overflow:hidden;isolation:isolate}
+.card-art .pixel-symbol{transform:scale(.64);transform-origin:center}
+.card-heading h3{position:relative;z-index:1;overflow-wrap:anywhere;line-height:1.25}
+@media (hover:none) and (pointer:coarse){
+ .upgrade-card button,.filter-bar button,.chamber-tabs button,.rune-socket button,.rune-picker .rune-option{min-height:40px}
+ .close-panel{min-width:42px;min-height:40px}
+}
