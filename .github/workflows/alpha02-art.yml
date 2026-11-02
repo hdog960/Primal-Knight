@@ -1,0 +1,75 @@
+name: Alpha 0.2 - Clean Battlefield Artwork
+on:
+  push:
+    paths:
+      - '.github/workflows/alpha02-art.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: primal-knight-clean-scene
+  cancel-in-progress: false
+
+jobs:
+  build-art-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Install offline art-building dependency
+        run: python3 -m pip install pillow
+
+      - name: Create clean battlefield and separate battlement layer
+        run: |
+          python3 extract_clean.py --print-source > /tmp/clean_scene_source.py
+          cp /tmp/clean_scene_source.py extract_clean.py
+          python3 extract_clean.py
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          back=Image.open('assets/battlefield.png')
+          front=Image.open('assets/foreground.png')
+          original=Image.open('assets/battlefield_source.png')
+          assert back.size == front.size == original.size == (960,540)
+          assert front.mode == 'RGBA'
+          assert Path('game.js').read_text().find("const foreground=new Image()")>=0
+          print('Verified clean battlefield, retained source, independent fortress foreground')
+          PY
+
+      - name: Run combat and progression tests
+        run: |
+          node --check game.js
+          node tests/smoke.js
+
+      - name: Commit final game artwork
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/battlefield_source.png assets/battlefield.png assets/foreground.png extract_clean.py
+          if ! git diff --cached --quiet; then
+            git commit -m 'Alpha 0.2: clean battlefield, layered battlements, independent moving enemies'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Configure Pages for deployment
+        uses: actions/configure-pages@v5
+
+      - name: Upload gameplay site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Publish Alpha 0.2
+        id: deployment
+        uses: actions/deploy-pages@v4
