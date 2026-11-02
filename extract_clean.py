@@ -1,11 +1,177 @@
-# Primal KnIght - Onslaught • Alpha 0.2 battlefield art builder
-# The generation source is preserved as compressed Python for reliable transfer.
-# To inspect the full readable generator: python extract_clean.py --print-source
-# Requirements: Pillow. The game website does not need Python.
-import base64, zlib, sys
-DATA = """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"""
-SOURCE = zlib.decompress(base64.b64decode(DATA)).decode('utf-8')
-if '--print-source' in sys.argv:
-    print(SOURCE)
-else:
-    exec(compile(SOURCE, __file__, 'exec'), {'__file__': __file__})
+"""Create a layered, combat-free pixel-art battlefield from the project's original scenic art.
+
+No generated enemy, floating-number, projectile or hit-effect pixels belong in
+our static environment. Gameplay monsters and effects are separately drawn live.
+Requires Pillow; deterministic and repeatable for GitHub CI.
+"""
+from PIL import Image, ImageDraw, ImageFilter
+from pathlib import Path
+import math, random
+ROOT=Path(__file__).resolve().parent
+SRC=ROOT/'assets'/'battlefield_source.png'
+if not SRC.exists():
+    # Initial migration: keep a pristine copy of the original for repeatable builds.
+    from shutil import copyfile
+    copyfile(ROOT/'assets'/'battlefield.png',SRC)
+source=Image.open(SRC).convert('RGB')
+if source.size != (960,540):
+    raise ValueError('Expected 960×540 original terrain illustration')
+W,H=source.size
+rand=random.Random(731048)
+canvas=Image.new('RGB',(W,H),(51,82,77))
+draw=ImageDraw.Draw(canvas)
+# Keep the full scenic upper horizon—waterfalls, castle, sunset—from original art.
+canvas.paste(source.crop((0,0,W,77)),(0,0))
+# Content-aware scenic replacements: use nearby authentic landscape from the
+# source illustration to conceal the old boss, health bar, and painted banners.
+def patch_horizon(dst,donor,feather=13):
+    x0,y0,x1,y1=dst
+    patch=source.crop(donor).resize((x1-x0,y1-y0),Image.Resampling.BICUBIC)
+    m=Image.new('L',patch.size,255)
+    md=ImageDraw.Draw(m)
+    # feather all sides to blend into the existing sky, mountains and waterfalls
+    for j in range(feather):
+        c=int(255*(j+1)/feather)
+        md.rectangle((j,j,patch.width-1-j,patch.height-1-j),outline=c,width=1)
+    canvas.paste(patch,(x0,y0),m.filter(ImageFilter.GaussianBlur(3)))
+patch_horizon((312,35,407,103),(150,35,245,103),11)
+patch_horizon((464,20,664,107),(105,20,305,107),14)
+patch_horizon((813,70,945,113),(20,70,152,113),9)
+
+# Base meadow gradients on a pixel grid. The green/yellow richness is adapted from the
+# original painted terrain, rather than a generic flat-color placeholder.
+for y in range(77,346):
+    f=(y-77)/269
+    for x in range(0,W,3):
+        r=rand.randint(-9,9)
+        c=(round(76+44*f+r),round(115+27*f+r),round(83-9*f+r//2))
+        draw.rectangle((x,y,x+2,y),fill=c)
+# Atmosphere: misty rolling woodland at the far end of the road.
+for band in range(3):
+    yy=86+band*16
+    pts=[(0,yy+rand.randrange(0,10))]
+    for x in range(0,W+12,8): pts.append((x,yy+rand.randrange(-8,9)))
+    pts += [(W,145+band*9),(0,145+band*9)]
+    col=[(58,99,107),(51,96,92),(52,100,73)][band]
+    draw.polygon(pts,fill=col)
+# A real wooded background, layered pines with highlights, bark and branch depth.
+for layer in (0,1,2):
+    rng=random.Random(2020+layer)
+    count=(65,73,46)[layer]
+    for _ in range(count):
+        x=rng.randint(-25,985)
+        ht=rng.randrange(19+layer*9,42+layer*19)
+        foot=104+layer*17+rng.randrange(-12,13)
+        sz=max(5,int(ht*.38))
+        cols=[('#416d75','#699083'),('#35615b','#4f8372'),('#2f674e','#5a8658')][layer]
+        draw.rectangle((x-2,foot-12,x+2,foot+3),fill='#3c584d')
+        for k in range(4):
+            yt=foot-ht+int(k*ht*.22)
+            extent=int(sz*(.42+.26*k))
+            draw.polygon([(x,yt-9),(x-extent,yt+13),(x+extent,yt+13)],fill=cols[0])
+            if rng.random()<.68:
+                draw.line((x-extent//2,yt+5,x+1,yt+1),fill=cols[1],width=2)
+# Rebuild the entire combat lane with natural pixel textures. This is a true blank
+# battlefield: not one baked-in monster, bullet, status effect, or damage number.
+ground=Image.new('RGB',(W,245),(110,140,81))
+gd=ImageDraw.Draw(ground)
+for y in range(245):
+    depth=y/245
+    for x in range(0,W,3):
+        value=rand.randrange(-10,11)
+        shade=(int(96+33*depth+value),int(126+25*depth+value),int(75+8*depth+value//2))
+        gd.rectangle((x,y,x+2,y),fill=shade)
+# Painterly ground detail sampled from safe grass in the original 32-bit artwork.
+pat=source.crop((126,226,173,256)).resize((94,60),Image.Resampling.NEAREST)
+for y in range(-15,245,45):
+    for x in range(-30,W,76):
+        tile=pat.transpose(rand.choice([Image.Transpose.FLIP_LEFT_RIGHT,Image.Transpose.FLIP_TOP_BOTTOM,Image.Transpose.ROTATE_180]))
+        mask=Image.new('L',tile.size,0)
+        md=ImageDraw.Draw(mask); md.ellipse((3,2,91,58),fill=rand.randint(68,125))
+        ground.paste(tile,(x+rand.randrange(-14,15),y+rand.randrange(-10,11)),mask)
+gd=ImageDraw.Draw(ground)
+# Path converges in perspective towards the horizon (center ~500), and expands
+# toward the wall. It remains clean and deliberately low-noise for approaching foes.
+edgeLeft=[];edgeRight=[]
+for y in range(245):
+    realy=101+y
+    depth=y/245
+    center=491+math.sin(y*.024)*12
+    radius=38+133*(depth**1.23)
+    edgeLeft.append((round(center-radius+math.sin(y*.14)*4),y))
+    edgeRight.append((round(center+radius+math.cos(y*.11)*6),y))
+road=edgeLeft+list(reversed(edgeRight))
+gd.polygon(road, fill='#bd9664')
+# Soil/cobblestone detail, using real painted path texture from the prior artwork.
+soil=source.crop((664,296,701,325)).resize((85,68),Image.Resampling.NEAREST)
+clip=Image.new('L',(W,245),0);ImageDraw.Draw(clip).polygon(road,fill=195)
+soil_layer=Image.new('RGB',(W,245),'#af885c')
+for y in range(0,245,55):
+    for x in range(250,790,76):
+        tile=soil.transpose(rand.choice([Image.Transpose.FLIP_LEFT_RIGHT,Image.Transpose.FLIP_TOP_BOTTOM]))
+        soil_layer.paste(tile,(x+rand.randrange(-16,14),y+rand.randrange(-7,8)))
+# road mask blurred only around its outline; keep sprite-like pixel crispness inside
+clip=clip.filter(ImageFilter.GaussianBlur(1.0))
+ground.paste(soil_layer,(0,0),clip)
+gd=ImageDraw.Draw(ground)
+for i in range(1750):
+    y=rand.randrange(5,243);x=rand.randrange(8,952)
+    depth=y/245
+    center=491+math.sin(y*.024)*12
+    path=abs(x-center)<(43+133*depth**1.23)
+    if path: 
+        if rand.random()<.31:
+            color=rand.choice(['#d8ad70','#986f54','#e2b573','#b07c54'])
+            width=rand.randrange(1,4)
+            gd.rectangle((x,y,x+width,y+rand.randrange(1,4)),fill=color)
+    else:
+        color=rand.choice(['#6f8f45','#4f843f','#b3ae68','#d6c177','#d0ad75','#6d9757'])
+        gd.line((x,y,x+rand.randrange(-2,3),y-rand.randrange(2,7)),fill=color,width=rand.choice([1,1,2]))
+        if rand.random()<.09 and depth>.22:
+            gd.ellipse((x-1,y-3,x+2,y),fill=rand.choice(['#eadc9b','#ebc9cb','#cbb6ed']))
+# Little stepped stones, darker farther from the audience.
+for i in range(73):
+    y=rand.randint(35,240);x=rand.randrange(60,920)
+    dep=(y+20)/245
+    width=max(2,int(dep*rand.randint(3,10)))
+    gd.polygon([(x,y),(x+width,y-2),(x+width+3,y),(x+width+1,y+3),(x-2,y+2)],fill=rand.choice(['#60785e','#75875f','#988d65']))
+    gd.line((x,y,x+width,y-2),fill='#b0a080',width=1)
+# Lay the clean field in, allowing one row of distant foliage to overlap the horizon.
+canvas.paste(ground,(0,101))
+# Use original hand-painted tree texture to frame the approach, avoiding banner/enemies.
+left=source.crop((0,30,79,245));right=left.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+mask=Image.new('L',left.size);md=ImageDraw.Draw(mask)
+md.polygon([(0,0),(79,0),(68,60),(75,114),(52,170),(35,215),(0,215)],fill=255)
+mask=mask.filter(ImageFilter.GaussianBlur(2))
+canvas.paste(left,(0,30),mask)
+canvas.paste(right,(W-79,30),mask.transpose(Image.Transpose.FLIP_LEFT_RIGHT))
+# Preserve the actual meticulously painted stone battlement from the original.
+# This is re-drawn *after* the independent enemy actors, so invaders cannot
+# incorrectly walk in front of the wall.
+foreground=Image.new('RGBA',(W,H),(0,0,0,0))
+foreground.paste(source.crop((0,341,W,H)).convert('RGBA'),(0,341))
+# Wall turrets stand in front of the field. Masks deliberately avoid baked-in
+# projectiles or enemies that appeared in the previous composite.
+def polygon(mask,coordinates,feather=1):
+    d=ImageDraw.Draw(mask);d.polygon(coordinates,fill=255)
+    return mask.filter(ImageFilter.GaussianBlur(feather))
+def restore(points,blur=1):
+    m=Image.new('L',(W,H),0);m=polygon(m,points,blur)
+    foreground.paste(source.convert('RGBA'),(0,0),m)
+# Ballista body and base, without the old diagonal projectile trails.
+restore([(0,305),(28,288),(37,269),(104,258),(166,264),(216,288),(202,312),(179,340),(0,349)])
+# Midas station pedestal and magical socket, not the old simulated damage effect.
+restore([(210,340),(226,312),(238,294),(274,287),(305,302),(324,341)])
+# Frost beacon and crystalline tower hardware.
+restore([(796,341),(807,318),(832,300),(863,298),(886,318),(909,340)])
+# The original detailed hero was integrated into the poster. Extract only the
+# upper body above battlements; the lower body is already preserved in wall layer.
+restore([(428,341),(465,334),(485,313),(489,294),(517,290),(545,302),(554,326),(574,326),(586,314),(609,326),(631,342)])
+# Crucial: no damage text or monster is preserved anywhere in the foreground.
+# The old lower decorative ability icons are retained as architectural trim.
+background_path=ROOT/'assets'/'battlefield.png'
+foreground_path=ROOT/'assets'/'foreground.png'
+canvas.save(background_path,optimize=True)
+foreground.save(foreground_path,optimize=True)
+print('Wrote clean battlefield:',background_path,'and layered battlements:',foreground_path)
+
