@@ -400,8 +400,8 @@ function completeWave(){
  p.highestWave=Math.max(p.highestWave,cleared+1);p.clears++;xpAdd(15+cleared*5);grantDrops();
  run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+run.maxHealth*(.08+.42*(1-Math.exp(-t('regen')/120))+skill('mend')*.025+dominionBonus('healing')));
  if(tierMilestones(tier).includes(cleared))rewardMilestone(tier,cleared);
- awardFirstWatch();
  else message('WAVE '+fmt(cleared)+' CLEARED · +'+fmt(essence)+' ESSENCE');
+ awardFirstWatch();
  if(cleared>=MAX_WAVE){
   run.phase='completed';run.wave=MAX_WAVE;run.enemies=[];run.shots=[];
   save();showLobby('ETERNAL VICTORY · Tier '+roman(tier)+' completed at wave '+fmt(MAX_WAVE));refreshHUD();return;
