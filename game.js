@@ -477,7 +477,7 @@ function renderSiegeCodex(){
  return `<details class="siege-codex" aria-label="Field manual and faction tactics">
   <summary>✦ FIELD MANUAL <span>10 FACTIONS · BOSS TACTICS · SPECIAL WAVES</span></summary>
   <div class="codex-body">
-    <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. The hero auto-targets dangerous support units, but your gear and fortress upgrades determine whether your defense holds.</p>
+    <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. Watch the arrival patterns: ambushes split to the flanks, shield guards protect standards and relics, spellcasters hold rear lanes, and chapter bosses gather reinforcements from the wings. Live warning text identifies a dangerous cast as it happens. The hero targets support units automatically; your build determines whether the defense holds.</p>
     <div class="codex-factions">${cards}</div>
     <div class="codex-events">
       <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Breaking a warned charge or warp, or shattering an Iron Ward, briefly exposes the boss to +12% damage. Siege Beast crusher windups can be interrupted too.</p>
