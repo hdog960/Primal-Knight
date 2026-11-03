@@ -59,7 +59,8 @@ function rewardMilestone(tier,wave){
 }
 let chosenTier=p.selectedTier;
 function showLobby(summary=''){
- $('tierLobby').hidden=false;$('lobbySummary').textContent=summary;
+ // The tier lobby belongs to Battle, not the progression chambers.
+ $('tierLobby').hidden=tab!=='battle';$('lobbySummary').textContent=summary;
  $('exitRunButton').hidden=true;$('startButton').hidden=true;renderTierLobby();
 }
 function renderTierLobby(){
@@ -274,16 +275,24 @@ function renderPanel(){
  $('panelContent').innerHTML=html;
  const imp=$('importFile');if(imp)imp.onchange=async ev=>{let file=ev.target.files?.[0];if(!file)return;try{let obj=JSON.parse(await file.text());if(!obj.inventory||!obj.equipped||!obj.training)throw Error('Invalid save');if(!confirm('Replace your current progress with this backup?'))return;p={...defaultState(),...obj};p.bestByTier??={};p.milestones??={};p.legacy??={};p.banners??=['Crimson Standard'];p.sigils??=0;p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,12);chosenTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);save();initRun();showLobby();refreshHUD();renderPanel();notice('SAVE RESTORED');}catch(e){notice('Invalid save file')}};
 }
-function openTab(next){
- if(next in hubs)next=activeByHub[next];
+function openTab(next,fromHub=false){
+ // Hub navigation remembers the last page, but direct subtab selection must not
+ // be mistaken for a hub when a page has the same name (Hero Overview).
+ if(fromHub&&next in hubs)next=activeByHub[next];
  if(next!=='settings'&&next!=='battle'&&!tabInfo[next])return;
  const previous=tab;tab=next;
  const hub=Object.keys(hubs).find(key=>hubs[key].includes(next));if(hub)activeByHub[hub]=next;
  for(let b of document.querySelectorAll('[data-hub]'))b.classList.toggle('selected',b.dataset.hub===hub);
+ const preSiege=run.phase==='ready'||run.phase==='fallen';
+ // The full-screen tier selector must not cover menus before the first siege.
+ // Keep the selected difficulty and milestones available when returning to Battle.
+ $('tierLobby').hidden=next!=='battle'||!preSiege;
  $('panel').hidden=next==='battle';
  if(next!=='battle'){
    // Continuous siege runs do not pause when a progression screen is opened.
    renderPanel();if(previous!==next)$('panelContent').scrollTop=0;
+ }else if(preSiege){
+   renderTierLobby();
  }
  refreshHUD();
 }
@@ -301,7 +310,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  else if(type==='export'){let blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='primal-knight-onslaught-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return;}
  save();refreshHUD();renderPanel();}
 function loop(tm){let dt=clamp(((tm-(loop.last||tm))/1000),0,.05);loop.last=tm;tick(dt);draw();if(tm-(loop.lastHud||0)>160){refreshHUD();loop.lastHud=tm}requestAnimationFrame(loop)}
-$('nav').addEventListener('click',e=>{let b=e.target.closest('[data-hub]');if(b)openTab(b.dataset.hub)});
+$('nav').addEventListener('click',e=>{let b=e.target.closest('[data-hub]');if(b)openTab(b.dataset.hub,true)});
 $('subnav').addEventListener('click',e=>{let b=e.target.closest('[data-subtab]');if(b)openTab(b.dataset.subtab)});
 $('panelContent').addEventListener('click',e=>{
  let target=e.target.closest('button');if(!target||target.disabled)return;
