@@ -79,4 +79,37 @@ assert(tier13Entry.result==='intermission','Midgame build must clear Tier XIII e
 assert(midOldTierEnd.result!=='completed'&&midOldTierEnd.result!=='intermission','Same midgame build cannot finish Tier I at wave 10000');
 assert(endgameTierOne.result==='completed','Fully developed build can conquer Tier I wave 10000');
 assert(endgameTierSixteen.result==='completed','Maximum build can eventually conquer Tier XVI wave 10000');
+
+// A long ladder needs an attainable permanent economy and item rarity progression.
+const {hooks:economyHooks}=createWorld(320);
+const economy=economyHooks.p();
+const allMilestones=[5,10,15,20,35,50,75,100,150,250,400,500,750,1000,1500,2000,2500,3000,4000,5000,6000,7500,8000,9000,10000];
+let allSigilRewards=0;
+for(let tier=1;tier<=16;tier++)for(const wave of allMilestones){
+ const prize=economyHooks.tierMilestone(tier,wave);
+ if(['sigils','deepSigils','path','eternal','tier','legacy'].includes(prize.kind))allSigilRewards+=prize.amount;
+ else if(prize.kind==='century')allSigilRewards+=12+tier*3;
+}
+const ascFullCosts=[[8,40],[9,40],[13,30],[19,40],[26,36]]
+ .reduce((total,[base,max])=>total+Array.from({length:max},(_,rank)=>Math.ceil(base*(1+rank*.12+rank*rank*.018))).reduce((sum,cost)=>sum+cost,0),0);
+const legacyFullCosts=[[2,30],[2,35],[3,40]]
+ .reduce((total,[base,max])=>total+Array.from({length:max},(_,rank)=>Math.ceil(base*(1+rank*.35+Math.pow(rank,1.35)*.26))).reduce((sum,cost)=>sum+cost,0),0);
+assert(allSigilRewards>=ascFullCosts+legacyFullCosts,'All one-time milestones can ultimately fund the full Ascension and Legacy trees');
+assert(allSigilRewards<60000,'Sigil rewards do not inflate without limit');
+const lootRarities=depth=>{
+ economy.bestByTier[1]=depth;
+ const found=new Set();
+ for(let i=0;i<12000;i++)found.add(economyHooks.randomGear().rarity);
+ return found;
+};
+const noMastery=lootRarities(0);
+assert(Math.max(...noMastery)<=5,'Pre-ascension loot cannot bypass endgame rarity gates');
+const ancientLoot=lootRarities(1000);
+assert(ancientLoot.has(6)&&!ancientLoot.has(7)&&!ancientLoot.has(8),'Ancient rarity unlocks at wave 1000 only');
+const celestialLoot=lootRarities(2500);
+assert(celestialLoot.has(7)&&!celestialLoot.has(8),'Celestial rarity unlocks at wave 2500');
+const eternalLoot=lootRarities(6000);
+assert(eternalLoot.has(8),'Eternal rarity becomes obtainable at wave 6000');
+console.log('ECONOMY CHECK',JSON.stringify({oneTimeSigils:allSigilRewards,fullAscensionCosts:ascFullCosts,fullLegacyCosts:legacyFullCosts,rarityGates:[0,1000,2500,6000]}));
+
 console.log('PASS: Tier XIII access does not imply Tier I 10000 mastery; advanced progression makes deep waves achievable; object pools bounded.');
