@@ -1364,3 +1364,26 @@
  .panel[data-theme="research"] .archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .panel[data-theme="research"] .archive-entry{min-height:63px;padding:4px 2px}
 }
+
+
+/* Alpha 0.7.1 — Fortress icon repair only. Layout, costs, and gameplay unchanged. */
+.panel[data-theme="stations"] .kind-station .card-art .forge-pixel-icon,
+.panel[data-theme="suppression"] .kind-suppress .card-art .forge-pixel-icon{
+ display:block;
+ width:49px;
+ height:49px;
+ max-width:calc(100% - 4px);
+ max-height:calc(100% - 4px);
+ margin:auto;
+ image-rendering:pixelated;
+ shape-rendering:crispEdges;
+ filter:drop-shadow(0 2px 2px rgba(0,0,0,.7));
+}
+.panel[data-theme="stations"] .kind-station .card-art,
+.panel[data-theme="suppression"] .kind-suppress .card-art{
+ overflow:hidden;
+}
+@media(max-width:1050px){
+ .panel[data-theme="stations"] .kind-station .card-art .forge-pixel-icon,
+ .panel[data-theme="suppression"] .kind-suppress .card-art .forge-pixel-icon{width:40px;height:40px}
+}
