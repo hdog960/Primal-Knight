@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.3. Living Onslaught phase 4: boss telegraphs, relic wardens, rally formations and guaranteed one-time rewards and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.4. Living Onslaught phase 5: Arcane Convergence, caster fairness, counterplay codex and encounter reward clarity and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -190,13 +190,13 @@ const encounterFactions=[
  {id:'thorn',name:'Thornwake Circle',units:['thornweaver','thornweaver','guardian','warg'],color:'#b8d490'},
  {id:'rift',name:'Riftborne Court',units:['riftstalker','riftstalker','raider','skeleton'],color:'#c8ade9'}
 ];
-const encounterLabels={standard:'PATROL',vanguard:'VANGUARD',elite:'ELITE STRIKE',commander:'SIEGE COMMANDER',chapterBoss:'CHAPTER WARLORD',treasure:'TREASURE RAID',ambush:'NIGHT AMBUSH',relic:'RELIC HUNT',bannerAssault:'STANDARD ASSAULT'};
+const encounterLabels={standard:'PATROL',vanguard:'VANGUARD',elite:'ELITE STRIKE',commander:'SIEGE COMMANDER',chapterBoss:'CHAPTER WARLORD',treasure:'TREASURE RAID',ambush:'NIGHT AMBUSH',relic:'RELIC HUNT',bannerAssault:'STANDARD ASSAULT',arcane:'ARCANE CONVERGENCE'};
 function encounterDirector(wave,tier=1){
  const w=clamp(Math.floor(Number(wave)||1),1,MAX_WAVE);
  const t=clamp(Math.floor(Number(tier)||1),1,MAX_TIER);
  const chapter=1+Math.floor((w-1)/100);
  const faction=encounterFactions[(t-1+chapter-1)%encounterFactions.length];
- const kind=w%100===0?'chapterBoss':w%25===0?'commander':w%10===0?'elite':w%5===0?'vanguard':w>=15&&w%37===0?'treasure':w>=30&&w%89===43?'relic':w>=50&&w%113===61?'bannerAssault':w>=8&&w%17===0?'ambush':'standard';
+ const kind=w%100===0?'chapterBoss':w%25===0?'commander':w%10===0?'elite':w%5===0?'vanguard':w>=15&&w%37===0?'treasure':w>=30&&w%89===43?'relic':w>=50&&w%113===61?'bannerAssault':w>=45&&w%127===94?'arcane':w>=8&&w%17===0?'ambush':'standard';
  const bossType=kind==='chapterBoss'?'warlord':kind==='commander'?'siegebeast':['elite','vanguard'].includes(kind)?'ogre':null;
  const bossStyle=['iron','ember','rift'][(chapter-1)%3];
  const bossName={iron:'IRON TYRANT',ember:'CINDER REGENT',rift:'VOID MONARCH'}[bossStyle];
@@ -208,6 +208,7 @@ function encounterUnit(encounter,spawned=0){
  if(encounter.kind==='ambush')return spawned%3===0?'warg':'raider';
  if(encounter.kind==='bannerAssault')return ['banneret','guardian','raider','guardian','shaman','skeleton'][spawned%6];
  if(encounter.kind==='relic')return ['guardian','skeleton','raider','guardian','warg','shaman'][spawned%6];
+ if(encounter.kind==='arcane')return ['frostbinder','skeleton','shaman','guardian','thornweaver','warg'][spawned%6];
  const candidates=encounter.units.filter(type=>encounter.wave>=20||!['shaman','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type));
  return candidates[Math.floor(Math.random()*candidates.length)]||'goblin';
 }
@@ -233,9 +234,12 @@ function threatPriority(enemy){
  const thorn=enemy.type==='thornweaver'&&enemy.thornWindup>0?88:0;
  const rift=enemy.type==='riftstalker'&&enemy.blinkWindup>0?165:0;
  const ward=enemy.type==='thornweaver'&&enemy.thornWardTimer>0?30:0;
+ const healing=enemy.type==='shaman'&&enemy.ritualClock<=1.5?40:enemy.type==='shaman'?22:0;
+ const rally=enemy.type==='banneret'?38:0;
+ const keeper=enemy.relicGuardian?48:0;
  const shield=enemy.type==='guardian'&&run.enemies.some(other=>other&&!other.dead&&other!==enemy&&Math.hypot(other.x-enemy.x,other.y-enemy.y)<=115)?26:0;
  const boss=isSiegeBoss(enemy)?28:0;
- return enemy.y+charge+frost+thorn+rift+ward+shield+boss;
+ return enemy.y+charge+frost+thorn+rift+ward+healing+rally+keeper+shield+boss;
 }
 function chapterChallenge(encounter){
  return encounter&&encounter.kind==='chapterBoss'?{key:encounter.tier+':'+encounter.chapter,desc:'HOLD THE LINE · FINISH WITH ZERO BREACHES'}:null;
@@ -244,6 +248,20 @@ function relicChallenge(encounter){
  return encounter&&encounter.kind==='relic'?{key:encounter.tier+':'+encounter.wave,desc:'RECOVER THE RELIC · ZERO BREACHES'}:null;
 }
 function encounterSpecialBonus(kind){return kind==='treasure'?1.35:kind==='bannerAssault'?1.20:1;}
+function encounterKnowledgeBonus(kind){return kind==='arcane'?1.18:1;}
+function encounterAdvice(kind){
+ return {chapterBoss:'DEFEND THE WALL · FLAWLESS BONUS',commander:'CHARGE WINDUP · INTERRUPT THE SIEGE BEAST',
+ treasure:'TREASURE RAID · +35% WAVE GOLD',relic:'RELIC WARDEN · NO BREACHES FOR A RUNE',
+ bannerAssault:'BREAK THE BANNERS · +20% WAVE GOLD',
+ arcane:'PRIORITIZE CASTERS · +18% WAVE KNOWLEDGE',
+ ambush:'RUSHERS APPROACH · WATCH THE WALL'}[kind]||'';
+}
+const casterRoles=['shaman','frostbinder','thornweaver'];
+function allowedSpecialist(type,active){
+ if(casterRoles.includes(type)&&active.filter(e=>!e.dead&&casterRoles.includes(e.type)).length>=3)return 'skeleton';
+ if(['shaman','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type)&&active.filter(e=>!e.dead&&e.type===type).length>=2)return 'skeleton';
+ return type;
+}
 function waveEnemyCount(wave){
  return Math.min(24,8+Math.floor(Math.max(1,wave)*1.5)+(wave%5===0?1:0));
 }
@@ -399,15 +417,45 @@ function renderEncounterIntel(tier){
  let upcoming=null;
  for(let w=startWave;w<=Math.min(MAX_WAVE,startWave+100);w++){
   const event=encounterDirector(w,tier);
-  if(['chapterBoss','commander','treasure','relic','bannerAssault','ambush','elite','vanguard'].includes(event.kind)){upcoming=event;break;}
+  if(['chapterBoss','commander','treasure','relic','bannerAssault','arcane','ambush','elite','vanguard'].includes(event.kind)){upcoming=event;break;}
  }
  const roleNames={goblin:'goblins',skeleton:'skeletons',warg:'wargs',raider:'rush raiders',guardian:'shield guards',shaman:'ritual shamans',frostbinder:'frost binders (slow attacks)',sapper:'fuse sappers (interruptible)',banneret:'standard bearers (rally troops)',thornweaver:'thornweavers (temporary ward)',riftstalker:'riftstalkers (telegraphed blink)'};
  const roles=[...new Set(focus.units.map(n=>roleNames[n]||n))].join(' · ');
  return `<section class="encounter-intel" aria-label="Upcoming enemy intelligence">
   <div><small>⚔ SIEGE INTELLIGENCE · CHAPTER ${roman(focus.chapter)}</small>
-   <strong>${focus.faction}</strong><p>${roles}</p><p class="encounter-intel-objective">${upcoming&&upcoming.kind==='chapterBoss'?'✦ FLAWLESS CHAPTER BONUS · ZERO BREACHES':upcoming.kind==='relic'?'✦ RELIC HUNT · DEFEND WITHOUT BREACHES':upcoming.kind==='bannerAssault'?'✦ STANDARD ASSAULT · BREAK THE BANNERS FOR BONUS GOLD':'Shield guards, casters and siege weapons have counterplay.'}</p>
+   <strong>${focus.faction}</strong><p>${roles}</p><p class="encounter-intel-objective">${upcoming&&upcoming.kind==='chapterBoss'?'✦ FLAWLESS CHAPTER BONUS · ZERO BREACHES':upcoming.kind==='relic'?'✦ RELIC HUNT · DEFEND WITHOUT BREACHES':upcoming.kind==='bannerAssault'?'✦ STANDARD ASSAULT · BREAK THE BANNERS FOR BONUS GOLD':upcoming.kind==='arcane'?'✦ ARCANE CONVERGENCE · +18% WAVE KNOWLEDGE':'Shield guards, casters and siege weapons have counterplay.'}</p>
   </div><span>${upcoming?'NEXT '+upcoming.label+'<b>WAVE '+formatWave(upcoming.wave)+'</b>':'FINAL CHAPTER'} </span>
  </section>`;
+}
+// An expandable field manual. No extra mobile tab, storage or ongoing combat work.
+function renderSiegeCodex(){
+ const counterplay={
+ mire:'Rushers and wargs · kill the fastest flank first.',
+ iron:'Shield guards protect nearby infantry · break their protection.',
+ ash:'Shamans mend wounded troops · eliminate healers first.',
+ night:'Rush formations · the hero prioritizes incoming movement threats.',
+ crown:'Mixed shields and ritualists · separate key support units.',
+ frostvein:'Frostbinders announce slowing rites · stop the cast.',
+ cinder:'Fuse sappers threaten the wall · interrupt the countdown.',
+ gilded:'Bannerets accelerate nearby allies · destroy the standard.',
+ thorn:'Thornweavers briefly ward allies · interrupt the green circle.',
+ rift:'Riftstalkers telegraph a short blink · target the purple portal.'
+ };
+ const cards=encounterFactions.map((f,i)=>`<article class="codex-faction"><div class="codex-faction-title"><span style="background:${f.color}"></span><strong>${f.name}</strong></div><small>FACTION ${roman(i+1)}</small><p>${counterplay[f.id]}</p></article>`).join('');
+ return `<details class="siege-codex" aria-label="Field manual and faction tactics">
+  <summary>✦ FIELD MANUAL <span>10 FACTIONS · BOSS TACTICS · SPECIAL WAVES</span></summary>
+  <div class="codex-body">
+    <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. The hero auto-targets dangerous support units, but your gear and fortress upgrades determine whether your defense holds.</p>
+    <div class="codex-factions">${cards}</div>
+    <div class="codex-events">
+      <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Look for phase-II warnings and reinforcements.</p>
+      <p><strong>Relic Hunt:</strong> Protect the wall without a breach to earn one non-farmable rune and bonus Knowledge.</p>
+      <p><strong>Standard Assault:</strong> Break support banners for +20% wave Gold.</p>
+      <p><strong>Arcane Convergence:</strong> Caster-focused formations offer +18% wave Knowledge; at most three enemy casters may be active at once.</p>
+      <p><strong>Treasure Raid:</strong> +35% wave Gold and an extra loot roll.</p>
+    </div>
+  </div>
+ </details>`;
 }
 function renderTierLobby(){
  chosenTier=clamp(chosenTier,1,MAX_TIER);
@@ -440,7 +488,7 @@ function renderTierLobby(){
     <span class="milestone-status">${claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
    </div>`;
  }).join('');
- $('milestoneList').innerHTML=renderFirstWatch()+renderEncounterIntel(tier)+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
+ $('milestoneList').innerHTML=renderFirstWatch()+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
  $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(useWaystone?stone:1)+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
@@ -488,7 +536,7 @@ function spawnEnemy(){
  const isBoss=!!encounter.bossType&&run.wave%5===0&&!run.reinforcementPhase&&run.spawned===run.total-1;
  const relicGuardian=encounter.kind==='relic'&&run.spawned===run.total-1;
  let type=isBoss?encounter.bossType:relicGuardian?'guardian':run.reinforcementPhase&&run.spawned>=run.total-2?({iron:'guardian',ember:'raider',rift:'warg'}[encounter.bossStyle]):encounterUnit(encounter,run.spawned);
- if(['shaman','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type)&&run.enemies.filter(e=>!e.dead&&e.type===type).length>=2)type='skeleton';
+ type=allowedSpecialist(type,run.enemies);
  const trial=dominionTrial(run.tier),trait=trial?.trait||'';
  const mul=waveThreat(run.wave)*tierThreat(run.tier)*outerDepthPressure(run.tier,run.wave)*(trait==='armored'?1.15:1)*(trait==='elite'&&isBoss?1.3:1);
  const baseHp={goblin:36,skeleton:42,warg:58,imp:28,ogre:300,raider:39,guardian:82,shaman:52,siegebeast:390,warlord:445,frostbinder:49,sapper:46,banneret:73,thornweaver:56,riftstalker:45};
@@ -689,6 +737,7 @@ function completeWave(){
  let knowledge=Math.round((5+cleared*1.6)*(1+res('studies')*.045)*multi*(1+dominionBonus('knowledge'))*(1+oathRank('sovereignTribute')*.0125));
  let waveGold=Math.round((35+cleared*9)*(1+res('interest')*.07+skill('prosperity')*.12)*multi*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));
  if(run.encounter?.wave===cleared&&['treasure','bannerAssault'].includes(run.encounter.kind))waveGold=Math.round(waveGold*encounterSpecialBonus(run.encounter.kind));
+ if(run.encounter?.wave===cleared&&run.encounter.kind==='arcane')knowledge=Math.round(knowledge*encounterKnowledgeBonus(run.encounter.kind));
  p.essence+=essence;p.knowledge+=knowledge;p.gold+=waveGold;
  const firstClear=cleared>(p.bestByTier[tier]||0);
  if(firstClear)p.uniqueClears++;
@@ -804,11 +853,13 @@ function refreshHUD(){
   const active=run.phase==='fighting'||run.phase==='intermission';
   const encounter=active?(run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier)):null;
   encounterRibbon.hidden=!encounter;
+  const tip=$('encounterHint');if(!encounter&&tip)tip.hidden=true;
   if(encounter){
    encounterRibbon.dataset.kind=encounter.kind;
    $('encounterType').textContent=encounter.label;
    $('encounterFaction').textContent=encounter.faction;
    $('encounterChapter').textContent='CHAPTER '+roman(encounter.chapter);
+   const tip=$('encounterHint');if(tip){const advice=encounterAdvice(encounter.kind);tip.hidden=!advice;tip.textContent=advice;}
    const goal=$('encounterGoal');if(goal){const challenge=chapterChallenge(encounter)||relicChallenge(encounter);goal.hidden=!challenge;goal.textContent=challenge?'✦ '+challenge.desc+(run.breaches?' · FAILED':' · UNBROKEN'):'';goal.dataset.failed=run.breaches?'true':'false';}
   }
  }
@@ -1347,7 +1398,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div><div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.10.3 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div><div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.10.4 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  $('panelContent').innerHTML=html;
  if(tab==='equipment')renderArmoryDrawer();else{const drawer=$('armoryDrawer');if(drawer){drawer.hidden=true;drawer.innerHTML='';}}
@@ -1452,5 +1503,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,refreshHUD,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,renderSiegeCodex,refreshHUD,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
