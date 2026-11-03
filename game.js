@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.6.9. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.7.0. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -13,7 +13,20 @@ const skills={
  Prospector:[['fortune','Gold Hunter','Gold earned +8% per rank'],['scavenger','Scavenger','Increase equipment drop chance'],['wisdom','Sage','Experience gained +7% per rank'],['midas','Golden Mark','Chance to double gold from a kill'],['salvage','Salvage Master','Equipment upgrades become cheaper'],['prosperity','Prosperity','Gain bonus currency after each cleared wave']]
 };
 const stationData=[['ballista','⚔','Ironwood Ballista','Fires an additional powerful bolt every few seconds.',135,1.55,80],['cryo','❄','Frostward Obelisk','Slows marching enemies across the battlefield.',165,1.6,80],['midas','✦','Midas Projector','Some defeated enemies drop a bonus burst of gold.',175,1.62,80],['thunder','ϟ','Stormcoil Turret','Discharges chain lightning at a nearby enemy.',270,1.7,80],['gravity','◉','Gravity Anchor','Weakens the approach speed of the entire horde.',350,1.7,80]];
-const research=[['discount','Merchant Contracts','Reduce equipment and station upgrade prices.',12,1.65,30],['fusion','Runecraft Efficiency','Reduce rune fusion costs.',15,1.6,30],['interest','Royal Treasury','Gain extra gold when a wave ends.',13,1.7,40],['excavation','Excavation','Equipment and rune drops become more frequent.',22,1.65,40],['bounties','Royal Bounties','Increases gold from elite monsters and bosses.',18,1.65,40],['studies','Advanced Studies','Increase Knowledge awarded per wave.',26,1.7,40]];
+const research=[
+ ['discount','Merchant Contracts','Reduce equipment and station upgrade prices.',12,1.65,30],
+ ['fusion','Runecraft Efficiency','Reduce rune fusion costs.',15,1.6,30],
+ ['interest','Royal Treasury','Gain extra gold when a wave ends.',13,1.7,40],
+ ['excavation','Excavation','Equipment and rune drops become more frequent.',22,1.65,40],
+ ['bounties','Royal Bounties','Increase gold earned from monster kills.',18,1.65,40],
+ ['studies','Advanced Studies','Increase Knowledge awarded per wave.',26,1.7,40],
+ ['masonry','Stonewright Doctrine','Fortress maximum health +1.5% per rank (up to +24%).',28,1.68,16],
+ ['calibration','Sharpsight Optics','Hero projectile damage +1% per rank (up to +15%).',36,1.74,15],
+ ['attunement','Runic Harmonics','Socketed rune bonuses +2% per rank (up to +24%).',38,1.75,12],
+ ['almanac',"Warden’s Almanac",'All Hero XP earned +1.5% per rank (up to +24%).',30,1.72,16],
+ ['distillation','Essence Distillation','Hero Essence from completed waves +1.5% per rank (up to +24%).',33,1.72,16],
+ ['appraisal','Guild Appraisals','Gold gained when selling gear +2% per rank (up to +30%).',28,1.68,15]
+];
 const suppression=[['health','Weakening Sigils','Reduce enemy maximum health, capped at 35%.',16,1.65,70],['speed','Mudbound March','Reduce enemy movement speed, capped at 35%.',14,1.64,70],['damage','Blunted Steel','Reduce damage enemies inflict on your fortress.',19,1.68,70],['armor','Rending Curse','Reduce enemy natural armor.',21,1.7,70]];
 const rarities=['Common','Uncommon','Rare','Epic','Legendary','Mythic','Ancient','Celestial','Eternal'];
 const rColors=['#ddd','#66dc9e','#75bfff','#b990ff','#ffd070','#ff727f','#eee08a','#e8b6ff','#90f9ff'];
@@ -124,7 +137,7 @@ function retreatFromSiege(){const cleared=run.wave-(run.phase==='intermission'?1
  run.phase='ready';run.enemies=[];run.shots=[];save();showLobby(summary);refreshHUD();}
 function legacyCost(row){return Math.ceil(row[3]*(1+lr(row[0])*.35+Math.pow(lr(row[0]),1.35)*.26));}
 const lvlNeed=()=>Math.floor(65*Math.pow(p.level,1.34));const n=(obj,key)=>obj[key]||0;const skill=id=>n(p.skills,id);const station=id=>n(p.stations,id);const t=id=>n(p.training,id);const res=id=>n(p.research,id);const sup=id=>n(p.suppression,id);
-function xpAdd(amount){p.xp+=Math.floor(amount*(1+t('xp')*.025+skill('wisdom')*.07));while(p.xp>=lvlNeed()){p.xp-=lvlNeed();p.level++;p.points+=2;notice('LEVEL UP! +2 SKILL POINTS');}}
+function xpAdd(amount){p.xp+=Math.floor(amount*(1+t('xp')*.025+skill('wisdom')*.07)*(1+Math.min(16,res('almanac'))*.015));while(p.xp>=lvlNeed()){p.xp-=lvlNeed();p.level++;p.points+=2;notice('LEVEL UP! +2 SKILL POINTS');}}
 function save(){try{localStorage.setItem(storageKey,JSON.stringify(p))}catch{}}
 function notice(s){let el=$('toast');el.textContent=s;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),2300)}
 function message(s){$('combatMessage').textContent=s;$('combatMessage').classList.add('show');setTimeout(()=>$('combatMessage').classList.remove('show'),1600)}
@@ -135,9 +148,9 @@ function gearStat(slot){
  if(slot==='charm')return 1+score('charm');
  return 1+score(slot);
 }
-function socketValue(type){let total=0;for(let id of Object.values(p.socketed)){let x=p.runes.find(r=>r.id===id);if(x&&x.type===type)total+=Math.pow(1.38,x.tier-1)*.015;}return total;}
-function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+skill('bulwark')*.15)*(1+gearStat('armor')*.06)*(1+lr('guardianOath')*.03));}
-function damage(){return (32+2*t('power')+p.level*.85)*(1+skill('aim')*.06)*(1+(gearStat('weapon')-1)*.22)}
+function socketValue(type){let total=0;for(let id of Object.values(p.socketed)){let x=p.runes.find(r=>r.id===id);if(x&&x.type===type)total+=Math.pow(1.38,x.tier-1)*.015;}return total*(1+Math.min(12,res('attunement'))*.02);}
+function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+skill('bulwark')*.15)*(1+gearStat('armor')*.06)*(1+lr('guardianOath')*.03)*(1+Math.min(16,res('masonry'))*.015));}
+function damage(){return (32+2*t('power')+p.level*.85)*(1+skill('aim')*.06)*(1+(gearStat('weapon')-1)*.22)*(1+Math.min(15,res('calibration'))*.01)}
 function attackInterval(){return Math.max(.22,.82/(1+Math.min(3,t('haste')*.025)+skill('quiver')*.05+(run.health<run.maxHealth*.3?skill('laststand')*.12:0)));}
 function trainCost(row){let [id,, ,base,mul]=row;let lv=t(id);return Math.floor(base*(1+lv*.075+lv*lv*.004)*Math.pow(1+(mul-1)*.07,Math.min(lv,120))*Math.pow(1.002,Math.max(0,lv-120))); }
 function stationCost(row){let[id,,,base,mul]=row;let lv=station(id);return Math.floor(base*(1+lv*.2+lv*lv*.04)*Math.pow(1.04,Math.min(lv,40))*Math.pow(1.015,Math.max(0,lv-40))*(1-Math.min(.42,res('discount')*.014))); }
@@ -172,7 +185,7 @@ function tick(dt){if(run.phase==='intermission'){run.rewardTimer-=dt*run.speed;i
 function completeWave(){
  if(run.phase!=='fighting')return;
  const cleared=run.wave,tier=run.tier,multi=1+(tier-1)*.32;
- let essence=Math.round((12+cleared*4)*(1+t('essence')*.028)*multi);
+ let essence=Math.round((12+cleared*4)*(1+t('essence')*.028)*multi*(1+Math.min(16,res('distillation'))*.015));
  let knowledge=Math.round((5+cleared*1.6)*(1+res('studies')*.045)*multi);
  let waveGold=Math.round((35+cleared*9)*(1+res('interest')*.07+skill('prosperity')*.12)*multi);
  p.essence+=essence;p.knowledge+=knowledge;p.gold+=waveGold;
@@ -231,7 +244,7 @@ const gearSlotDescriptions={helm:'Head protection',amulet:'Relic and offensive p
 const gearSlotArt={helm:'hero',amulet:'runes',chest:'gear',legs:'gear',boots:'hero',gauntlets:'battle',charm:'runes',ring:'power',ring1:'power',ring2:'power',ring3:'power',ring4:'power'};
 function equippedGear(slot){return p.inventory.find(g=>g.id===p.equipped[slot])||null;}
 function gearTitle(g){return g.legacyName||(gearNames[g.slot]?.[g.rarity]||'Unknown Equipment');}
-function gearSellPrice(g){const base=Math.floor(24*Math.pow(2.1,g.rarity));let refund=0;for(let i=0;i<Math.min(50,g.plus);i++)refund+=gearCost({...g,plus:i})*.18;return Math.max(1,Math.floor(base+refund));}
+function gearSellPrice(g){const base=Math.floor(24*Math.pow(2.1,g.rarity));let refund=0;for(let i=0;i<Math.min(50,g.plus);i++)refund+=gearCost({...g,plus:i})*.18;return Math.max(1,Math.floor((base+refund)*(1+Math.min(15,res('appraisal'))*.02)));}
 function canSellGear(g){return !!g&&!Object.values(p.equipped).includes(g.id);}
 
 const currencyGlyph={gold:'🟡',essence:'🔷',knowledge:'📖',sigils:'💠',points:'✦'};
@@ -681,7 +694,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  else if(type==='legacy'){let row=legacyPaths.find(x=>x[0]===id);if(row&&p.legacyUnlocked&&lr(id)<row[4]&&p.sigils>=legacyCost(row)){p.sigils-=legacyCost(row);p.legacy[id]=lr(id)+1;run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+Math.round(run.maxHealth*.03));}}
  else if(type==='skill'){let found=Object.values(skills).flat().find(x=>x[0]===id);if(found&&p.points>0&&skill(id)<5){p.points--;p.skills[id]=skill(id)+1;run.maxHealth=maxWall();}}
  else if(type==='station'){let row=stationData.find(x=>x[0]===id),cost=stationCost(row);if(row&&p.gold>=cost&&station(id)<row[6]){p.gold-=cost;p.stations[id]=station(id)+1;}}
- else if(type==='research'){let row=research.find(x=>x[0]===id),cost=researchCost(row,p.research);if(row&&p.knowledge>=cost&&res(id)<row[5]){p.knowledge-=cost;p.research[id]=res(id)+1;}}
+ else if(type==='research'){let row=research.find(x=>x[0]===id);if(row){const cost=researchCost(row,p.research);if(p.knowledge>=cost&&res(id)<row[5]){const oldMax=run.maxHealth;p.knowledge-=cost;p.research[id]=res(id)+1;if(id==='masonry'){run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+Math.max(0,run.maxHealth-oldMax));}}}}
  else if(type==='suppress'){let row=suppression.find(x=>x[0]===id),cost=researchCost(row,p.suppression);if(row&&p.knowledge>=cost&&sup(id)<row[5]){p.knowledge-=cost;p.suppression[id]=sup(id)+1;}}
  else if(type==='equip'){
   let g=p.inventory.find(g=>g.id===id);
