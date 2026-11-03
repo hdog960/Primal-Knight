@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.5. Living Onslaught phase 6: interruptible boss windups, Iron Ward shatter and build-powered stagger and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.6. Living Onslaught phase 7: tactical formations, live combat warnings and pause safety and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -211,6 +211,37 @@ function encounterUnit(encounter,spawned=0){
  if(encounter.kind==='arcane')return ['frostbinder','skeleton','shaman','guardian','thornweaver','warg'][spawned%6];
  const candidates=encounter.units.filter(type=>encounter.wave>=20||!['shaman','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type));
  return candidates[Math.floor(Math.random()*candidates.length)]||'goblin';
+}
+// Arrival positions create recognizable formations without adding enemies or changing rewards.
+function formationPosition(encounter,spawned,type,isBoss=false,relicGuardian=false,reinforcement=false){
+ const index=Math.max(0,Math.floor(Number(spawned)||0)),slot=index%6,row=Math.floor(index/6);
+ const jitter=()=>rnd(-9,9),lane=[245,340,435,525,620,715][slot];
+ const back=124+row*2+rnd(0,7),front=151+row*2+rnd(0,8);
+ if(reinforcement)return {x:(index%2?790:170)+jitter(),y:125+rnd(0,12)};
+ if(isBoss)return {x:480+rnd(-23,23),y:134+rnd(0,9)};
+ if(relicGuardian)return {x:480+rnd(-16,16),y:130+rnd(0,9)};
+ if(encounter.kind==='ambush')return {x:(index%2?786:174)+jitter(),y:163+row*2+rnd(0,11)};
+ if(encounter.kind==='bannerAssault'){
+  if(type==='banneret')return {x:(index%2?555:405)+jitter(),y:back};
+  if(type==='guardian')return {x:(index%2?606:354)+jitter(),y:front};
+  if(type==='raider')return {x:(index%2?765:190)+jitter(),y:front+6};
+  return {x:lane+jitter(),y:type==='shaman'?back:front};
+ }
+ if(encounter.kind==='relic'){
+  if(type==='guardian')return {x:(index%2?605:355)+jitter(),y:front};
+  if(type==='shaman')return {x:480+jitter(),y:back};
+  return {x:lane+jitter(),y:front};
+ }
+ if(encounter.kind==='arcane'){
+  if(['shaman','frostbinder','thornweaver'].includes(type))return {x:(index%3===0?270:index%3===1?480:690)+jitter(),y:back};
+  if(type==='guardian')return {x:(index%2?615:345)+jitter(),y:front};
+  return {x:lane+jitter(),y:front};
+ }
+ if(encounter.kind==='chapterBoss'||encounter.kind==='commander'){
+  if(type==='guardian')return {x:(index%2?605:355)+jitter(),y:front};
+  return {x:lane+jitter(),y:type==='shaman'?back:front};
+ }
+ return {x:rnd(140,820),y:rnd(122,154)};
 }
 function isSiegeBoss(enemy){return !!enemy&&(enemy.isBoss===true||['ogre','warlord','siegebeast'].includes(enemy.type));}
 function shieldAuraReduction(enemy,units){
@@ -446,7 +477,7 @@ function renderSiegeCodex(){
  return `<details class="siege-codex" aria-label="Field manual and faction tactics">
   <summary>✦ FIELD MANUAL <span>10 FACTIONS · BOSS TACTICS · SPECIAL WAVES</span></summary>
   <div class="codex-body">
-    <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. The hero auto-targets dangerous support units, but your gear and fortress upgrades determine whether your defense holds.</p>
+    <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. Watch the arrival patterns: ambushes split to the flanks, shield guards protect standards and relics, spellcasters hold rear lanes, and chapter bosses gather reinforcements from the wings. Live warning text identifies a dangerous cast as it happens. The hero targets support units automatically; your build determines whether the defense holds.</p>
     <div class="codex-factions">${cards}</div>
     <div class="codex-events">
       <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Breaking a warned charge or warp, or shattering an Iron Ward, briefly exposes the boss to +12% damage. Siege Beast crusher windups can be interrupted too.</p>
@@ -543,7 +574,8 @@ function spawnEnemy(){
  const baseHp={goblin:36,skeleton:42,warg:58,imp:28,ogre:300,raider:39,guardian:82,shaman:52,siegebeast:390,warlord:445,frostbinder:49,sapper:46,banneret:73,thornweaver:56,riftstalker:45};
  const baseSpeed={goblin:17,skeleton:17,warg:25,imp:22,ogre:7,raider:33,guardian:12,shaman:14,siegebeast:7,warlord:9,frostbinder:13,sapper:24,banneret:15,thornweaver:13,riftstalker:20};
  const baseArmor={skeleton:2,ogre:7,guardian:13,siegebeast:11,warlord:14,banneret:7,sapper:2,thornweaver:3,riftstalker:4};
- const e={type,isBoss,relicGuardian,x:rnd(140,820),y:rnd(122,154),
+ const placement=formationPosition(encounter,run.spawned,type,isBoss,relicGuardian,run.reinforcementPhase&&run.spawned>=run.total-2);
+ const e={type,isBoss,relicGuardian,x:placement.x,y:placement.y,
   hp:Math.max(1,(baseHp[type]||36)*mul*(relicGuardian?1.75:1)*(1-Math.min(.35,sup('health')*.005))),
   max:0,
   speed:(baseSpeed[type]||17)*(relicGuardian?.88:1)*enemySpeedFactor(run.wave)*(1+(run.tier-1)*.06)*(trait==='swift'?1.12:1)*(1-Math.min(.35,sup('speed')*.005)),
@@ -697,6 +729,7 @@ function specialEnemyMotion(e,dt){
  return motion;
 }
 function tick(dt){
+ if((run.phase==='fighting'||run.phase==='intermission')&&run.speed===0)return;
  if((run.phase==='fighting'||run.phase==='intermission')&&run.speed>0){p.battleSeconds+=dt;saveClock+=dt;if(saveClock>=30){saveClock=0;save();}}
  if(run.phase==='intermission'){run.rewardTimer-=dt*run.speed;if(run.rewardTimer<=0)beginWave();return;}if(run.phase!=='fighting')return;dt*=run.speed;run.time+=dt;run.heroChill=Math.max(0,(run.heroChill||0)-dt);run.spawnClock-=dt;run.shotClock-=dt;run.stationClock-=dt;
  if(run.spawned<run.total&&run.spawnClock<=0){spawnEnemy();run.spawned++;run.spawnClock=Math.max(.26,1.05-run.wave*.018);}
@@ -863,6 +896,25 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  for(let i=run.floats.length-1;i>=0;i--){let f=run.floats[i];f.life-=1/60;f.y-=.43;ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y);if(f.life<=0)run.floats.splice(i,1)}ctx.globalAlpha=1;
  // Animated bow glow and string release marks the single hero as the shooter.
  if(run.flashes>0){run.flashes-=1/60;ctx.fillStyle=`rgba(255,226,142,${clamp(run.flashes*3,0,.68)})`;ctx.beginPath();ctx.arc(540,360,20+run.flashes*70,0,Math.PI*2);ctx.fill();}ctx.restore();}
+// Actual active windups temporarily replace the static encounter advice; no timer spam.
+function activeEncounterThreat(){
+ if(run.phase!=='fighting')return null;
+ let highest=null;
+ for(const e of run.enemies){
+  if(!e||e.dead)continue;
+  let priority=0,text='';
+  if(e.type==='sapper'&&e.fuseTime>0){priority=120;text='FUSE LIT · STOP THE SAPPER';}
+  else if(e.type==='siegebeast'&&e.crushWindup>0){priority=110;text='CRUSHER WINDUP · FOCUS THE BOSS';}
+  else if(e.type==='warlord'&&e.bossFuryWindup>0){priority=108;text='EMBER CHARGE · INTERRUPT THE BOSS';}
+  else if(e.type==='warlord'&&e.bossBlinkWindup>0){priority=106;text='VOID STEP · INTERRUPT THE BOSS';}
+  else if(e.type==='riftstalker'&&e.blinkWindup>0){priority=95;text='RIFT OPENING · FOCUS THE STALKER';}
+  else if(e.type==='frostbinder'&&e.frostWindup>0){priority=83;text='FROST RITE · INTERRUPT THE CASTER';}
+  else if(e.type==='thornweaver'&&e.thornWindup>0){priority=80;text='THORN WARD · STOP THE CAST';}
+  else if(e.type==='warlord'&&e.bossWardTimer>0){priority=65;text='IRON WARD · BREAK ITS DEFENSE';}
+  if(priority&&(!highest||priority>highest.priority||(priority===highest.priority&&e.y>highest.y)))highest={priority,text,y:e.y};
+ }
+ return highest?{priority:highest.priority,text:highest.text}:null;
+}
 function refreshHUD(){
  let r=[['🟡','GOLD',p.gold],['🔷','ESSENCE',p.essence],['📖','KNOWLEDGE',p.knowledge],['💠','SIGILS',p.sigils],['✦','SKILL POINTS',p.points]];
  $('resources').innerHTML=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');
@@ -895,13 +947,15 @@ function refreshHUD(){
   const active=run.phase==='fighting'||run.phase==='intermission';
   const encounter=active?(run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier)):null;
   encounterRibbon.hidden=!encounter;
-  const tip=$('encounterHint');if(!encounter&&tip)tip.hidden=true;
+  const tip=$('encounterHint');if(!encounter&&tip){tip.hidden=true;encounterRibbon.dataset.threat='false';}
   if(encounter){
    encounterRibbon.dataset.kind=encounter.kind;
    $('encounterType').textContent=encounter.label;
    $('encounterFaction').textContent=encounter.faction;
    $('encounterChapter').textContent='CHAPTER '+roman(encounter.chapter);
-   const tip=$('encounterHint');if(tip){const advice=encounterAdvice(encounter.kind);tip.hidden=!advice;tip.textContent=advice;}
+   const tip=$('encounterHint'),threat=activeEncounterThreat();
+    encounterRibbon.dataset.threat=threat?'true':'false';
+    if(tip){const advice=threat?.text||encounterAdvice(encounter.kind);tip.hidden=!advice;tip.textContent=advice;}
    const goal=$('encounterGoal');if(goal){const challenge=chapterChallenge(encounter)||relicChallenge(encounter);goal.hidden=!challenge;goal.textContent=challenge?'✦ '+challenge.desc+(run.breaches?' · FAILED':' · UNBROKEN'):'';goal.dataset.failed=run.breaches?'true':'false';}
   }
  }
@@ -1440,7 +1494,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div><div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.10.4 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div><div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.10.6 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  $('panelContent').innerHTML=html;
  if(tab==='equipment')renderArmoryDrawer();else{const drawer=$('armoryDrawer');if(drawer){drawer.hidden=true;drawer.innerHTML='';}}
@@ -1545,5 +1599,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,renderSiegeCodex,refreshHUD,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
