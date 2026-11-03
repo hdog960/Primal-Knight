@@ -235,7 +235,7 @@ assert.equal(battle.total,24,'Exactly two new reinforcements are reserved');
 while(battle.spawned<battle.total){bh.spawnEnemy();battle.spawned++;}
 assert.equal(battle.enemies.length,24,'Reinforcements respect the 24-enemy limit');
 assert.equal(battle.enemies.filter(e=>e.type==='warlord').length,1,'Reinforcements never duplicate the boss');
-assert.equal(battle.enemies.filter(e=>e.type==='guardian').length>=2,true,'Iron Tyrant's reinforcements feature defenders');
+assert.equal(battle.enemies.filter(e=>e.type==='guardian').length>=2,true,'Iron Tyrant reinforcements feature defenders');
 const emberBoss={type:'warlord',bossPhase:2,bossStyle:'ember',bossFuryClock:0,bossFuryWindup:0,bossFurySurge:0,x:330,y:230,dead:false};
 assert(bh.specialEnemyMotion(emberBoss,.05)<1,'Cinder Regent telegraphs its charge');
 bh.specialEnemyMotion(emberBoss,1);
