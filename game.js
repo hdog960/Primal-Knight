@@ -251,7 +251,7 @@ function relicChallenge(encounter){
 function encounterSpecialBonus(kind){return kind==='treasure'?1.35:kind==='bannerAssault'?1.20:1;}
 function encounterKnowledgeBonus(kind){return kind==='arcane'?1.18:1;}
 function encounterAdvice(kind){
- return {chapterBoss:'DEFEND THE WALL · FLAWLESS BONUS',commander:'CHARGE WINDUP · INTERRUPT THE SIEGE BEAST',
+ return {chapterBoss:'BREAK BOSS CASTS · FLAWLESS BONUS',commander:'CHARGE WINDUP · INTERRUPT THE SIEGE BEAST',
  treasure:'TREASURE RAID · +35% WAVE GOLD',relic:'RELIC WARDEN · NO BREACHES FOR A RUNE',
  bannerAssault:'BREAK THE BANNERS · +20% WAVE GOLD',
  arcane:'PRIORITIZE CASTERS · +18% WAVE KNOWLEDGE',
@@ -449,7 +449,7 @@ function renderSiegeCodex(){
     <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. The hero auto-targets dangerous support units, but your gear and fortress upgrades determine whether your defense holds.</p>
     <div class="codex-factions">${cards}</div>
     <div class="codex-events">
-      <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Look for phase-II warnings and reinforcements.</p>
+      <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Breaking a warned charge or warp, or shattering an Iron Ward, briefly exposes the boss to +12% damage. Siege Beast crusher windups can be interrupted too.</p>
       <p><strong>Relic Hunt:</strong> Protect the wall without a breach to earn one non-farmable rune and bonus Knowledge.</p>
       <p><strong>Standard Assault:</strong> Break support banners for +20% wave Gold.</p>
       <p><strong>Arcane Convergence:</strong> Caster-focused formations offer +18% wave Knowledge; at most three enemy casters may be active at once.</p>
