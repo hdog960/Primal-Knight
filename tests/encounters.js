@@ -170,7 +170,7 @@ assert(crusher.crushWindup>0,'Siegebeast windup is a real timed telegraph');
 hh.specialEnemyMotion(crusher,1.2);
 assert(hh.specialEnemyMotion(crusher,.05)>1,'Siegebeast enters an actual charge after windup');
 const challengeWorld=createWorld(821),ch=challengeWorld.hooks,cr=ch.run(),cp=ch.p();
-cr.tier=1;cr.wave=100;cr.maxHealth=ch.maxWall();cr.health=cr.maxHealth;cr.phase='fighting';cr.spawned=0;cr.breaches=0;
+cr.tier=1;cr.wave=100;cr.maxHealth=ch.maxWall();cr.health=cr.maxHealth;cr.phase='ready';cr.spawned=0;cr.breaches=0;
 ch.beginWave();
 assert(ch.chapterChallenge(cr.encounter),'Major boss encounters offer a genuine no-breach objective');
 
@@ -190,7 +190,7 @@ cr.wave=200;cr.phase='fighting';cr.encounter=ch.encounterDirector(200,1);cr.brea
 assert.equal(ch.awardChapterChallenge(1,200,100,100),false,'Any breach invalidates the optional chapter challenge');
 assert(!cp.chapterChallenges['1:2'],'Failed challenge remains available to earn in a future run');
 const goal=challengeWorld.sandbox.document.getElementById('encounterGoal');
-cr.phase='fighting';cr.wave=300;cr.breaches=0;cr.encounter=ch.encounterDirector(300,1);
+cr.phase='ready';cr.wave=300;cr.breaches=0;cr.encounter=ch.encounterDirector(300,1);
 ch.beginWave();
 assert(goal.hidden===false,'Live chapter objective is visible in battlefield HUD');
 
