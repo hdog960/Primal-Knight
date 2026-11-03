@@ -1,4 +1,4 @@
-// Alpha 0.10.5 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
+// Alpha 0.10.6 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const code=fs.readFileSync('game.js','utf8');
 function createWorld(seedValue=117){
@@ -408,3 +408,87 @@ counterHud.refreshHUD();
 assert.equal(counterHudWorld.sandbox.document.getElementById('bossWarning').textContent,'EXPOSED · +12% DAMAGE','On-screen HUD explains real vulnerability payoff');
 assert.equal(counterHudWorld.sandbox.document.getElementById('bossHud').dataset.exposed,'true','Exposure status is available for distinct gold on-field styling');
 console.log('PASS: Alpha 0.10.5 boss ward shatter, Cinder/void/crusher interrupt windows, real exposure damage, restrained repeated steps, priority targeting, stat resets and readable HUD.');
+
+// Alpha 0.10.6 — real, readable special-wave formations and pause/threat discipline.
+(function testFormationArrivalsAndThreatWarnings(){
+ const tactWorld=createWorld(1607),tact=tactWorld.hooks,live=tact.run();
+ const position=tact.formationPosition;
+ const ambush=tact.encounterDirector(17,1);
+ const left=position(ambush,0,'warg'),right=position(ambush,1,'raider');
+ assert(left.x>=140&&left.x<=230&&right.x>=745&&right.x<=830,'Ambush wave actually approaches from both field flanks');
+ assert(left.y>=160&&left.y<=190&&right.y>=160&&right.y<=190,'Ambush starts ahead of ordinary patrols without arriving instantly');
+ const banner=tact.encounterDirector(61,1);
+ const bannerLead=position(banner,0,'banneret');
+ const bannerShield=position(banner,1,'guardian');
+ const bannerRaider=position(banner,2,'raider');
+ assert(bannerLead.y<bannerShield.y,'Battle standards stand behind the shield front');
+ assert(bannerShield.x>=340&&bannerShield.x<=625,'Banner assault shield guards defend the center lanes');
+ assert(bannerRaider.x<235||bannerRaider.x>725,'Banner assault raiders take wide flanks');
+ const relic=tact.encounterDirector(43,1);
+ const keeper=position(relic,23,'guardian',false,true);
+ const leftEscort=position(relic,0,'guardian');
+ assert(keeper.x>=460&&keeper.x<=500,'Relic Warden enters centrally where its distinct armor can be seen');
+ assert(leftEscort.x<keeper.x-80,'Relic escorts enter ahead on separated defensive lanes');
+ const arcane=tact.encounterDirector(94,1);
+ const witch=position(arcane,0,'frostbinder');
+ const shield=position(arcane,1,'guardian');
+ assert(witch.y<shield.y,'Arcane casters arrive behind protective troops');
+ assert(witch.x>=255&&witch.x<=285,'Caster enters a recognizable outer casting lane');
+ const chapter=tact.encounterDirector(100,1);
+ const warlord=position(chapter,21,'warlord',true);
+ const reinforcements=[position(chapter,22,'guardian',false,false,true),position(chapter,23,'guardian',false,false,true)];
+ assert(warlord.x>=455&&warlord.x<=505,'Chapter warlord occupies a visible central arrival lane');
+ assert(reinforcements[0].x<230&&reinforcements[1].x>745,'Two boss reinforcements approach from separate flanks');
+ for(const e of [left,right,bannerLead,bannerShield,bannerRaider,keeper,leftEscort,witch,shield,warlord,...reinforcements]){
+  assert(Number.isFinite(e.x)&&Number.isFinite(e.y),'Encounter placement never produces invalid coordinates');
+  assert(e.x>=125&&e.x<=835&&e.y>=120&&e.y<=190,'All special formations remain inside safe spawn bounds');
+ }
+ // Verify direct positions are used in actual spawned enemy objects.
+ live.wave=17;live.tier=1;live.maxHealth=tact.maxWall();live.health=live.maxHealth;tact.beginWave();
+ live.spawned=0;tact.spawnEnemy();
+ live.spawned=1;tact.spawnEnemy();
+ assert(live.enemies[0].x<230&&live.enemies[1].x>745,'Actual battlefield spawning uses distinct pincer arrival lanes');
+ assert(live.enemies[0].y<230&&live.enemies[1].y<230,'New arrival formations preserve fair travel distance to the wall');
+
+ // A live dangerous cast temporarily replaces static encounter advice.
+ live.enemies=[{type:'frostbinder',dead:false,y:280,x:330,frostWindup:.6},{type:'sapper',dead:false,y:230,x:540,fuseTime:.9}];
+ live.phase='fighting';tact.refreshHUD();
+ const ribbon=tactWorld.sandbox.document.getElementById('encounterRibbon');
+ const hint=tactWorld.sandbox.document.getElementById('encounterHint');
+ assert.equal(ribbon.dataset.threat,'true','Battle ribbon marks actual combat threats');
+ assert(hint.textContent.includes('FUSE LIT'),'Live sapper countdown outranks less-dangerous caster');
+ assert.equal(tact.activeEncounterThreat().priority,120,'Danger ordering is deterministic');
+ live.enemies[1].dead=true;tact.refreshHUD();
+ assert(hint.textContent.includes('FROST RITE'),'Second live threat appears when a higher danger is defeated');
+ live.enemies[0].dead=true;tact.refreshHUD();
+ assert.equal(ribbon.dataset.threat,'false','Threat ribbon returns to normal when warned enemies die');
+ assert(hint.textContent.includes('RUSHERS')||hint.hidden,'Fallback advice displays only when applicable');
+ // Real-time warnings also work for every main chapter boss ability.
+ live.enemies=[{type:'warlord',dead:false,x:480,y:200,bossFuryWindup:.8}];
+ assert(tact.activeEncounterThreat().text.includes('EMBER CHARGE'),'Ember windups are announced to the hero');
+ live.enemies=[{type:'warlord',dead:false,x:480,y:200,bossBlinkWindup:.8}];
+ assert(tact.activeEncounterThreat().text.includes('VOID STEP'),'Void Step telegraph is identified');
+ live.enemies=[{type:'siegebeast',dead:false,x:480,y:200,crushWindup:.8}];
+ assert(tact.activeEncounterThreat().text.includes('CRUSHER'),'Siege crusher telegraph is identified');
+ live.enemies=[{type:'warlord',dead:false,x:480,y:200,bossWardTimer:1.5}];
+ assert(tact.activeEncounterThreat().text.includes('IRON WARD'),'Counterable Iron Ward is identified');
+ live.enemies=[];live.phase='ready';
+ assert.equal(tact.activeEncounterThreat(),null,'No threat messaging outside a fighting wave');
+
+ // Pausing freezes actual siege time, incoming enemies, wave countdowns and progress.
+ const pauseWorld=createWorld(1608),pause=pauseWorld.hooks,paused=pause.run(),progress=pause.p();
+ paused.tier=1;paused.wave=25;paused.maxHealth=pause.maxWall();paused.health=paused.maxHealth;pause.beginWave();
+ paused.speed=0;
+ const timeBefore=paused.time,spawnBefore=paused.spawned,battleSecondsBefore=progress.battleSeconds;
+ pause.tick(50);
+ assert.equal(paused.time,timeBefore,'Paused battle does not advance combat time');
+ assert.equal(paused.spawned,spawnBefore,'Paused battle cannot spawn enemies');
+ assert.equal(progress.battleSeconds,battleSecondsBefore,'Paused battle does not accrue playtime rewards');
+ paused.speed=1;pause.tick(.4);
+ assert(paused.spawned>spawnBefore,'Unpaused combat resumes normal enemy spawning');
+ paused.phase='intermission';paused.rewardTimer=.8;paused.speed=0;pause.tick(25);
+ assert.equal(paused.rewardTimer,.8,'Paused intermission does not auto-start the next wave');
+ paused.speed=1;pause.tick(.1);
+ assert(paused.rewardTimer<.8,'Unpaused intermission resumes wave countdown');
+ console.log('PASS: Alpha 0.10.6 encounter formation lanes, real spawning, safe battlefield distances, priority live threat messaging and pause-safe siege clock.');
+})();
