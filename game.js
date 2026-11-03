@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.9.0. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.0. Living Onslaught phase 1: encounter director, factions, enemies and bosses with combined overview and skill trees, plus the armory update. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -558,6 +558,18 @@ function refreshHUD(){
  $('resources').innerHTML=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');
  $('stageName').textContent='TIER '+roman(run.tier)+' · '+tierNames[run.tier-1];
  $('waveName').textContent='WAVE '+formatWave(run.wave)+' / '+formatWave(MAX_WAVE);
+ const encounterRibbon=$('encounterRibbon');
+ if(encounterRibbon){
+  const active=run.phase==='fighting'||run.phase==='intermission';
+  const encounter=active?(run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier)):null;
+  encounterRibbon.hidden=!encounter;
+  if(encounter){
+   encounterRibbon.dataset.kind=encounter.kind;
+   $('encounterType').textContent=encounter.label;
+   $('encounterFaction').textContent=encounter.faction;
+   $('encounterChapter').textContent='CHAPTER '+roman(encounter.chapter);
+  }
+ }
  $('waveFill').style.width=(run.phase==='fighting'?100*run.kills/(run.total||1):run.phase==='intermission'?100:0)+'%';
  $('wallText').textContent=Math.ceil(run.health)+' / '+run.maxHealth;
  $('wallFill').style.width=(100*run.health/(run.maxHealth||1))+'%';
@@ -1196,5 +1208,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,shieldAuraReduction,encounterSpecialBonus,isSiegeBoss,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
