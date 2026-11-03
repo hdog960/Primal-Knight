@@ -670,9 +670,18 @@ function specialEnemyMotion(e,dt){
    }else if(e.bossFurySurge>0){e.bossFurySurge=Math.max(0,e.bossFurySurge-dt);motion=1.70;}
    else{e.bossFuryClock=(e.bossFuryClock??3)-dt;if(e.bossFuryClock<=0){e.bossFuryWindup=.9;e.bossCastDamage=0;motion=.25;float(e.x,e.y-28,'EMBER CHARGE','#ffad7e');}}
   }
-  if(e.bossStyle==='rift'&&e.bossBlinkWindup>0){
-   e.bossBlinkWindup=Math.max(0,e.bossBlinkWindup-dt);motion=.20;
-   if(e.bossBlinkWindup===0){e.y=Math.min(398,e.y+26);effect(e.x,e.y,'#b29af6',12);float(e.x,e.y-28,'VOID STEP','#d9c9ff');}
+  if(e.bossStyle==='rift'){
+   e.bossBlinkCooldown=Math.max(0,(e.bossBlinkCooldown||0)-dt);
+   if(e.bossBlinkWindup>0){
+    e.bossBlinkWindup=Math.max(0,e.bossBlinkWindup-dt);motion=.20;
+    if(e.bossBlinkWindup===0){
+     e.y=Math.min(398,e.y+26);e.bossBlinkCooldown=7;e.bossCastDamage=0;
+     effect(e.x,e.y,'#b29af6',12);float(e.x,e.y-28,'VOID STEP','#d9c9ff');
+    }
+   }else if(e.bossBlinkCooldown<=0&&e.y<325){
+    e.bossBlinkWindup=1.05;e.bossCastDamage=0;motion=.20;
+    float(e.x,e.y-28,'VOID RIFT OPENING','#dbc1ff');
+   }
   }
  }
  if(e.type==='siegebeast'){
@@ -823,6 +832,11 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  if(e.type==='riftstalker'&&e.blinkWindup>0){
   ctx.strokeStyle='#d4b5ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.x,py+sh*.2,14,0,Math.PI*2*(1-e.blinkWindup/.95));ctx.stroke();
  }
+ if(e.bossExposedTimer>0&&isSiegeBoss(e)){
+  ctx.strokeStyle='rgba(255,223,134,.9)';ctx.lineWidth=3;
+  ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.55,Math.max(8,10*s),0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ffe29f';ctx.fillRect(e.x-4,py-13,8,3);
+ }
  if(e.type==='warlord'&&e.bossWardTimer>0){
   ctx.strokeStyle='#a9d4f4';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.52,Math.max(9,11*s),0,0,Math.PI*2);ctx.stroke();
  }
@@ -865,13 +879,15 @@ function refreshHUD(){
    $('bossPhase').textContent=boss.type==='warlord'?(boss.bossPhase===2?'PHASE II':'PHASE I'):'SIEGE ENGINE';
    $('bossHealth').textContent=Math.max(0,Math.ceil(100*boss.hp/(boss.max||1)))+'%';
    $('bossFill').style.width=clamp(100*boss.hp/(boss.max||1),0,100)+'%';
-   const warning=boss.crushWindup>0?'CRUSHER CHARGING':
-    boss.bossFuryWindup>0?'EMBER CHARGE INCOMING':
-    boss.bossBlinkWindup>0?'VOID STEP INCOMING':
-    boss.bossWardTimer>0?'IRON WARD · ARMOR UP':
+   const warning=boss.bossExposedTimer>0?'EXPOSED · +12% DAMAGE':
+    boss.crushWindup>0?'CRUSHER · BREAK THE WINDUP':
+    boss.bossFuryWindup>0?'EMBER CHARGE · INTERRUPT':
+    boss.bossBlinkWindup>0?'VOID STEP · INTERRUPT':
+    boss.bossWardTimer>0?'IRON WARD · SHATTER IT':
     boss.bossFurySurge>0?'REGENT SURGING':boss.bossPhase===2?'REINFORCEMENTS DEPLOYED':'WATCH FOR PHASE II';
    $('bossWarning').textContent=warning;
    bossHud.dataset.warning=Number(boss.crushWindup>0||boss.bossFuryWindup>0||boss.bossBlinkWindup>0)?'true':'false';
+   bossHud.dataset.exposed=boss.bossExposedTimer>0?'true':'false';
   }
  }
  const encounterRibbon=$('encounterRibbon');
@@ -1529,5 +1545,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,renderSiegeCodex,refreshHUD,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,renderSiegeCodex,refreshHUD,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
