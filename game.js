@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.6.8. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.6.9. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -493,6 +493,19 @@ function renderPowerHeader(kind){
   <div class="ascension-progress-track"><i style="width:${meterPct(isTraining?trainingTotal:researchTotal,isTraining?trainingMax:researchMax)}%"></i></div></div>
  </div>`;
 }
+const forgePixelPatterns={"power":"..........sw./.........swh./........swh../.......swh.../......swh..../.....swh...../....swh....../...swh......./..gssg......./.ggg........./.ggr........./..rr........./.............","haste":"............/...ww......./..wwww....../.wwshww...../wwsshwww..../.wsshhwww.../..ssshwwww../...ssshwww../....ssshww../.....ssshw../......ssss../.......ss.../............","crit":"............./....rrrrr..../...rwwwwwr.../..rwrrrrrwr../..rwrwwrwr../..rwrssrwr../..rwrwwrwr../..rwrrrrrwr../...rwwwwwr.../....rrrrr..../......s....../......s....../.............","critDmg":"............/...rrrrrr.../..rrwwwwrr../.rrwwwwwwrr./.rwsrwwrswr./.rwsrwwrswr./.rwwwwwwwwr./.rwwrrrrwwr./..rrrssrrr../...rrssrr.../...rrrrrr.../....r..r..../............","pierce":"..........ss./.........sss./........ssww./.......ssww../......ssww.../...ggsssww.../..gggsss..../..gsssgg...../...sss......./..ss........./.ss........../ss.........../............","range":"............/............/....s......./...swwwwwws./.sggghhhhhhs./...swwwwwws./....s......./............/...s......./..sws......./.ss..s....../............/............","multishot":"............./.....s....../....swwwws../.ggghhhhhhs./....swwwws../.....s....../.....s....../....swwwws../.ggghhhhhhs./....swwwws../.....s....../....swwwws../.ggghhhhhhs.","boss":"............./...g.....g.../.ggg...ggg.../.gwg...gwg.../.ggggggggg.../.ggrgggrgg.../.ggggggggg.../.gwwwwwwwg.../.ggggggggg.../..gghghgg..../..ggggggg..../............./.............","shock":"......gg...../.....ghg...../....ghg....../...ghg......./..ghggggg..../...ghhhgg..../.....ghg...../....ghg....../...ghg......./..ghg......../.ghg........./..g........../.............","fort":"....sssss..../...swwwwws.../.sssswwsssss./.swwswwswws./.swwswwswws./.swwswwswws./.swwwwwwws./.swwshswws./.sswwhwwss../..sswhwss.../...sssss..../....sss....../.....s.......","regen":"............/..cc....cc../.cccc..cccc./.cwwcccccwc./.cwwwwwwwwc./.cwwwccwwwc./.cwwccccwwc./..cwwccwwc../...cwwwwc.../....cwwc..../.....cc...../............/............","resist":"............/...ss..ss.../..ssssssss../..swsswsws../..swwwwwws../..swwwwwws../..sswsswss../..swwwwwws../..swwwwwws../..ssssssss../..sggggggs../..ssssssss../............","gold":"............/...gggggg.../..ggghhhgg../.gghggghhgg./.ghgggggghg./.ghgggggghg./.ghgggggghg./.ghgggggghg./.gghggghhgg./..ggghhhgg../...gggggg.../............/............","xp":"............/............/.swwwwwws.../.swwsswws.../.swwsswws.../.swwsswws.../.swwsswws.../.swwsswws.../.swwsswws.../.swwsswws.../.ssssssss.../............/............","essence":"......cc...../.....ccbc..../....cbbbbc.../...cbbwwbbc../..cbbwwwwbbc./.cbbwwwwwwbc./.cbbbbwwbbbc./..cbbbbbbbc../...cbbbbbcc../....cbbbc..../.....cbc...../......c....../............","loot":"............/............/..gggggggg../.gwwwwwwwwg./.gggggggggg./.ssggssggss./.swwwwwwwws./.swwwhhwwws./.swwwhhwwws./.swwwwwwwws./.ssssssssss./............/............","excavation":"............./..ssssss...../.sswwwwss..../..s....ss..../.......ss..../.......ss..../.......ss..../.......ss..../.......ss..../.....ggssgg../.....gggggg../............./............."};
+function forgePixelIcon(id){
+ const alias={discount:'gold',fusion:'essence',interest:'gold',bounties:'boss',studies:'xp',siegebreaker:'boss',guardianOath:'fort',goldenTouch:'gold',Offense:'power',Techniques:'multishot',Defense:'fort',Economy:'gold',Legacy:'boss'};
+ const key=forgePixelPatterns[id]?id:(alias[id]||'power');
+ const colors={s:'#626b79',w:'#e8f0e2',h:'#ffedbc',g:'#e5a947',r:'#c64a47',c:'#56bdad',b:'#4f91d9',k:'#1c2834'};
+ const lines=forgePixelPatterns[key].split('/');
+ let pixels='';
+ for(let y=0;y<lines.length;y++)for(let x=0;x<lines[y].length;x++){
+  const char=lines[y][x],fill=colors[char];if(fill)pixels+='<rect x="'+(6+x*4)+'" y="'+(6+y*4)+'" width="4" height="4" fill="'+fill+'"/>';
+ }
+ return '<svg class="forge-pixel-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="'+key+' pixel art icon" shape-rendering="crispEdges">'+pixels+'</svg>';
+}
+
 function renderTrainingLedger(){
  const groups=[
   {key:'Offense',icon:'battle',subtitle:'HIT HARDER',description:'Sharpen your attacks and critical strikes.',ids:['power','haste','crit','critDmg','pierce']},
@@ -510,7 +523,7 @@ function renderTrainingLedger(){
   const [id,name,desc,,,max]=row,rank=t(id),cost=trainCost(row),
   full=rank>=max,ready=!full&&p.essence>=cost,batch=full?{count:0,cost:0}:trainBatchQuote(row,10);
   return `<article class="ascension-upgrade forge-upgrade-row" data-train-row="${id}">
-   <div class="ascension-emblem"><span class="pixel-symbol pixel-symbol-${icons[id]||'power'}" aria-hidden="true"></span></div>
+   <div class="ascension-emblem">${forgePixelIcon(id)}</div>
    <div class="ascension-upgrade-copy"><div class="ascension-upgrade-name"><strong>${name}</strong><small>${fmt(rank)} / ${fmt(max)}</small></div>
     <p>${desc}</p><div class="ascension-rank-track" role="progressbar" aria-label="${name} rank" aria-valuenow="${rank}" aria-valuemin="0" aria-valuemax="${max}"><span style="width:${meterPct(rank,max)}%"></span></div>
    </div>
@@ -527,7 +540,7 @@ function renderTrainingLedger(){
   const invested=rows.reduce((sum,row)=>sum+t(row[0]),0);
   const capacity=rows.reduce((sum,row)=>sum+row[5],0);
   return `<section class="forge-category forge-category-${group.key.toLowerCase()}" aria-label="${group.key} training">
-    <div class="forge-category-head"><span class="forge-category-crest"><span class="pixel-symbol pixel-symbol-${group.icon}" aria-hidden="true"></span></span>
+    <div class="forge-category-head"><span class="forge-category-crest">${forgePixelIcon(group.key)}</span>
       <div class="forge-category-heading"><small>${group.subtitle}</small><h3>${group.key}</h3><p>${group.description}</p></div>
       <div class="forge-category-total"><b>${fmt(invested)}</b><small>/ ${fmt(capacity)} ranks</small></div></div>
     <div class="forge-category-rows">${rows.map(upgradeRow).join('')}</div>
@@ -536,7 +549,7 @@ function renderTrainingLedger(){
  const legacyMarkup=p.legacyUnlocked?legacyPaths.map(row=>{
   const [id,name,desc,,max]=row,rank=lr(id),cost=legacyCost(row),full=rank>=max,ready=!full&&p.sigils>=cost;
   return `<article class="ascension-upgrade forge-upgrade-row forge-legacy-row" data-legacy-row="${id}">
-   <div class="ascension-emblem"><span class="pixel-symbol pixel-symbol-${id==='goldenTouch'?'runes':id==='guardianOath'?'fortress':'battle'}" aria-hidden="true"></span></div>
+   <div class="ascension-emblem">${forgePixelIcon(id)}</div>
    <div class="ascension-upgrade-copy"><div class="ascension-upgrade-name"><strong>${name}</strong><small>${rank} / ${max}</small></div><p>${desc}</p>
     <div class="ascension-rank-track"><span style="width:${meterPct(rank,max)}%"></span></div></div>
    <div class="ascension-action-cell"><div class="ascension-next-cost">${full?'MASTERED':`💠 ${fmt(cost)}`}</div>
@@ -549,7 +562,7 @@ function renderTrainingLedger(){
    <span>16 permanent upgrades · Four disciplines · No category switching</span></div>
   <div class="forge-all-categories">${groupMarkup}</div>
   <section class="forge-legacy-chamber" aria-label="Legacy Masteries">
-   <div class="forge-category-head"><span class="forge-category-crest"><span class="pixel-symbol pixel-symbol-power" aria-hidden="true"></span></span>
+   <div class="forge-category-head"><span class="forge-category-crest">${forgePixelIcon('Legacy')}</span>
     <div class="forge-category-heading"><small>✦ PRIMAL SIGIL INVESTMENTS</small><h3>Legacy Masteries</h3><p>Permanent powers earned through milestone progression.</p></div>
     <div class="forge-category-total"><b>${fmt(p.sigils)}</b><small>Sigils held</small></div>
    </div><div class="forge-legacy-rows">${legacyMarkup}</div>
@@ -567,7 +580,7 @@ function renderResearchArchive(){
   const entries=ids.map(id=>{
    const row=research.find(x=>x[0]===id),[,,desc,,,max]=row,rank=res(id),cost=researchCost(row,p.research),full=rank>=max,ready=!full&&p.knowledge>=cost;
    return `<article class="archive-entry" data-research-row="${id}">
-    <div class="archive-emblem"><span class="pixel-symbol pixel-symbol-${researchIcons[id]}" aria-hidden="true"></span></div>
+    <div class="archive-emblem">${forgePixelIcon(id)}</div>
     <div class="archive-details"><div class="archive-entry-top"><strong>${row[1]}</strong><small>${rank} / ${max}</small></div><p>${desc}</p><div class="archive-progress"><i style="width:${meterPct(rank,max)}%"></i></div></div>
     <div class="archive-action"><small>${full?'RESEARCH COMPLETE':`📖 ${fmt(cost)} KNOWLEDGE`}</small><button type="button" data-action="research:${id}" ${!ready?'disabled':''}>${full?'MAXED':'RESEARCH +1'}</button></div>
    </article>`;
