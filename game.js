@@ -171,6 +171,20 @@ function waystoneForTier(tier){
 let useWaystone=true;
 const legacyPaths=[['siegebreaker','Siegebreaker','Deal +6% damage to siege bosses per rank.',2,30],['guardianOath','Guardian’s Oath','Increase permanent wall durability +3% per rank.',2,35],['goldenTouch','Golden Touch','Earn +4% gold from monster kills per rank.',3,40]];
 const lr=id=>n(p.legacy,id);
+function tierAdvanceWave(tier){
+ if(tier>=MAX_TIER)return null;
+ if(tier<=16)return 20;
+ if(tier<=20)return 100;
+ if(tier<=24)return 150;
+ return 250;
+}
+function decorateTierGate(tier,wave,prize){
+ if(tier<MAX_TIER&&tierAdvanceWave(tier)===wave){
+  prize.unlockNext=tier+1;
+  prize.detail+=' · UNLOCK TIER '+roman(tier+1);
+ }
+ return prize;
+}
 function tierMilestones(tier){return milestonesAt.filter(w=>tier>=17||!outerMilestones.has(w));}
 function tierMilestone(tier,wave){
  const trial=dominionTrial(tier);
@@ -193,19 +207,19 @@ function tierMilestone(tier,wave){
  if(wave===5)return {icon:'🟡',name:'Spoils of the Vanguard',detail:fmt(300*scale)+' Gold',kind:'gold',amount:Math.round(300*scale)};
  if(wave===10)return {icon:'🔷',name:'Essence Cache',detail:fmt(120*scale)+' Hero Essence',kind:'essence',amount:Math.round(120*scale)};
  if(wave===15)return tier===1?{icon:'✦',name:'Legacy Training Unsealed',detail:'Unlock permanent Sigil-powered upgrades + 5 Sigils',kind:'legacy',amount:5}:{icon:'💠',name:'Primal Sigil Cache',detail:(tier+3)+' Primal Sigils',kind:'sigils',amount:tier+3};
- if(wave===20)return tier<MAX_TIER?{icon:'⚔',name:'The Next Frontier',detail:'Unlock Tier '+roman(tier+1)+' + '+(2+tier)+' Sigils',kind:'tier',amount:2+tier}:{icon:'♛',name:'The Last Gate Opens',detail:(2+tier)+' Sigils · The final tier awaits its conqueror',kind:'sigils',amount:2+tier};
+ if(wave===20)return tier<=16?{icon:'⚔',name:'The Next Frontier',detail:'Unlock Tier '+roman(tier+1)+' + '+(2+tier)+' Sigils',kind:'tier',amount:2+tier}:{icon:'⚔',name:tier===MAX_TIER?'The Last Gate Opens':'Outer Gate Preparations',detail:(2+tier)+' Sigils · '+(tier===MAX_TIER?'The final tier awaits its conqueror':'Clear wave '+formatWave(tierAdvanceWave(tier))+' to unlock Tier '+roman(tier+1)),kind:'sigils',amount:2+tier};
  if(wave===35)return {icon:'◇',name:'Runic Expedition',detail:'A rare rune + '+fmt(350*scale)+' Gold',kind:'rune',amount:Math.round(350*scale)};
  if(wave===50)return {icon:'♛',name:'Banner of the Conqueror',detail:'A unique collectible and equippable banner',kind:'banner',amount:0};
  if(wave===75)return {icon:'💠',name:'Primal Treasury',detail:(6+tier*2)+' Sigils',kind:'sigils',amount:6+tier*2};
- if(wave===100)return {icon:'✦',name:'Century of Onslaught',detail:fmt(700*scale)+' Essence + '+(12+tier*3)+' Sigils',kind:'century',amount:Math.round(700*scale)};
+ if(wave===100)return decorateTierGate(tier,wave,{icon:'✦',name:trial?'The First Dominion Gate':'Century of Onslaught',detail:fmt(700*scale)+' Essence + '+(12+tier*3)+' Sigils',kind:'century',amount:Math.round(700*scale)});
  if(trial&&dominionCrestWaves.includes(wave)){
   const crestRank=dominionCrestWaves.indexOf(wave)+1;
   if(wave===MAX_WAVE)return {icon:'♛',name:trial.trial+' · Eternal Conquest',detail:fmt(sigils)+' Sigils · '+trial.crest+' Rank IV · Eternal Victory banner',kind:'eternal',amount:sigils,crestRank};
-  return {icon:'♛',name:trial.crest+' · Seal '+crestRank,detail:fmt(sigils)+' Sigils · '+trial.crest+' grows to Rank '+crestRank+' (permanent '+trial.stat+' bonus)',kind:'dominion',amount:sigils,crestRank};
+  return decorateTierGate(tier,wave,{icon:'♛',name:trial.crest+' · Seal '+crestRank,detail:fmt(sigils)+' Sigils · '+trial.crest+' grows to Rank '+crestRank+' (permanent '+trial.stat+' bonus)',kind:'dominion',amount:sigils,crestRank});
  }
  if(wave===MAX_WAVE)return {icon:'♛',name:'Eternal Conqueror',detail:fmt(sigils)+' Sigils + Eternal Victory banner',kind:'eternal',amount:sigils};
  const unlock=ascensionPaths.find(row=>row[5]===wave);
- if(unlock)return {icon:'✧',name:unlock[1]+' Discovery',detail:fmt(sigils)+' Sigils · Unlock '+unlock[1]+' in Power → Training'+(wave===1000?' · Ancient equipment can now drop':wave===2500?' · Celestial equipment can now drop':''),kind:'path',amount:sigils,unlock:unlock[0]};
+ if(unlock)return decorateTierGate(tier,wave,{icon:'✧',name:unlock[1]+' Discovery',detail:fmt(sigils)+' Sigils · Unlock '+unlock[1]+' in Power → Training'+(wave===1000?' · Ancient equipment can now drop':wave===2500?' · Celestial equipment can now drop':''),kind:'path',amount:sigils,unlock:unlock[0]});
  if(trial&&outerMilestones.has(wave)){
   const outerIndex=[125,225,375,625,875,1250,1750,3500,6500,8500,9500].indexOf(wave);
   const reward=Math.ceil(sigils*(1.15+outerIndex*.025));
@@ -227,6 +241,7 @@ function rewardMilestone(tier,wave){
  if(['sigils','deepSigils','path','eternal','frontier','dominion'].includes(prize.kind))p.sigils+=prize.amount;
  if(prize.kind==='legacy'){p.sigils+=prize.amount;p.legacyUnlocked=true;}
  if(prize.kind==='tier'){p.unlockedTier=Math.max(p.unlockedTier,Math.min(MAX_TIER,tier+1));p.sigils+=prize.amount;}
+ if(prize.unlockNext)p.unlockedTier=Math.max(p.unlockedTier,Math.min(MAX_TIER,prize.unlockNext));
  if(prize.kind==='rune'){p.gold+=prize.amount;if(p.runes.length<240)p.runes.push({id:'milestone_'+key,type:['ember','storm','frost','fortune'][(tier-1)%4],tier:Math.min(12,2+Math.floor(tier/3))});}
  if(prize.kind==='banner'){const banner='Banner of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
  if(prize.kind==='eternal'){const banner='Eternal Victor of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
@@ -295,7 +310,7 @@ function renderTierLobby(){
   const tier=i+1,locked=tier>p.unlockedTier,best=Math.min(MAX_WAVE,p.bestByTier[tier]||0),conquered=best>=MAX_WAVE;
   return `<button data-tier="${tier}" ${locked?'disabled':''} class="tier-choice ${chosenTier===tier?'selected':''} ${locked?'locked':''} ${conquered?'tier-conquered':''}" aria-pressed="${chosenTier===tier}">
    <span class="tier-choice-number">${locked?'🔒':conquered?'♛':'✦'} TIER ${roman(tier)}</span><strong>${name}</strong>
-   <small>${locked?'Clear wave 20 of Tier '+roman(tier-1):conquered?'ETERNALLY CONQUERED':`BEST ${formatWave(best)} / ${formatWave(MAX_WAVE)}`}</small>
+   <small>${locked?'Clear wave '+formatWave(tierAdvanceWave(tier-1))+' of Tier '+roman(tier-1):conquered?'ETERNALLY CONQUERED':`BEST ${formatWave(best)} / ${formatWave(MAX_WAVE)}`}</small>
    <span class="tier-progress-track"><span style="width:${100*best/MAX_WAVE}%"></span></span>
   </button>`;
  }).join('');
@@ -313,7 +328,7 @@ function renderTierLobby(){
   const prize=tierMilestone(tier,w),claimed=!!p.milestones[milestoneKey(tier,w)];
   if(claimed)claimedCount++;
   const reached=best>=w;
-  return `<div class="milestone-entry ${claimed?'claimed':''} ${w>100?'milestone-deep':''} ${prize.kind==='path'?'milestone-path':''} ${w===MAX_WAVE?'milestone-final':''}">
+  return `<div class="milestone-entry ${claimed?'claimed':''} ${w>100?'milestone-deep':''} ${prize.kind==='path'?'milestone-path':''} ${prize.unlockNext?'milestone-gate':''} ${prize.kind==='dominion'?'milestone-dominion':''} ${outerMilestones.has(w)?'milestone-new':''} ${newBeginningMilestones.has(w)?'milestone-first':''} ${w===MAX_WAVE?'milestone-final':''}">
     <div class="milestone-medal">${claimed?'✓':prize.icon}</div>
     <div class="milestone-copy"><strong>Wave ${formatWave(w)} · ${prize.name}</strong><small>${prize.detail}</small></div>
     <span class="milestone-status">${claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
@@ -1030,5 +1045,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,dominionTrial,dominionBonus,tierThreat,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,dominionTrial,dominionBonus,tierThreat,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
