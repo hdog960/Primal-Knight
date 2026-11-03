@@ -166,19 +166,40 @@ function showLobby(summary=''){
  $('exitRunButton').hidden=true;$('startButton').hidden=true;renderTierLobby();
 }
 function renderTierLobby(){
- chosenTier=clamp(chosenTier,1,12);
- $('tierGrid').innerHTML=tierNames.map((name,i)=>{let tier=i+1,locked=tier>p.unlockedTier,best=p.bestByTier[tier]||0;
-  return `<button data-tier="${tier}" ${locked?'disabled':''} class="tier-choice ${chosenTier===tier?'selected':''} ${locked?'locked':''}" aria-pressed="${chosenTier===tier}"><span class="tier-choice-number">${locked?'🔒':'✦'} TIER ${roman(tier)}</span><strong>${name}</strong><small>${locked?'Clear wave 20 of Tier '+roman(tier-1):'BEST WAVE '+best}</small></button>`;
+ chosenTier=clamp(chosenTier,1,MAX_TIER);
+ $('tierGrid').innerHTML=tierNames.map((name,i)=>{
+  const tier=i+1,locked=tier>p.unlockedTier,best=Math.min(MAX_WAVE,p.bestByTier[tier]||0),conquered=best>=MAX_WAVE;
+  return `<button data-tier="${tier}" ${locked?'disabled':''} class="tier-choice ${chosenTier===tier?'selected':''} ${locked?'locked':''} ${conquered?'tier-conquered':''}" aria-pressed="${chosenTier===tier}">
+   <span class="tier-choice-number">${locked?'🔒':conquered?'♛':'✦'} TIER ${roman(tier)}</span><strong>${name}</strong>
+   <small>${locked?'Clear wave 20 of Tier '+roman(tier-1):conquered?'ETERNALLY CONQUERED':`BEST ${fmt(best)} / ${fmt(MAX_WAVE)}`}</small>
+   <span class="tier-progress-track"><span style="width:${100*best/MAX_WAVE}%"></span></span>
+  </button>`;
  }).join('');
- const tier=chosenTier,best=p.bestByTier[tier]||0;
+ const tier=chosenTier,best=Math.min(MAX_WAVE,p.bestByTier[tier]||0),stone=waystoneForTier(tier);
  $('tierHeading').textContent='TIER '+roman(tier)+' — '+tierNames[tier-1].toUpperCase();
- $('tierDescription').textContent=`Enemy strength ×${(1+(tier-1)*.64).toFixed(2)} · Gold & XP ×${(1+(tier-1)*.32).toFixed(2)} · Best wave ${best}`;
- $('milestoneList').innerHTML=milestonesAt.map(w=>{let prize=tierMilestone(tier,w),claimed=!!p.milestones[milestoneKey(tier,w)];return `<div class="milestone-entry ${claimed?'claimed':''}"><div class="milestone-medal">${claimed?'✓':prize.icon}</div><div class="milestone-copy"><strong>Wave ${w} · ${prize.name}</strong><small>${prize.detail}</small></div><span class="milestone-status">${claimed?'CLAIMED':best>=w?'AVAILABLE NEXT RUN':'TARGET'}</span></div>`}).join('');
+ $('tierDescription').textContent=`Enemy strength ×${(1+(tier-1)*.64).toFixed(2)} · Gold & XP ×${(1+(tier-1)*.32).toFixed(2)} · Record ${fmt(best)} / ${fmt(MAX_WAVE)} · ${best>=MAX_WAVE?'ETERNALLY CONQUERED':'Continue your legacy'}`;
+ const waystone=stone>1?`<div class="milestone-waystone" role="group" aria-label="Siege starting checkpoint"><div><strong>✦ UNLOCKED WAYSTONE · WAVE ${fmt(stone)}</strong><small>Resume an earlier tier without replaying its first ${fmt(stone-1)} waves. Milestone rewards are earned once per tier.</small></div>
+  <div class="milestone-waystone-choices">
+   <button type="button" data-start-mode="fresh" ${useWaystone?'':'aria-pressed="true"'} class="${useWaystone?'':'selected'}">WAVE 1</button>
+   <button type="button" data-start-mode="waystone" ${useWaystone?'aria-pressed="true"':''} class="${useWaystone?'selected':''}">WAYSTONE ${fmt(stone)}</button>
+  </div></div>`:`<div class="milestone-waystone milestone-waystone-empty"><strong>✧ YOUR FIRST WAYSTONE AWAITS AT WAVE 100</strong><small>Push deeper to permanently unlock restart checkpoints and more powerful Ascension routes.</small></div>`;
+ let claimedCount=0;
+ const rewards=milestonesAt.map(w=>{
+  const prize=tierMilestone(tier,w),claimed=!!p.milestones[milestoneKey(tier,w)];
+  if(claimed)claimedCount++;
+  const reached=best>=w;
+  return `<div class="milestone-entry ${claimed?'claimed':''} ${w>100?'milestone-deep':''} ${prize.kind==='path'?'milestone-path':''} ${w===MAX_WAVE?'milestone-final':''}">
+    <div class="milestone-medal">${claimed?'✓':prize.icon}</div>
+    <div class="milestone-copy"><strong>Wave ${fmt(w)} · ${prize.name}</strong><small>${prize.detail}</small></div>
+    <span class="milestone-status">${claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
+   </div>`;
+ }).join('');
+ $('milestoneList').innerHTML=waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${milestonesAt.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
- $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' • ENDLESS SIEGE';
+ $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+fmt(useWaystone?stone:1)+' / '+fmt(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
 }
-function enterSiege(){if(chosenTier>p.unlockedTier)return;p.selectedTier=chosenTier;initRun();run.tier=chosenTier;$('tierLobby').hidden=true;$('exitRunButton').hidden=false;$('startButton').hidden=true;save();beginWave();}
+function enterSiege(){if(chosenTier>p.unlockedTier)return;p.selectedTier=chosenTier;initRun();run.wave=useWaystone?waystoneForTier(chosenTier):1;run.tier=chosenTier;$('tierLobby').hidden=true;$('exitRunButton').hidden=false;$('startButton').hidden=true;save();beginWave();}
 function retreatFromSiege(){const cleared=run.wave-(run.phase==='intermission'?1:run.phase==='fallen'?0:1);const summary=`Tier ${roman(run.tier)} · Reached wave ${run.wave} · Cleared ${Math.max(0,cleared)} this run`;
  run.phase='ready';run.enemies=[];run.shots=[];save();showLobby(summary);refreshHUD();}
 function legacyCost(row){return Math.ceil(row[3]*(1+lr(row[0])*.35+Math.pow(lr(row[0]),1.35)*.26));}
@@ -801,7 +822,8 @@ $('settingsButton').onclick=()=>openTab('settings');$('closePanel').onclick=()=>
 $('startButton').onclick=()=>{if(!$('tierLobby').hidden)enterSiege()};
 $('launchTierButton').onclick=enterSiege;
 $('exitRunButton').onclick=()=>{if(confirm('End this siege and return to the tier selection? Earned rewards and milestones are saved.'))retreatFromSiege()};
-$('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(!b||b.disabled)return;chosenTier=Number(b.dataset.tier);p.selectedTier=chosenTier;save();renderTierLobby();});
+$('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(!b||b.disabled)return;chosenTier=Number(b.dataset.tier);useWaystone=true;p.selectedTier=chosenTier;save();renderTierLobby();});
+$('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-start-mode]');if(!b)return;useWaystone=b.dataset.startMode==='waystone';const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;});
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
