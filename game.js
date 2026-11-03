@@ -96,8 +96,8 @@ const ascensionPaths=[
 const ascRank=id=>n(p.ascension,id);
 const ascUnlockWave=row=>row[5];
 function waveThreat(wave){
- const wave=Math.max(1,Math.min(MAX_WAVE,wave));
- return wave<=100?1+wave*.19:20*Math.pow(1+(wave-100)/180,1.65);
+ const w=Math.max(1,Math.min(MAX_WAVE,wave));
+ return w<=100?1+w*.19:20*Math.pow(1+(w-100)/180,1.65);
 }
 function enemySpeedFactor(wave){
  const w=Math.max(1,Math.min(MAX_WAVE,wave));
