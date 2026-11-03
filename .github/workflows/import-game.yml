@@ -45,3 +45,4 @@ jobs:
           node tests/encounters.js
           node tests/deepwave.js
           node tests/mobile-render.js
+          node tests/reward-integrity.js
