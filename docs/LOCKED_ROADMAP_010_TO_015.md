@@ -102,3 +102,8 @@ Delivered: repair the legacy backup-import tier cap (12 → 30), preserve high-t
 Delivered: refresh-rate independent visual effects, at-most-60Hz battlefield rendering while simulation remains responsive, cheaper menu/background redraws, reduced-motion support, resource-header DOM caching, and smaller-iPhone HUD and tap-size refinements. Required new frame-pacing / CSS regression suite `tests/mobile-render.js`. See `docs/ALPHA_0108_IPHONE_FRAME_PACING.md`.
 
 **Alpha 0.10 is not yet accepted.** Automated tests do not replace physical iPhone Safari/Home Screen QA. Validate the portrait/landscape combat view, warm boss telegraphs, early+deep wave readability and actual device performance before moving to the locked Alpha 0.11 Hero Combat Depth phase.
+
+### Alpha 0.10.9 — Living Onslaught, slice 10
+Delivered: real attack-countdown progress inside the boss HP HUD (Cinder, Void, Siege Beast, Iron Ward), mobile pause indicator, 1×/2× resume-speed selection without secretly unpausing, consistent control accessibility, background auto-pause during both fighting and intermissions, clean speed reset after run restart/import, and added real-combat UI regressions. See `docs/ALPHA_0109_BOSS_TIMELINES.md`.
+
+**Alpha 0.10 remains open for device acceptance and encounter feel review.** Do not mistake automated QA for physical iPhone validation; keep the locked Alpha 0.11–0.15 sequence unchanged.

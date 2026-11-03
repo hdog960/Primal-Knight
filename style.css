@@ -1844,3 +1844,39 @@
 @media (prefers-reduced-motion:reduce){
  .boss-hp-track>div,.wave-track>div,.hp-track>div{transition:none!important}
 }
+
+
+/* Alpha 0.10.9 — focused boss-timer readability and reliable paused state. */
+.boss-cast-track[hidden],.battle-paused[hidden]{display:none!important}
+.boss-cast-track{margin-top:6px;padding-top:5px;border-top:1px solid #d9b47e4d}
+.boss-cast-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.boss-cast-row span{font:bold 9px/1.2 Arial,sans-serif;color:#ffdfaa;letter-spacing:.45px;white-space:nowrap}
+.boss-cast-row small{font:700 8px Arial,sans-serif;color:#deccb5;white-space:nowrap}
+.boss-cast-bar{height:7px;margin-top:5px;border:1px solid #9e744e;background:#121721;box-shadow:inset 0 1px 3px #0007;overflow:hidden}
+.boss-cast-bar i{display:block;width:0;height:100%;background:linear-gradient(90deg,#c15c42,#ffd18b);transition:width .1s linear}
+.boss-cast-track[data-ward="true"] .boss-cast-bar i{background:linear-gradient(90deg,#6798bc,#bee9f6)}
+.boss-cast-track[data-ward="true"] .boss-cast-row span{color:#c6e4ff}
+.battle-paused{position:absolute;z-index:6;left:50%;top:48%;transform:translate(-50%,-50%);
+ min-width:190px;width:max-content;max-width:calc(100% - 26px);padding:13px 20px;text-align:center;pointer-events:none;
+ background:linear-gradient(110deg,#122537f3,#304056f5 50%,#182939f2);border:2px solid #eed195;
+ box-shadow:inset 0 0 0 2px #172532,0 5px 18px #000c}
+.battle-paused strong{display:block;color:#ffedbb;font:800 16px Georgia,serif;letter-spacing:1.3px;text-shadow:1px 2px #111}
+.battle-paused small{display:block;margin-top:6px;color:#dfdfc9;font:700 10px/1.4 Arial,sans-serif}
+#pauseButton[aria-pressed="true"]{border-color:#ffe1a1;background:linear-gradient(135deg,#6d5939,#433b30);color:#fff6cf}
+@media (orientation:portrait) and (max-width:540px){
+ .boss-cast-row span{font-size:10px}.boss-cast-row small{font-size:9px}
+ .boss-cast-bar{height:8px;margin-top:6px}
+ .battle-paused{top:48%;padding:11px 12px;width:min(330px,calc(100% - 30px))}
+ .battle-paused strong{font-size:15px}
+ .battle-paused small{font-size:10px}
+}
+@media (orientation:landscape) and (max-height:460px){
+ .boss-cast-track{margin-top:4px;padding-top:3px}
+ .boss-cast-row span{font-size:9px}
+ .boss-cast-row small{font-size:8px}
+ .boss-cast-bar{height:6px;margin-top:4px}
+ .battle-paused{top:51%;padding:8px 16px;max-width:300px}
+ .battle-paused strong{font-size:13px}
+ .battle-paused small{font-size:9px;margin-top:3px}
+}
+@media(prefers-reduced-motion:reduce){.boss-cast-bar i{transition:none!important}}

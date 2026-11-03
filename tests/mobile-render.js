@@ -98,5 +98,92 @@ assert(css.includes('(orientation:portrait) and (max-width:540px)'),'Compact iPh
 assert(css.includes('.hud-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))'),'Mobile HUD prevents the three resource blocks from overflowing narrow viewports');
 assert(css.includes('.fight-actions button{min-height:44px;min-width:44px'),'Portrait battle controls meet 44px touch target guidance');
 assert(css.includes('.encounter-ribbon .encounter-goal,.encounter-ribbon .encounter-hint{font-size:10px'),'Objective and attack warnings have larger text');
-assert(html.includes('ALPHA 0.10.8')&&html.includes('game.js?v=0.10.8'),'Release assets are cache-busted for Safari and Home Screen updates');
+assert(html.includes('ALPHA 0.10.9')&&html.includes('game.js?v=0.10.9'),'Release assets are cache-busted for Safari and Home Screen updates');
 console.log('PASS: Alpha 0.10.8 time-independent VFX, visual pause, 120/60/30Hz frame pacing, low-refresh menu and background behavior, DOM resource cache and iPhone HUD CSS.');
+
+
+// Alpha 0.10.9 — battle controls must not contradict the actual pause state.
+const phone=world(),battle=phone.h,active=battle.run(),pauseButton=phone.el('pauseButton'),speedButton=phone.el('speedButton'),pausedLabel=phone.el('battlePauseStatus');
+battle.enterSiege();
+assert.equal(active.phase,'fighting','Mobile control test uses a real started siege');
+assert.equal(speedButton.textContent,'1×','A fresh battle shows normal speed');
+assert.equal(pausedLabel.hidden,true,'Pause banner is hidden while combat runs');
+assert.equal(battle.toggleBattlePause(),true,'Pause action actually stops active siege');
+assert.equal(active.speed,0,'Paused combat has zero simulation speed');
+assert.equal(pauseButton.textContent,'▶','Pausing visibly presents resume icon');
+assert.equal(pauseButton.ariaPressed,'true','Pause controls expose their pressed state accessibly');
+assert.equal(pausedLabel.hidden,false,'Player sees an unmistakable paused state');
+const timeBeforePause=active.time,spawnBeforePause=active.spawned,playtimeBeforePause=battle.p().battleSeconds;
+battle.cycleBattleSpeed();
+assert.equal(active.speed,0,'Tapping speed while paused cannot secretly resume combat');
+assert.equal(speedButton.textContent,'2×','Speed button displays chosen resume speed even when paused');
+battle.tick(25);
+assert.equal(active.time,timeBeforePause,'Pausing freezes battle timers despite speed selection');
+assert.equal(active.spawned,spawnBeforePause,'Pause still prevents enemy spawning');
+assert.equal(battle.p().battleSeconds,playtimeBeforePause,'Pause cannot generate playtime progression');
+assert.equal(battle.toggleBattlePause(),false,'Resume action clears paused state');
+assert.equal(active.speed,2,'Resuming applies the 2× speed picked during pause');
+assert.equal(pauseButton.textContent,'Ⅱ','Active combat shows the pause icon again');
+assert.equal(pauseButton.ariaPressed,'false','Pressed accessibility state clears on resume');
+assert.equal(pausedLabel.hidden,true,'Pause banner disappears when battle resumes');
+battle.tick(.35);
+assert(active.spawned>spawnBeforePause,'Resumed 2× combat progresses normally');
+
+battle.pauseBattleInBackground();
+assert.equal(active.speed,0,'Switching away from Safari pauses running battle');
+assert.equal(pausedLabel.hidden,false,'Automatic background pause is visibly reflected');
+battle.toggleBattlePause();
+assert.equal(active.speed,2,'Foreground return resumes the correct chosen speed');
+battle.retreatFromSiege();
+battle.enterSiege();
+assert.equal(active.speed,2,'A fresh siege never inherits a stale paused state from prior run');
+active.phase='intermission';active.rewardTimer=1.0;
+battle.pauseBattleInBackground();
+assert.equal(active.speed,0,'Backgrounding during a between-wave countdown pauses too');
+battle.tick(30);
+assert.equal(active.rewardTimer,1.0,'Backgrounded intermission does not auto-launch the next wave');
+battle.toggleBattlePause();
+assert.equal(active.speed,2,'Intermission resumes at remembered 2× speed');
+battle.tick(.1);
+assert(active.rewardTimer<1.0,'Intermission advances again after manual resume');
+active.phase='fallen';battle.syncBattleControls();
+assert.equal(pausedLabel.hidden,true,'Paused indicator cannot remain over the fallen/lobby view');
+
+// Live boss countdown meter tracks real combat states and hides when counterplay ends.
+const worldBoss=world(),bh=worldBoss.h,br=bh.run();
+br.tier=1;br.wave=200;br.phase='fighting';br.encounter=bh.encounterDirector(200,1);
+const caster={type:'warlord',isBoss:true,dead:false,hp:500,max:1000,bossPhase:2,bossStyle:'ember',
+ bossFuryWindup:.45,bossFurySurge:0,bossWardTimer:0,bossBlinkWindup:0};
+br.enemies=[caster];bh.refreshHUD();
+const castTrack=worldBoss.el('bossCastTrack'),castFill=worldBoss.el('bossCastFill'),castLabel=worldBoss.el('bossCastLabel');
+assert.equal(castTrack.hidden,false,'Real Ember charge displays the attack countdown meter');
+assert(castLabel.textContent.includes('EMBER CHARGE'),'Attack meter identifies the actual boss ability');
+assert.equal(castFill.style.width,'50%','Half-complete charge displays 50% filled countdown');
+assert.equal(worldBoss.el('bossWarning').textContent,'EMBER CHARGE · INTERRUPT','Major boss instruction remains visible');
+caster.bossFuryWindup=0;caster.bossExposedTimer=1.3;bh.refreshHUD();
+assert.equal(castTrack.hidden,true,'Interrupted attacks no longer display a phantom countdown');
+assert(worldBoss.el('bossWarning').textContent.includes('EXPOSED'),'HUD switches to true exposed bonus after interrupt');
+
+br.wave=100;br.encounter=bh.encounterDirector(100,1);
+caster.bossStyle='iron';caster.bossExposedTimer=0;caster.bossWardTimer=2.2;
+bh.refreshHUD();
+assert.equal(castTrack.hidden,false,'Iron defensive stance has a visible lifetime');
+assert.equal(castFill.style.width,'100%','Active ward begins at full remaining duration');
+assert.equal(castTrack.dataset.ward,'true','Ward countdown is visibly distinguished from attacking windups');
+caster.bossWardTimer=1.1;bh.refreshHUD();
+assert.equal(castFill.style.width,'50%','Ward bar shrinks as the protective state expires');
+
+br.wave=25;br.encounter=bh.encounterDirector(25,1);
+br.enemies=[{type:'siegebeast',isBoss:true,dead:false,hp:400,max:500,crushWindup:.55,bossExposedTimer:0}];
+bh.refreshHUD();
+assert.equal(castTrack.hidden,false,'Siege Beast crusher has a real telegraph timeline');
+assert.equal(castFill.style.width,'50%','Crusher countdown reflects its 1.1-second windup');
+assert(castLabel.textContent.includes('CRUSHER STRIKE'),'Siege Beast ability is labelled');
+br.enemies=[];bh.refreshHUD();
+assert.equal(castTrack.hidden,true,'Countdown hides when boss dies or leaves the field');
+br.phase='ready';bh.refreshHUD();
+assert.equal(worldBoss.el('bossHud').hidden,true,'Major boss HUD does not linger after a battle');
+assert(css.includes('.boss-cast-track[hidden],.battle-paused[hidden]'),'Boss meter and pause panel hide cleanly');
+assert(css.includes('.boss-cast-track[data-ward="true"]'),'Defensive ward has its own timer treatment');
+assert(html.includes('id="bossCastTrack"')&&html.includes('id="battlePauseStatus"'),'Real game HTML includes battle pause and boss timer');
+console.log('PASS: Alpha 0.10.9 pause-safe 1×/2× selection, background/intermission pause, clear state accessibility, live Ember/ward/crusher countdowns, and automatic HUD recovery.');
