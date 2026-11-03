@@ -305,7 +305,8 @@ assert.equal(vh.claimPendingRelics(),0,'Recovered rune cannot be claimed twice')
 // Phase 5: Arcane Convergence is real playable content, capped and readable.
 const arcane=encounter(94,1);
 assert.equal(arcane.kind,'arcane','Wave 94 is a specialist Arcane Convergence encounter');
-assert.equal(encounter(221,1).kind,'arcane','Arcane cycle takes priority over an ordinary night ambush');
+assert.equal(encounter(221,1).kind,'relic','Higher-priority Relic Hunt is never displaced by arcane wave scheduling');
+assert.equal(encounter(4539,1).kind,'arcane','Arcane cycle takes precedence over an ordinary night ambush');
 assert.equal(hooks.encounterUnit(arcane,0),'frostbinder','Arcane wave opens with a visible slow-caster threat');
 assert.equal(hooks.encounterUnit(arcane,2),'shaman','Arcane wave recruits healing support');
 assert.equal(hooks.encounterUnit(arcane,4),'thornweaver','Arcane wave recruits protective ward casters');
