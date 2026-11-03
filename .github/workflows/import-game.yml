@@ -44,3 +44,4 @@ jobs:
           node tests/balance.js
           node tests/encounters.js
           node tests/deepwave.js
+          node tests/mobile-render.js
