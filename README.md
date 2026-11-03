@@ -1,14 +1,16 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.10.2 (Living Onslaught, Slice 3)
+## Current release — Alpha 0.10.3 (Living Onslaught, Slice 4)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
 **New in 0.10.2:** 10 distinct rotating enemy factions (Thornwake Circle and Riftborne Court added), telegraphed thorn-ward and rift-blink specialists, three themed century-boss styles with bounded phase-II reinforcements, and rare optional zero-breach Relic Hunts awarding one-time runes and Knowledge without farming permanent Sigils. Existing save key and progress remain intact.
 
+**New in 0.10.3:** readable real-time major boss HP/phase/telegraph panel; distinctive Relic Warden encounters; rare Standard Assault formations and +20% wave Gold; a saved Relic Vault that preserves your earned one-time rune when the bag reaches its 240-rune cap; and accurate late-tier unlock information. All old progress and `primal_knight_onslaught_save_v1` remain supported.
+
 **Play:** https://hdog960.github.io/Primal-Knight/
 
-Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0102_LIVING_ONSLAUGHT.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js` for the automated suite.
+Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0103_ENCOUNTER_CLARITY.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js` for the automated suite.
 
 ---
 
