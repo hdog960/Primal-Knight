@@ -1689,3 +1689,18 @@
  .encounter-intel>span{min-width:74px;font-size:8px;padding:5px}
  .encounter-intel>span b{font-size:10px}
 }
+
+
+/* Alpha 0.10.1 — readable chapter challenges and expanded enemy-faction briefings. */
+.encounter-ribbon:has(.encounter-goal:not([hidden])){flex-wrap:wrap;row-gap:3px;max-width:92%}
+.encounter-ribbon .encounter-goal{flex:1 0 100%;text-align:center;display:block;
+ font:700 9px/1.25 Arial,sans-serif;letter-spacing:.35px;color:#f5dca6;
+ border-top:1px solid #e2c19d66;padding-top:3px}
+.encounter-ribbon .encounter-goal[hidden]{display:none!important}
+.encounter-ribbon .encounter-goal[data-failed="true"]{color:#dca5a0}
+.encounter-intel-objective{margin-top:5px!important;font-size:9px!important;color:#e5c69d!important}
+@media(orientation:portrait) and (max-width:680px){
+ .encounter-ribbon:has(.encounter-goal:not([hidden])){max-width:93%;padding:4px 6px}
+ .encounter-ribbon .encounter-goal{font-size:8px}
+ .encounter-intel-objective{font-size:8px!important}
+}
