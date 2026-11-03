@@ -78,7 +78,7 @@ const midgameTierSeventeen=simulate({tier:17,wave:20,peak:false,maxSeconds:45});
 const endgameTierThirty=simulate({tier:30,wave:10000,peak:true,maxSeconds:45});
 const ascendantTierThirty=simulate({tier:30,wave:10000,peak:true,crest:true,maxSeconds:45});
 const trialSeeds=[117,320,941,2027].map(seed=>({seed,unprepared:simulate({tier:30,wave:10000,peak:true,crest:false,maxSeconds:45,seed}),prepared:simulate({tier:30,wave:10000,peak:true,crest:true,maxSeconds:45,seed})}));
-console.log('TIER XXX SEED STRESS',JSON.stringify(trialSeeds.map(x=>({seed:x.seed,unprepared:x.unprepared.result,prepared:x.prepared.result})))));
+console.log('TIER XXX SEED STRESS',JSON.stringify(trialSeeds.map(x=>({seed:x.seed,unprepared:x.unprepared.result,prepared:x.prepared.result}))));
 console.log('BALANCE TEST SCENARIOS');
 console.log(JSON.stringify([tier13Entry,midOldTierEnd,endgameTierOne,endgameTierSixteen,midgameTierSeventeen,endgameTierThirty,ascendantTierThirty],null,2));
 assert(tier13Entry.result==='intermission','Midgame build must clear Tier XIII entry at wave 20');
