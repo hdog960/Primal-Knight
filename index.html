@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#10151d"><meta name="description" content="Primal KnIght – Onslaught. One hero, endless growth, one fortress to defend."><title>Primal KnIght – Onslaught</title><link rel="icon" href="assets/icon.png"><link rel="apple-touch-icon" href="assets/icon.png"><link rel="stylesheet" href="style.css?v=0.10.12"></head>
+<html lang="en"><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#10151d"><meta name="description" content="Primal KnIght – Onslaught. One hero, endless growth, one fortress to defend."><title>Primal KnIght – Onslaught</title><link rel="icon" href="assets/icon.png"><link rel="apple-touch-icon" href="assets/icon.png"><link rel="stylesheet" href="style.css?v=0.10.13"></head>
 <body><div id="app">
 <header class="top">
- <div class="branding"><div class="crest-icon"><img src="assets/icon.png" alt=""></div><div class="wordmark"><strong>PRIMAL KNIGHT</strong><span>✦ ONSLAUGHT <em>ALPHA 0.10.12</em> ✦</span></div></div>
+ <div class="branding"><div class="crest-icon"><img src="assets/icon.png" alt=""></div><div class="wordmark"><strong>PRIMAL KNIGHT</strong><span>✦ ONSLAUGHT <em>ALPHA 0.10.13</em> ✦</span></div></div>
  <div class="resources" id="resources" aria-label="Your currencies"></div>
  <button class="utility-button" id="settingsButton" aria-label="Settings and save backup" title="Settings and save backup">⚙</button>
 </header>
@@ -15,6 +15,10 @@
   <div class="fight-actions"><button id="startButton" class="action-primary">⚔ BEGIN SIEGE</button><button id="speedButton" class="action-secondary" aria-label="Toggle battle speed">1×</button><button id="pauseButton" class="action-secondary" aria-label="Pause or resume battle">Ⅱ</button><button id="exitRunButton" class="action-secondary exit-run" hidden>⟵ END RUN</button></div>
   <section class="tier-lobby" id="tierLobby" aria-label="Select a difficulty tier and view milestone rewards">
    <div class="lobby-banner"><div class="lobby-hero-art"><img src="assets/hero.png" alt="The lone hero defending the fortress"></div><div class="lobby-title"><span>THE ENDLESS SIEGE</span><h1>CHOOSE YOUR ONSLAUGHT</h1><p>Choose a tier. Defend without stopping. Claim permanent rewards at milestone waves.</p><strong id="bannerBadge">♛ Crimson Standard</strong><p id="lobbySummary" aria-live="polite"></p></div></div>
+   <details id="siegeReport" class="siege-report" aria-label="Last siege after-action chronicle" hidden>
+    <summary><span id="siegeReportTitle">✦ SIEGE CHRONICLE</span><strong id="siegeReportSummary">0 WAVES · 0 FOES · 0 BREACHES</strong><small class="siege-report-toggle">TAP FOR DETAILS</small></summary>
+    <div id="siegeReportMetrics" class="siege-report-metrics"></div><p id="siegeReportRange" class="siege-report-range"></p>
+   </details>
    <div class="lobby-content"><div class="lobby-tiers"><h2>DIFFICULTY TIERS <small id="tierUnlockHint">Tier advancement goals vary by territory</small></h2><div class="tier-grid" id="tierGrid"></div></div>
     <div class="lobby-milestones"><div class="lobby-detail-head"><h2 id="tierHeading">TIER I — VERDANT MARCH</h2><p id="tierDescription"></p></div><div class="milestone-scroll" id="milestoneList"></div></div></div>
    <div class="lobby-footer"><span>Milestones pay once per tier · Normal enemy rewards pay every run</span><button id="launchTierButton" class="action-primary">⚔ START TIER I • ENDLESS SIEGE</button></div>
@@ -48,4 +52,4 @@
  <button class="nav-item" data-hub="fortress"><span class="pixel-symbol pixel-symbol-fortress" aria-hidden="true"></span><b>FORTRESS</b><small>Build &amp; weaken</small></button>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-</div><script src="game.js?v=0.10.12"></script></body></html>
+</div><script src="game.js?v=0.10.13"></script></body></html>
