@@ -50,7 +50,7 @@ function buildProfile(hooks,peak=false){
 }
 function simulate({tier,wave,peak=false,crest=false,maxSeconds=40,seed=117}){
  const {hooks}=createWorld(seed);buildProfile(hooks,peak);
- if(crest)for(let t=17;t<=30;t++)hooks.p().dominionCrests[t]=4;
+ if(crest)for(let t=17;t<=30;t++)hooks.p().dominionCrests[t]=t===30?3:4; // Final seal must be earned by finishing Tier XXX
  const run=hooks.run();
  run.phase='ready';run.wave=wave;run.tier=tier;run.speed=1;
  run.maxHealth=hooks.maxWall();run.health=run.maxHealth;
@@ -77,12 +77,17 @@ const endgameTierSixteen=simulate({tier:16,wave:10000,peak:true,maxSeconds:45});
 const midgameTierSeventeen=simulate({tier:17,wave:20,peak:false,maxSeconds:45});
 const endgameTierThirty=simulate({tier:30,wave:10000,peak:true,maxSeconds:45});
 const ascendantTierThirty=simulate({tier:30,wave:10000,peak:true,crest:true,maxSeconds:45});
+const trialSeeds=[117,320,941,2027].map(seed=>({seed,unprepared:simulate({tier:30,wave:10000,peak:true,crest:false,maxSeconds:45,seed}),prepared:simulate({tier:30,wave:10000,peak:true,crest:true,maxSeconds:45,seed})}));
+console.log('TIER XXX SEED STRESS',JSON.stringify(trialSeeds.map(x=>({seed:x.seed,unprepared:x.unprepared.result,prepared:x.prepared.result})))));
 console.log('BALANCE TEST SCENARIOS');
 console.log(JSON.stringify([tier13Entry,midOldTierEnd,endgameTierOne,endgameTierSixteen,midgameTierSeventeen,endgameTierThirty,ascendantTierThirty],null,2));
 assert(tier13Entry.result==='intermission','Midgame build must clear Tier XIII entry at wave 20');
 assert(midOldTierEnd.result!=='completed'&&midOldTierEnd.result!=='intermission','Same midgame build cannot finish Tier I at wave 10000');
 assert(endgameTierOne.result==='completed','Fully developed build can conquer Tier I wave 10000');
 assert(endgameTierSixteen.result==='completed','Maximum build can eventually conquer Tier XVI wave 10000');
+assert(endgameTierThirty.result==='fallen','Top tier cannot be trivialized with maxed old progression alone');
+assert(ascendantTierThirty.result==='completed','Completed earlier Dominion crests make the Tier XXX ultimate wave achievable');
+for(const scenario of trialSeeds)assert(scenario.prepared.result==='completed','Crest-prepared Tier XXX victory remains attainable for battle seed '+scenario.seed);
 
 // A long ladder needs an attainable permanent economy and item rarity progression.
 const {hooks:economyHooks}=createWorld(320);
