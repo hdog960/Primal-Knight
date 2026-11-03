@@ -633,3 +633,21 @@
  .armory-showcase{padding-top:34px}
  .armory-intro h2{font-size:18px}
 }
+/* Alpha 0.6.1 — compact horizontal iPhone equipment view:
+   remove redundant chamber prose so the character and equipment are first. */
+@media(orientation:landscape) and (max-height:460px){
+ .panel[data-theme='equipment'] .chamber-mobile-art,
+ .panel[data-theme='equipment'] .section-intro,
+ .panel[data-theme='equipment'] .armory-intro{display:none!important}
+ .panel[data-theme='equipment'] .panel-content-scroll{padding:4px 8px 10px}
+ .armory-showcase{padding:26px 7px 8px;gap:4px;grid-template-rows:minmax(172px,auto) auto}
+ .armory-hero-plinth{min-height:170px;max-height:190px;padding-bottom:18px}
+ .armory-hero-plinth img{height:159px}
+ .armory-slot-select{min-height:130px}
+ .armory-slot-gem{height:43px;width:47px}
+ .armory-slot-gem .pixel-symbol{width:43px;height:40px}
+ .armory-slot-copy{gap:2px}
+ .armory-slot-copy strong{font-size:12px}
+ .armory-slot-label{padding-bottom:3px}
+ .armory-wardrobe-bar{padding:7px 10px;margin-top:7px}
+}
