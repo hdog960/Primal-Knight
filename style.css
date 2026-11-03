@@ -1778,3 +1778,15 @@
  .siege-codex .codex-body{max-height:160px}
  .encounter-ribbon .encounter-hint{font-size:8px;padding-top:2px}
 }
+
+
+/* Alpha 0.10.5 — boss counterplay feedback, no new UI chrome or mobile clutter. */
+.boss-hud[data-exposed="true"]{border-color:#ffdc95;
+ box-shadow:inset 0 1px #fff0ba66,0 0 13px #d9ac5777,0 4px 13px #000b;
+ background:linear-gradient(120deg,#39332aed,#3b3544ef 65%,#243344f2)}
+.boss-hud[data-exposed="true"] .boss-hud-bottom span{color:#fff1b3}
+.boss-hud[data-exposed="true"] .boss-hp-track>div{background:linear-gradient(90deg,#c57d3e,#ffdf84)}
+.boss-hud[data-warning="true"]:not([data-exposed="true"]) .boss-hud-title strong{color:#ffcc91}
+@media(orientation:landscape) and (max-height:460px){
+ .boss-hud[data-exposed="true"]{box-shadow:inset 0 1px #fff0ba55,0 3px 8px #0009}
+}
