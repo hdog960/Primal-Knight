@@ -82,3 +82,8 @@ Delivered: readable on-field major-boss health, live phase labels and impending-
 Delivered: Arcane Convergence caster-focused encounter cadence, real mixed spell-support formations with a bounded +18% wave Knowledge reward, three-active-caster cross-type safety limit, more responsive automatic counterplay, a ten-faction Siege Codex inside Battle, and readable live tactical encounter hints. Full regression checks required; review `docs/ALPHA_0104_ARCANE_CONVERGENCE.md`.
 
 **Alpha 0.10 remains in real-device evaluation.** Player acceptance of boss patterns, portrait/landscape HUD, Field Manual and deep-wave performance is still required. Do not advance to 0.11 until the phase acceptance criteria are evaluated.
+
+### Alpha 0.10.5 — Living Onslaught, slice 6
+Delivered: earned damage-based boss cast interruptions, counterable Iron Ward, short +12% exposed-vulnerability windows, safe repeating bounded Void Steps, improved automatic focus on boss telegraphs, actionable battlefield warnings and refreshed tactical field manual, regression checks covering interruption and duration. See `docs/ALPHA_0105_BOSS_COUNTERPLAY.md`.
+
+**Alpha 0.10 is still under active evaluation.** Hardware legibility, extended boss fairness and deep-wave play remain pending; do not move into 0.11 until assessed.
