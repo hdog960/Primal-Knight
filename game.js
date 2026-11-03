@@ -260,7 +260,11 @@ function completeWave(){
  p.highestWave=Math.max(p.highestWave,cleared+1);p.clears++;xpAdd(15+cleared*5);grantDrops();
  run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+run.maxHealth*(.08+t('regen')*.005+skill('mend')*.025));
  if(milestonesAt.includes(cleared))rewardMilestone(tier,cleared);
- else message('WAVE '+cleared+' CLEARED · +'+fmt(essence)+' ESSENCE');
+ else message('WAVE '+fmt(cleared)+' CLEARED · +'+fmt(essence)+' ESSENCE');
+ if(cleared>=MAX_WAVE){
+  run.phase='completed';run.wave=MAX_WAVE;run.enemies=[];run.shots=[];
+  save();showLobby('ETERNAL VICTORY · Tier '+roman(tier)+' completed at wave '+fmt(MAX_WAVE));refreshHUD();return;
+ }
  run.wave++;run.phase='intermission';run.rewardTimer=1.2;run.enemies=[];run.shots=[];
  save();refreshHUD();
 }
