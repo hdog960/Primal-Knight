@@ -1,4 +1,4 @@
-// Alpha 0.6.8: Tier lobby, all visible Forge categories, permanent training, bulk ranks, research,
+// Alpha 0.6.9: Tier lobby, compact icon-safe Forge, all visible upgrades, bulk ranks, research,
 // skills, legacy purchases, save and menu navigation, with no browser dependencies.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 let nextFrame=null,storedSave=null;
@@ -88,6 +88,9 @@ for(const row of ['power','haste','crit','critDmg','pierce','range','multishot',
  assert(forge.includes('data-train-row="'+row+'"'),'Training '+row+' immediately visible');
 }
 assert.equal((forge.match(/data-train-row="/g)||[]).length,16,'All 16 training paths are present without switching');
+assert((forge.match(/class="forge-pixel-icon"/g)||[]).length>=23,'Forge icons render as isolated pixel art rather than sliced texture crops');
+assert(!forge.includes('pixel-symbol-'),'No legacy cropped icons remain inside the Forge ledger');
+assert(forge.includes('aria-label="power pixel art icon"')&&forge.includes('aria-label="essence pixel art icon"'),'Attack and currency training have distinct emblems');
 assert(!forge.includes('data-train-filter'),'No Forge category-switching controls remain');
 assert(forge.includes('Siegebreaker'),'Unlocked Legacy Masteries are present alongside all training');
 assert(!forge.includes('upgrade-card'),'Oversized old training cards removed');
@@ -103,6 +106,7 @@ assert.equal(hooks.p().training.power,beforeBatchRank+10,'Training can purchase 
 assert.equal(hooks.p().essence,beforeBatchEssence-tenCost,'Batch costs exactly the sum of individual ranks');
 clickSub('research');
 assert(el('panelContent').innerHTML.includes('archive-room'),'Research uses the Royal Archive');
+assert((el('panelContent').innerHTML.match(/class="forge-pixel-icon"/g)||[]).length===6,'All six research projects have independent pixel art icons');
 assert(el('panelContent').innerHTML.includes('Royal Treasury'),'All research upgrades remain accessible');
 assert(!el('panelContent').innerHTML.includes('upgrade-card'),'Old research cards are replaced');
 hooks.p().knowledge+=5000;
