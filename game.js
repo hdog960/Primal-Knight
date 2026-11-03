@@ -593,6 +593,33 @@ function forgePixelIcon(id){
  return '<svg class="forge-pixel-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="'+key+' pixel art icon" shape-rendering="crispEdges">'+pixels+'</svg>';
 }
 
+function renderAscensionChronicle(){
+ const highest=Math.max(0,...Object.values(p.bestByTier||{}));
+ const icons={vanguard:'critDmg',bastion:'masonry',sunder:'pierce',epoch:'attunement',volley:'multishot'};
+ const owned=ascensionPaths.reduce((sum,row)=>sum+ascRank(row[0]),0);
+ const capacity=ascensionPaths.reduce((sum,row)=>sum+row[4],0);
+ const markup=ascensionPaths.map(row=>{
+  const [id,name,desc,,max,unlockWave]=row;
+  const rank=ascRank(id),cost=ascCost(row),unlocked=ascUnlocked(row),maxed=rank>=max,affordable=unlocked&&!maxed&&p.sigils>=cost;
+  return `<article class="ascension-upgrade forge-upgrade-row ascension-endgame-row ${unlocked?'':'ascension-locked'}" data-ascension-row="${id}" aria-label="${name} permanent mastery">
+   <div class="ascension-emblem">${forgePixelIcon(icons[id])}</div>
+   <div class="ascension-upgrade-copy"><div class="ascension-upgrade-name"><strong>${name}</strong><small>${rank} / ${max}</small></div><p>${desc}</p>
+    <div class="ascension-rank-track" role="progressbar" aria-label="${name} rank" aria-valuenow="${rank}" aria-valuemin="0" aria-valuemax="${max}"><span style="width:${meterPct(rank,max)}%"></span></div></div>
+   <div class="ascension-action-cell"><div class="ascension-next-cost">${!unlocked?'WAVE '+fmt(unlockWave):maxed?'MASTERED':`💠 ${fmt(cost)}`}</div>
+    <div class="ascension-action-buttons"><button type="button" data-action="ascension:${id}" ${affordable?'':'disabled'}>${!unlocked?'🔒':maxed?'MAX':'+1'}</button></div>
+   </div>
+  </article>`;
+ }).join('');
+ return `<section class="forge-ascension-chamber" aria-label="Ascension Chronicle">
+  <div class="forge-category-head">
+   <span class="forge-category-crest">${forgePixelIcon('epoch' in forgePixelPatterns?'epoch':'attunement')}</span>
+   <div class="forge-category-heading"><small>✧ BEYOND THE FIRST CENTURY</small><h3>Ascension Chronicle</h3><p>Five new permanent routes. Revisit old tiers, break distant milestones and become worthy of wave ${fmt(MAX_WAVE)}.</p></div>
+   <div class="forge-category-total"><b>${fmt(owned)}</b><small>/ ${fmt(capacity)} ranks</small></div>
+  </div>
+  <div class="forge-ascension-rows">${markup}</div>
+  <div class="forge-ascension-footer"><span>Best milestone reached: <b>${fmt(highest)}</b> / ${fmt(MAX_WAVE)}</span><span>Unlock each mastery at its listed wave in <b>any tier</b>. Purchase with Primal Sigils.</span></div>
+ </section>`;
+}
 function renderTrainingLedger(){
  const groups=[
   {key:'Offense',icon:'battle',subtitle:'HIT HARDER',description:'Sharpen your attacks and critical strikes.',ids:['power','haste','crit','critDmg','pierce']},
@@ -654,7 +681,8 @@ function renderTrainingLedger(){
     <div class="forge-category-total"><b>${fmt(p.sigils)}</b><small>Sigils held</small></div>
    </div><div class="forge-legacy-rows">${legacyMarkup}</div>
   </section>
-  <div class="forge-ledger-note">🔷 Use +1 or purchase up to ten affordable ranks with the second button. 💠 Legacy uses Primal Sigils. All purchases are permanent.</div>
+  ${renderAscensionChronicle()}
+  <div class="forge-ledger-note">🔷 Train up to ten ranks per tap. 💠 Legacy and Ascension use Primal Sigils. All purchases are permanent.</div>
  </div>`;
 }
 function renderResearchArchive(){
@@ -782,6 +810,16 @@ function openTab(next,fromHub=false){
 function action(text){let[type,id]=text.split(':');if(type==='train'){let row=training.find(x=>x[0]===id),cost=trainCost(row);if(p.essence>=cost&&t(id)<row[5]){p.essence-=cost;p.training[id]=t(id)+1;run.maxHealth=maxWall();run.health=Math.min(run.health+12,run.maxHealth);}}
  else if(type==='trainBatch'){let row=training.find(x=>x[0]===id);if(row){const q=trainBatchQuote(row,10);if(q.count>=2){p.essence-=q.cost;p.training[id]=t(id)+q.count;run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+12*q.count);notice('TRAINED '+q.count+' RANKS');}}}
  else if(type==='legacy'){let row=legacyPaths.find(x=>x[0]===id);if(row&&p.legacyUnlocked&&lr(id)<row[4]&&p.sigils>=legacyCost(row)){p.sigils-=legacyCost(row);p.legacy[id]=lr(id)+1;run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+Math.round(run.maxHealth*.03));}}
+ else if(type==='ascension'){
+  const row=ascensionPaths.find(x=>x[0]===id);
+  if(row&&ascUnlocked(row)&&ascRank(id)<row[4]){
+   const cost=ascCost(row);
+   if(p.sigils>=cost){const previous=run.maxHealth;p.sigils-=cost;p.ascension[id]=ascRank(id)+1;
+    run.maxHealth=maxWall();if(id==='bastion')run.health=Math.min(run.maxHealth,run.health+Math.max(0,run.maxHealth-previous));
+    notice(row[1].toUpperCase()+' RANK '+p.ascension[id]);
+   }
+  }
+ }
  else if(type==='skill'){let found=Object.values(skills).flat().find(x=>x[0]===id);if(found&&p.points>0&&skill(id)<5){p.points--;p.skills[id]=skill(id)+1;run.maxHealth=maxWall();}}
  else if(type==='station'){let row=stationData.find(x=>x[0]===id),cost=stationCost(row);if(row&&p.gold>=cost&&station(id)<row[6]){p.gold-=cost;p.stations[id]=station(id)+1;}}
  else if(type==='research'){let row=research.find(x=>x[0]===id);if(row){const cost=researchCost(row,p.research);if(p.knowledge>=cost&&res(id)<row[5]){const oldMax=run.maxHealth;p.knowledge-=cost;p.research[id]=res(id)+1;if(id==='masonry'){run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+Math.max(0,run.maxHealth-oldMax));}}}}
@@ -801,7 +839,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  else if(type==='export'){let blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='primal-knight-onslaught-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return;}
  const scrollPane=$('panelContent'),keepScroll=scrollPane.scrollTop;
  save();refreshHUD();renderPanel();
- if(['train','trainBatch','legacy','research'].includes(type))scrollPane.scrollTop=keepScroll;
+ if(['train','trainBatch','legacy','ascension','research'].includes(type))scrollPane.scrollTop=keepScroll;
 }
 function loop(tm){let dt=clamp(((tm-(loop.last||tm))/1000),0,.05);loop.last=tm;tick(dt);draw();if(tm-(loop.lastHud||0)>160){refreshHUD();loop.lastHud=tm}requestAnimationFrame(loop)}
 $('nav').addEventListener('click',e=>{let b=e.target.closest('[data-hub]');if(b)openTab(b.dataset.hub,true)});
