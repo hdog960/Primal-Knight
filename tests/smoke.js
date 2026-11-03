@@ -26,7 +26,7 @@ for(const hub of ['hero','power','gear','fortress']){
  assert.equal(el('panel').hidden,false,hub+' panel opens before siege');
  assert.equal(el('tierLobby').hidden,true,hub+' is not obscured by tier lobby');
  assert.equal(hooks.run().phase,'ready','Opening '+hub+' never starts combat');
- const subtab=({hero:'skills',power:'research',gear:'runes',fortress:'suppression'})[hub];
+ const subtab=({hero:'hero',power:'research',gear:'runes',fortress:'suppression'})[hub];
  clickSub(subtab);
  assert(el('panelContent').innerHTML.length>100,subtab+' renders before siege');
  assert.equal(el('tierLobby').hidden,true,'Tier lobby stays hidden in '+subtab);
@@ -63,12 +63,19 @@ const sigils=hooks.p().sigils;hooks.renderTierLobby();assert(el('tierGrid').inne
 hooks.retreatFromSiege();hooks.enterSiege();for(let w=1;w<=20;w++){hooks.completeWave();hooks.beginWave();}
 assert.equal(hooks.p().sigils,sigils,'Milestone currencies only pay once');
 clickHub('hero');assert(el('panelTitle').textContent==='HERO HALL');
-assert(el('panelContent').innerHTML.includes('hero-profile-art'),'Hero Hall contains champion portrait');
-assert(el('panelContent').innerHTML.includes('talent-board'),'Hero Hall integrates the graphical talent board');
-assert(el('panelContent').innerHTML.includes('data-node="aim"'),'First Marksman talent visible in Hero Hall');
-clickSub('skills');assert(el('panelContent').innerHTML.includes('PATHS')||el('panelContent').innerHTML.includes('Hunter'));
-assert(el('panelContent').innerHTML.includes('talent-node'),'Tree Focus uses connected talent nodes');
-clickButton({school:'Arcanist'});assert(el('panelContent').innerHTML.includes('Winter Touch'));
+const hall=el('panelContent').innerHTML;
+assert(hall.includes('hall-compact'),'Hero uses compact character sheet');
+assert(hall.includes('hall-chart-table'),'All skills shown in matrix instead of talent cards');
+for(const id of ['aim','ember','stone','fortune','prosperity','tempest'])assert(hall.includes('data-hero-inspect="'+id+'"'),'Skill '+id+' appears in full four-path chart');
+assert(hall.includes('hall-banner-rack'),'Banners shown as cosmetics instead of generic cards');
+assert(!hall.includes('build-source-grid'),'Unnecessary Power Sources removed');
+assert(!hall.includes('hall-school-pill'),'No single-discipline selection or redundant tree');
+assert.equal(el('subnav').hidden,true,'Hero Hall does not waste space on duplicate Tree Focus');
+clickButton({heroInspect:'frost'});assert(el('panelContent').innerHTML.includes('Winter Touch'),'Tapping a skill reveals its detail');
+hooks.p().points=Math.max(1,hooks.p().points);
+const beforeSkill=hooks.p().skills.aim||0,beforePoints=hooks.p().points;
+clickButton({action:'skill:aim'});assert.equal(hooks.p().skills.aim,beforeSkill+1,'Skill chart upgrades a talent');
+assert.equal(hooks.p().points,beforePoints-1,'Skill chart consumes one point');
 clickHub('power');assert(el('panelContent').innerHTML.includes('Might'));
 assert(el('panelContent').innerHTML.includes('Siegebreaker'),'Legacy mastery is displayed');
 clickButton({action:'legacy:siegebreaker'});assert(hooks.p().legacy.siegebreaker===1);
