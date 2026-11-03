@@ -1,4 +1,4 @@
-// Alpha 0.10.1 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
+// Alpha 0.10.2 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const code=fs.readFileSync('game.js','utf8');
 function createWorld(seedValue=117){
@@ -22,7 +22,7 @@ function createWorld(seedValue=117){
  return {hooks,sandbox};
 }
 
-const spriteTypes=['guardian','raider','shaman','siegebeast','warlord','frostbinder','sapper','banneret'];
+const spriteTypes=['guardian','raider','shaman','siegebeast','warlord','frostbinder','sapper','banneret','thornweaver','riftstalker','warlord_iron','warlord_ember','warlord_rift'];
 for(const type of spriteTypes){
  const path='assets/'+type+'.svg';
  assert(fs.existsSync(path),'New enemy '+type+' has a real game sprite');
@@ -31,7 +31,7 @@ for(const type of spriteTypes){
 }
 const {hooks}=createWorld();
 const encounter=hooks.encounterDirector;
-const expected=[[1,'standard'],[5,'vanguard'],[10,'elite'],[17,'ambush'],[25,'commander'],[37,'treasure'],[50,'commander'],[75,'commander'],[100,'chapterBoss'],[200,'chapterBoss'],[10000,'chapterBoss']];
+const expected=[[1,'standard'],[5,'vanguard'],[10,'elite'],[17,'ambush'],[25,'commander'],[37,'treasure'],[43,'relic'],[50,'commander'],[75,'commander'],[100,'chapterBoss'],[200,'chapterBoss'],[10000,'chapterBoss']];
 for(const [wave,kind] of expected)assert.equal(encounter(wave,1).kind,kind,'Wave '+wave+' director chooses '+kind);
 assert.equal(encounter(100,1).bossType,'warlord','Every century ends with a warlord');
 assert.equal(encounter(25,1).bossType,'siegebeast','Each quarter century commander is a siege beast');
@@ -43,7 +43,7 @@ for(let tier=1;tier<=30;tier++)for(let chapter=0;chapter<5;chapter++){
  assert(e.faction&&e.units.length>=4&&e.chapter===chapter+1,'Every tier/chapter has a valid faction and roster');
  assert.equal(encounter(1+100*chapter,tier).factionId,e.factionId,'Encounter choice is deterministic');
 }
-assert.equal(factions.size,8,'Living Onslaught has eight distinct rotating factions');
+assert.equal(factions.size,10,'Living Onslaught has ten distinct rotating factions');
 assert.equal(hooks.encounterUnit(encounter(1,1),0),'skeleton','First few waves retain familiar gentle enemies');
 assert(!['guardian','shaman','raider'].includes(hooks.encounterUnit(encounter(3,2),1)),'Opening waves do not surprise players with late mechanics');
 const late=[8,9,13,17,37,50,75,100,101,200,1000,2500,5000,10000];
@@ -115,12 +115,12 @@ assert.equal(hudWorld.hooks.tierMilestone(1,100).kind,'century','Century boss do
 assert(hudWorld.hooks.tierMilestones(30).includes(10000),'Final victory still exists in every tier');
 
  // Phase 2: new rosters and specialists are earned after the gentle first 19 waves.
-const newlyAdded=[['frostvein',6,'frostbinder'],['cinder',7,'sapper'],['gilded',8,'banneret']];
+const newlyAdded=[['frostvein',6,'frostbinder'],['cinder',7,'sapper'],['gilded',8,'banneret'],['thorn',9,'thornweaver'],['rift',10,'riftstalker']];
 for(const [faction,tier,type] of newlyAdded){
  const encounter20=encounter(25,tier);
  assert.equal(encounter20.factionId,faction,'Tier '+tier+' introduces '+faction);
  assert(encounter20.units.includes(type),'Faction '+faction+' fields its specialist');
- assert(!['shaman','frostbinder','sapper','banneret'].includes(hooks.encounterUnit(encounter(8,tier),0)),'New mechanics are gated beyond early tutorial waves');
+ assert(!['shaman','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(hooks.encounterUnit(encounter(8,tier),0)),'New mechanics are gated beyond early tutorial waves');
  const field=createWorld(122+tier),rr=field.hooks.run();rr.wave=25;rr.tier=tier;field.hooks.beginWave();
  for(let i=0;i<rr.total;i++){rr.spawned=i;field.hooks.spawnEnemy();}
  assert(rr.enemies.some(e=>e.type===type),'Faction '+faction+' spawns '+type+' in real combat');
@@ -194,4 +194,68 @@ cr.phase='ready';cr.wave=300;cr.breaches=0;cr.encounter=ch.encounterDirector(300
 ch.beginWave();
 assert(goal.hidden===false,'Live chapter objective is visible in battlefield HUD');
 
-console.log('PASS: 8 factions, 7 encounter classes, coherent enemy sprites, eight specialist behaviors, telegraphed boss and sapper attacks, anti-farming chapter challenges, preserved tiers.');
+// Phase 3: ward casters have a counterable duration, and blinkers must telegraph.
+const thorn={type:'thornweaver',dead:false,x:320,y:230,thornCastClock:.01,thornWindup:0,thornWardTimer:0};
+const wardAlly={type:'guardian',dead:false,x:331,y:230};
+assert.equal(hh.thornWardReduction(wardAlly,[thorn]),1,'Thorn ward is absent before casting');
+hh.specialEnemyMotion(thorn,.05);
+assert(thorn.thornWindup>0,'Thornweaver provides a warning before ward');
+hh.specialEnemyMotion(thorn,1);
+assert(thorn.thornWardTimer>0,'Thornweaver summons real protective ward');
+assert(hh.thornWardReduction(wardAlly,[thorn])<1,'Active thorn ward mitigates damage');
+thorn.dead=true;
+assert.equal(hh.thornWardReduction(wardAlly,[thorn]),1,'Defeating Thornweaver immediately cancels ward protection');
+const blinker={type:'riftstalker',dead:false,x:260,y:220,blinkStarted:false,blinkWindup:0};
+const preBlink=blinker.y;
+assert(hh.specialEnemyMotion(blinker,.05)<1,'Riftstalker must announce its blink and slow down');
+assert.equal(blinker.y,preBlink,'Blink cannot teleport before warning ends');
+hh.specialEnemyMotion(blinker,1);
+assert(blinker.y>preBlink&&blinker.y<=398,'Rift blink advances a bounded distance without instant breach');
+const highPriority={type:'riftstalker',dead:false,x:280,y:220,blinkWindup:.75};
+assert(hh.threatPriority(highPriority)>hh.threatPriority({type:'goblin',dead:false,x:280,y:290}),'Hero prioritizes announced rift blink');
+const bossProfiles=['iron','ember','rift'];
+for(let idx=0;idx<bossProfiles.length;idx++){
+ const e=encounter((idx+1)*100,1);
+ assert.equal(e.bossStyle,bossProfiles[idx],'Chapter '+(idx+1)+' rotates real boss tactics');
+ assert(e.bossName,'Chapter boss has unique identity');
+}
+const bossWorld=createWorld(911),bh=bossWorld.hooks,battle=bh.run();
+battle.tier=1;battle.wave=100;battle.maxHealth=bh.maxWall();battle.health=battle.maxHealth;
+bh.beginWave();
+assert.equal(battle.total,22,'Chapter boss reserves two of twenty-four combat slots for reinforcements');
+const firstCount=battle.total;
+for(let i=0;i<firstCount;i++){battle.spawned=i;bh.spawnEnemy();}
+battle.spawned=firstCount;
+const tyrant=battle.enemies.find(e=>e.type==='warlord');
+assert(tyrant&&tyrant.bossStyle==='iron','Chapter 1 creates the Iron Tyrant sprite profile');
+bh.hurt(tyrant,tyrant.max*.52,'ballista');
+assert.equal(tyrant.bossPhase,2,'Iron Tyrant enters alternate phase after HP threshold');
+assert(tyrant.bossWardTimer>0,'Iron Tyrant has a temporary counterable armor stance');
+assert.equal(battle.total,24,'Exactly two new reinforcements are reserved');
+while(battle.spawned<battle.total){bh.spawnEnemy();battle.spawned++;}
+assert.equal(battle.enemies.length,24,'Reinforcements respect the 24-enemy limit');
+assert.equal(battle.enemies.filter(e=>e.type==='warlord').length,1,'Reinforcements never duplicate the boss');
+assert.equal(battle.enemies.filter(e=>e.type==='guardian').length>=2,true,'Iron Tyrant's reinforcements feature defenders');
+const emberBoss={type:'warlord',bossPhase:2,bossStyle:'ember',bossFuryClock:0,bossFuryWindup:0,bossFurySurge:0,x:330,y:230,dead:false};
+assert(bh.specialEnemyMotion(emberBoss,.05)<1,'Cinder Regent telegraphs its charge');
+bh.specialEnemyMotion(emberBoss,1);
+assert(bh.specialEnemyMotion(emberBoss,.05)>1,'Cinder Regent charge is mechanically distinct');
+const riftBoss={type:'warlord',bossPhase:2,bossStyle:'rift',bossBlinkWindup:1,x:340,y:225,dead:false};
+const beforeVoid=riftBoss.y;
+assert(bh.specialEnemyMotion(riftBoss,.05)<1,'Void Monarch announces its warp');
+bh.specialEnemyMotion(riftBoss,1);
+assert(riftBoss.y>beforeVoid&&riftBoss.y<=398,'Void Monarch warp has limited distance');
+const huntWorld=createWorld(917),hunt=huntWorld.hooks,huntRun=hunt.run(),huntProgress=hunt.p();
+huntRun.tier=1;huntRun.wave=43;huntRun.maxHealth=hunt.maxWall();huntRun.health=huntRun.maxHealth;hunt.beginWave();
+assert(hunt.relicChallenge(huntRun.encounter),'Wave 43 offers a rare relic objective');
+assert.equal(huntWorld.sandbox.document.getElementById('encounterGoal').hidden,false,'Relic objective appears in live HUD');
+const runesBefore=huntProgress.runes.length,knowledgeBeforeHunt=huntProgress.knowledge;
+assert(hunt.awardRelicChallenge(1,43,100),'A successful relic hunt grants its one-time reward');
+assert.equal(huntProgress.runes.length,runesBefore+1,'Relic hunt awards a real rune item');
+assert(huntProgress.knowledge>knowledgeBeforeHunt,'Relic hunt grants bonus Knowledge');
+assert(huntProgress.relicHunts['1:43'],'Relic claim is saved in additive persistent ledger');
+assert.equal(hunt.awardRelicChallenge(1,43,100),false,'Relic hunt never pays twice');
+huntRun.encounter=encounter(132,1);huntRun.breaches=1;
+assert.equal(hunt.awardRelicChallenge(1,132,100),false,'Breached fortress cannot claim optional relic hunt');
+assert(!huntProgress.relicHunts['1:132'],'Failed relic hunt can be retried later');
+console.log('PASS: 10 factions, 8 encounter classes, coherent sprites, two new counterable specialists, three boss archetypes with bounded reinforcements, nonfarmable relic and chapter rewards, preserved tiers.');
