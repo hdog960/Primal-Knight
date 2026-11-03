@@ -46,7 +46,7 @@ const gearNames={
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
 function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},ascension:{},dominionCrests:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.ascension??={};p.dominionCrests??={};p.firstWatchClaimed??=[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
+const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.ascension??={};p.dominionCrests??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -91,20 +91,20 @@ const newBeginningMilestones=new Set([1,2,3,8,12,25,40,60]);
 const CONQUEST_HOUR_TARGET=1250;
 const earlyWatchChapters=[
  [3,'First Blood',220,45,0,0],
- [6,'The First Standard',350,75,0,1],
- [10,'A Warrior Awakens',400,110,1,0],
- [16,'Bastion Keeper',650,160,0,2],
- [24,'The Spoils of Courage',900,250,0,1],
- [36,'A Rising Star',1300,320,1,2],
- [52,'The Dawn Vanguard',1700,450,0,4],
- [75,'Banner of the Dawn',2100,600,1,5],
- [105,'Unyielding',3000,800,1,7],
- [145,'The Iron Promise',3800,1100,1,8],
- [200,'The First Citadel',4700,1500,1,10],
- [270,'Bearer of the Standard',5800,2100,2,12],
- [365,'Veteran of the March',7200,2800,2,14],
- [490,'Oath of the Defender',9000,3600,2,16],
- [645,'Before the Long Road',11000,4500,2,20],
+ [7,'The First Standard',350,75,0,1],
+ [13,'A Warrior Awakens',400,110,1,0],
+ [22,'Bastion Keeper',650,160,0,2],
+ [35,'The Spoils of Courage',900,250,0,1],
+ [53,'A Rising Star',1300,320,1,2],
+ [77,'The Dawn Vanguard',1700,450,0,4],
+ [108,'Banner of the Dawn',2100,600,1,5],
+ [147,'Unyielding',3000,800,1,7],
+ [195,'The Iron Promise',3800,1100,1,8],
+ [253,'The First Citadel',4700,1500,1,10],
+ [322,'Bearer of the Standard',5800,2100,2,12],
+ [403,'Veteran of the March',7200,2800,2,14],
+ [498,'Oath of the Defender',9000,3600,2,16],
+ [609,'Before the Long Road',11000,4500,2,20],
  [750,'The First Watch Complete',15000,5500,3,25]
 ];
 const dominionTrials=[
@@ -761,6 +761,25 @@ function renderAscensionChronicle(){
   <div class="forge-ascension-footer"><span>Best milestone reached: <b>${fmt(highest)}</b> / ${formatWave(MAX_WAVE)}</span><span>Unlock each mastery at its listed wave in <b>any tier</b>. Purchase with Primal Sigils.</span></div>
  </section>`;
 }
+function renderDominionCodex(){
+ const owned=dominionTrials.reduce((s,row)=>s+Math.min(4,Number(p.dominionCrests[row.tier])||0),0);
+ const statLabels={damage:'Hero damage',essence:'Essence rewards',boss:'Boss damage',wall:'Fortress health',knowledge:'Knowledge rewards',critical:'Critical power',healing:'Fortress repairs',runes:'Rune effects',armor:'Armor penetration',stations:'Station attacks',gold:'Gold income',xp:'Experience earned',all:'All-around might'};
+ const sprite={damage:'power',essence:'essence',boss:'boss',wall:'fort',knowledge:'xp',critical:'critDmg',healing:'regen',runes:'attunement',armor:'pierce',stations:'ballista',gold:'gold',xp:'xp',all:'crit'};
+ return `<section class="dominion-codex" aria-label="Dominion Crest archive">
+   <div class="dominion-codex-head"><div><small>♛ THE OUTER DOMINIONS · TIERS XVII–XXX</small><h3>Dominion Crest Archive</h3>
+   <p>Four permanent seals per territory. Each tier has its own trial and a unique passive power, earned at waves 250, 1,000, 5,000 and 10,000.</p></div><div class="dominion-codex-total"><strong>${owned}</strong><small>/ ${dominionTrials.length*4} seals</small></div></div>
+   <div class="dominion-codex-grid">${dominionTrials.map(row=>{
+    const rank=Math.min(4,Number(p.dominionCrests[row.tier])||0);
+    return `<article class="dominion-codex-entry ${rank?'unlocked':''}" data-crest-tier="${row.tier}">
+      <span class="dominion-codex-icon">${forgePixelIcon(sprite[row.stat]||'power')}</span>
+      <div><small>TIER ${roman(row.tier)} · ${tierNames[row.tier-1]}</small><strong>${row.crest}</strong>
+      <p>${statLabels[row.stat]||row.stat}: +${(rank*row.bonus*100).toFixed(1)}% / ${(row.bonus*400).toFixed(1)}% max</p></div>
+      <span class="dominion-codex-rank">${rank}/4</span>
+    </article>`;
+   }).join('')}</div>
+   <div class="dominion-codex-foot">New territories award bonus Sigils at eleven additional Trial milestones. Their Crests work in every tier, encouraging late-game returns to older waves.</div>
+ </section>`;
+}
 function renderTrainingLedger(){
  const groups=[
   {key:'Offense',icon:'battle',subtitle:'HIT HARDER',description:'Sharpen your attacks and critical strikes.',ids:['power','haste','crit','critDmg','pierce']},
@@ -823,6 +842,7 @@ function renderTrainingLedger(){
    </div><div class="forge-legacy-rows">${legacyMarkup}</div>
   </section>
   ${renderAscensionChronicle()}
+  ${renderDominionCodex()}
   <div class="forge-ledger-note">🔷 Train up to ten ranks per tap. 💠 Legacy and Ascension use Primal Sigils. All purchases are permanent.</div>
  </div>`;
 }
