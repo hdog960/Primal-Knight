@@ -492,3 +492,84 @@ console.log('PASS: Alpha 0.10.5 boss ward shatter, Cinder/void/crusher interrupt
  assert(paused.rewardTimer<.8,'Unpaused intermission resumes wave countdown');
  console.log('PASS: Alpha 0.10.6 encounter formation lanes, real spawning, safe battlefield distances, priority live threat messaging and pause-safe siege clock.');
 })();
+
+
+// Alpha 0.10.10 — all four telegraphed specialist abilities have real
+// damage-based counterplay, not merely advice to kill the caster.
+(function verifySpecialistInterruptionAndFairRecovery(){
+ const world=createWorld(1610),h=world.hooks,run=h.run();
+ run.phase='fighting';run.wave=94;run.tier=1;
+ run.maxHealth=1000;run.health=1000;
+ function unit(type,extra={}){
+  return {type,x:320,y:244,max:1000,hp:900,armor:0,dead:false,
+   isBoss:false,spellBreakDamage:0,slow:0,burn:0,buildup:0,
+   wobble:0,thorns:0,crushSurge:0,...extra};
+ }
+ const fuse=unit('sapper',{fuseSpent:true,fuseTime:1.3});
+ run.enemies=[fuse];
+ assert.equal(h.specialistCast(fuse),'fuse','Active Sapper fuse is identified');
+ h.hurt(fuse,80,'ballista');
+ assert(fuse.spellBreakDamage>=80&&fuse.fuseTime>0,'A weak hit builds genuine disarm progress but does not stop the fuse');
+ h.hurt(fuse,110,'ballista');
+ assert.equal(fuse.fuseTime,0,'Focused shots interrupt the explosive countdown before it can detonate');
+ assert.equal(fuse.spellBreakDamage,0,'Interrupt progress resets after success');
+ assert.equal(fuse.fuseSpent,true,'Disarmed sapper cannot re-arm the same fuse');
+ const wallBefore=run.health;h.specialEnemyMotion(fuse,2);
+ assert.equal(run.health,wallBefore,'An interrupted sapper cannot inflict phantom wall damage');
+ assert.equal(h.specialistCast(fuse),null,'A cancelled fuse does not remain in live danger warnings');
+ assert(run.floats.some(x=>x.text==='FUSE DISARMED'),'Successful counter produces an on-field message');
+ run.floats=[];
+
+ const frost=unit('frostbinder',{frostWindup:.95,frostCastClock:0});
+ run.enemies=[frost];run.heroChill=0;
+ h.hurt(frost,95,'ballista');assert(frost.frostWindup>0,'Partially damaged Frost rite stays dangerous');
+ h.hurt(frost,95,'ballista');assert.equal(frost.frostWindup,0,'Frost rite can be disrupted through real damage');
+ assert(frost.frostCastClock>=5.4,'Disrupted Frostbinder waits before trying again');
+ h.specialEnemyMotion(frost,1);
+ assert.equal(run.heroChill,0,'Cancelled Frost rite cannot slow hero through its normal cast effect');
+ assert.equal(h.specialistCast(frost),null,'No inactive Frost warning after cancellation');
+ frost.frostCastClock=.01;frost.spellBreakDamage=50;
+ h.specialEnemyMotion(frost,.15);
+ assert.equal(frost.frostWindup,.95,'Frostbinder remains capable of a future telegraphed cast');
+ assert.equal(frost.spellBreakDamage,0,'Future Frost cast does not inherit old damage progress');
+
+ const thorn=unit('thornweaver',{thornWindup:.85,thornWardTimer:0,thornCastClock:0});
+ run.enemies=[thorn];
+ h.hurt(thorn,190,'ballista');
+ assert.equal(thorn.thornWindup,0,'Thorn cast can be disrupted through real damage');
+ assert(thorn.thornCastClock>=5.3,'Cancelled Thorn Ward has a substantial recovery delay');
+ h.specialEnemyMotion(thorn,.1);
+ assert.equal(thorn.thornWardTimer,0,'Cancelled ward cannot protect other enemies');
+ assert(run.floats.some(x=>x.text==='THORN WARD BROKEN'),'Thorn counter is communicated visibly');
+
+ const rift=unit('riftstalker',{blinkStarted:true,blinkWindup:.95});
+ run.enemies=[rift];const startY=rift.y;
+ h.hurt(rift,100,'ballista');
+ assert.equal(h.specialistCast(rift),'rift','Partial damage leaves a dangerous Rift windup active');
+ h.hurt(rift,125,'ballista');
+ assert.equal(rift.blinkWindup,0,'Riftstalker blink is stopped by focused damage');
+ assert.equal(rift.blinkStarted,true,'Disrupted Riftstalker cannot retry immediately');
+ h.specialEnemyMotion(rift,3);
+ assert.equal(rift.y,startY,'Interrupted Riftstalker cannot receive the 36-pixel teleport');
+ assert.equal(h.specialistCast(rift),null,'Rift danger clears when step is countered');
+
+ const noCast=unit('frostbinder',{frostWindup:0,frostCastClock:3.2});
+ run.enemies=[noCast];h.hurt(noCast,140,'ballista');
+ assert.equal(noCast.spellBreakDamage,0,'Damage outside casting windows never precharges future interruptions');
+ assert.equal(h.specialistCounterplay(noCast,1000),false,'Direct counter attempt outside a cast is ineffective');
+ const dead=unit('sapper',{hp:0,fuseTime:1,dead:true});
+ assert.equal(h.specialistCounterplay(dead,200),false,'Killed specialists cannot farm an extra cast break');
+
+ const unsafe=unit('sapper',{fuseSpent:true,fuseTime:.25});
+ run.enemies=[unsafe];run.health=run.maxHealth;
+ h.specialEnemyMotion(unsafe,.3);
+ assert(run.health<run.maxHealth,'Uninterrupted Sapper fuse still inflicts real wall damage');
+ assert.equal(unsafe.fuseTime,0,'Successful explosive cast cannot trigger repeatedly');
+ const manual=h.renderSiegeCodex();
+ assert(manual.includes('without requiring a kill')&&manual.includes('disruption progress'),
+  'Field manual teaches meaningful focused-fire counterplay and the gold disruption bar');
+ const beforeParticles=run.particles.length;
+ h.draw();
+ assert(run.particles.length===beforeParticles,'Visible counterplay can be drawn without spawning unbounded VFX per frame');
+ console.log('PASS: Alpha 0.10.10 real Sapper/Frost/Thorn/Rift interruptions, no phantom explosion or warp, cooldowns, cast reset and danger feedback.');
+})();
