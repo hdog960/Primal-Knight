@@ -92,3 +92,8 @@ Delivered: earned damage-based boss cast interruptions, counterable Iron Ward, s
 Delivered: actual visually distinct special-wave arrival formations on the battlefield; clear live interruptible-threat warnings in the existing ribbon; corrected zero-speed pause for wave time/spawns/intermissions; tactical Field Manual guidance and deterministic spawn/UI/pause QA. See `docs/ALPHA_0106_FORMATIONS_AND_WARNINGS.md`.
 
 **Alpha 0.10 remains open.** Physical iPhone visual acceptance, advanced-wave performance, and subjective enemy/boss fairness review remain necessary before advancing to locked Alpha 0.11 Hero Combat Depth.
+
+### Alpha 0.10.7 — Living Onslaught, slice 8
+Delivered: repair the legacy backup-import tier cap (12 → 30), preserve high-tier/late-wave milestones and all existing progress ledgers, run gear migration on old imported saves, reject malformed imports safely, add protected one-time pre-import recovery/undo in Settings, report storage failures accurately, and enforce seeded real-loop deep-wave / restore QA through GitHub Actions. See `docs/ALPHA_0107_SAVE_INTEGRITY.md`.
+
+**Alpha 0.10 remains open for physical iPhone acceptance and deep-wave combat feel review.** These tests are meaningful engineering coverage but do not constitute completed 1,250-hour player testing or device visual approval. Keep the locked Alpha 0.11–0.15 roadmap unchanged.

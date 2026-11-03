@@ -43,3 +43,4 @@ jobs:
           node tests/smoke.js
           node tests/balance.js
           node tests/encounters.js
+          node tests/deepwave.js
