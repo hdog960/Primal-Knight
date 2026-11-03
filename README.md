@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.10.8 (Living Onslaught, Slice 9)
+## Current release — Alpha 0.10.9 (Living Onslaught, Slice 10)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -18,9 +18,11 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 
 **New in 0.10.8:** Consistent on-screen battle effects across 30/60/120 Hz displays, at most 60 large canvas repaints per second with lighter menu/background work, reduced-motion support, resource HUD refresh without redundant re-layout, and more readable boss/challenge warnings and larger battle controls on narrow iPhones. Combat balance, earned currencies, existing saves and the 30-tier conquest remain unchanged.
 
+**New in 0.10.9:** Live, accurate countdown progress inside the boss health panel for Cinder Regent charge, Void Monarch step, Siege Beast crusher and Iron Tyrant ward. Battle-speed selection while paused no longer accidentally resumes combat, and backing out of Safari during a between-wave countdown now pauses safely. An unmistakable **SIEGE PAUSED** banner, accessible control state and a reliable 1× / 2× restart finish the update. No old saves or earned rewards were altered.
+
 **Play:** https://hdog960.github.io/Primal-Knight/
 
-Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0108_IPHONE_FRAME_PACING.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js` for the automated suite.
+Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0109_BOSS_TIMELINES.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js` for the automated suite.
 
 ---
 
