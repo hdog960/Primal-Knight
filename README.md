@@ -30,3 +30,7 @@ https://hdog960.github.io/Primal-Knight/
 ## Honest limitations
 
 The menu/navigation system has been fully rebuilt and locally checked using a DOM-free game smoke test and headless Chromium DOM simulation at desktop, landscape mobile and portrait mobile sizes. The automated browser environment blocked network navigation, so a normal iPhone visual/play test is still necessary. This is not a claim of finished character animation or finalized stage variety. The deeper long-term features remain a work in progress.
+
+## Alpha 0.4 — Endless Tiered Onslaught
+
+The old ten-wave stage progression and mandatory Next Wave button have been removed. The Battle hub now shows a **tier-select lobby** with 12 escalating difficulty tiers and visible permanent milestone rewards. Start one siege; it advances automatically through waves until you fall or retreat. Tier milestones at waves 5, 10, 15, 20, 35, 50, 75 and 100 unlock Gold, Hero Essence, Primal Sigils, new masteries, stronger runes, banners and additional difficulty tiers. Milestones are once per tier, with per-tier records. Regular combat income and gear are repeatable. Sigils fund new permanent Legacy Masteries after Tier I wave 15. No paid services or resets. See `docs/TIERED_ONSLAUGHT_ALPHA04.md`.
