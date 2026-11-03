@@ -60,6 +60,7 @@ function rewardMilestone(tier,wave){
 let chosenTier=p.selectedTier;
 function showLobby(summary=''){
  // The tier lobby belongs to Battle, not the progression chambers.
+ $('app').dataset.view=tab==='battle'?'battle':'menu';
  $('tierLobby').hidden=tab!=='battle';$('lobbySummary').textContent=summary;
  $('exitRunButton').hidden=true;$('startButton').hidden=true;renderTierLobby();
 }
@@ -281,6 +282,8 @@ function openTab(next,fromHub=false){
  if(fromHub&&next in hubs)next=activeByHub[next];
  if(next!=='settings'&&next!=='battle'&&!tabInfo[next])return;
  const previous=tab;tab=next;
+ // Authoritative screen state: progression menus must never be hidden by the siege tier lobby.
+ $('app').dataset.view=next==='battle'?'battle':'menu';
  const hub=Object.keys(hubs).find(key=>hubs[key].includes(next));if(hub)activeByHub[hub]=next;
  for(let b of document.querySelectorAll('[data-hub]'))b.classList.toggle('selected',b.dataset.hub===hub);
  const preSiege=run.phase==='ready'||run.phase==='fallen';
