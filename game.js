@@ -46,7 +46,7 @@ const gearNames={
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
 function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},ascension:{},sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.ascension??={};p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,MAX_TIER);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
+const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.ascension??={};p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,16);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -126,26 +126,36 @@ function tierMilestone(tier,wave){
  if(wave===5)return {icon:'🟡',name:'Spoils of the Vanguard',detail:fmt(300*scale)+' Gold',kind:'gold',amount:Math.round(300*scale)};
  if(wave===10)return {icon:'🔷',name:'Essence Cache',detail:fmt(120*scale)+' Hero Essence',kind:'essence',amount:Math.round(120*scale)};
  if(wave===15)return tier===1?{icon:'✦',name:'Legacy Training Unsealed',detail:'Unlock permanent Sigil-powered upgrades + 5 Sigils',kind:'legacy',amount:5}:{icon:'💠',name:'Primal Sigil Cache',detail:(tier+3)+' Primal Sigils',kind:'sigils',amount:tier+3};
- if(wave===20)return tier<12?{icon:'⚔',name:'The Next Frontier',detail:'Unlock Tier '+roman(tier+1)+' + '+(2+tier)+' Sigils',kind:'tier',amount:2+tier}:{icon:'💠',name:'Final Frontier',detail:'12 Primal Sigils',kind:'sigils',amount:12};
+ if(wave===20)return tier<MAX_TIER?{icon:'⚔',name:'The Next Frontier',detail:'Unlock Tier '+roman(tier+1)+' + '+(2+tier)+' Sigils',kind:'tier',amount:2+tier}:{icon:'💠',name:'The Final Frontier',detail:'17 Primal Sigils',kind:'sigils',amount:17};
  if(wave===35)return {icon:'◇',name:'Runic Expedition',detail:'A rare rune + '+fmt(350*scale)+' Gold',kind:'rune',amount:Math.round(350*scale)};
- if(wave===50)return {icon:'♛',name:'Banner of the Conqueror',detail:'A unique collectible and equippable banner',kind:'banner',amount:0};
+ if(wave===50)return {icon:'♛',name:'Banner of the Conqueror',detail:'Unique collectible and equippable banner',kind:'banner',amount:0};
  if(wave===75)return {icon:'💠',name:'Primal Treasury',detail:(6+tier*2)+' Sigils',kind:'sigils',amount:6+tier*2};
- return {icon:'✦',name:'Century of Onslaught',detail:fmt(700*scale)+' Essence + '+(12+tier*3)+' Sigils',kind:'century',amount:Math.round(700*scale)};
+ if(wave===100)return {icon:'✦',name:'Century of Onslaught',detail:fmt(700*scale)+' Essence + '+(12+tier*3)+' Sigils',kind:'century',amount:Math.round(700*scale)};
+ const sigils=Math.ceil((tier+3)*(2+Math.log2(1+wave/100))*(1+wave/MAX_WAVE));
+ const unlock=ascensionPaths.find(row=>row[5]===wave);
+ if(wave===MAX_WAVE)return {icon:'♛',name:'Eternal Conqueror',detail:fmt(sigils)+' Sigils + Eternal Victory banner',kind:'eternal',amount:sigils};
+ if(unlock)return {icon:'✧',name:unlock[1]+' Discovery',detail:fmt(sigils)+' Sigils · Unlock '+unlock[1]+' in Power → Training',kind:'path',amount:sigils,unlock:unlock[0]};
+ const milestoneNames={250:'Warfront Waystone',500:'The Fifth Seal',750:'Veteran Vanguard',1500:'Ancestral Waystone',2000:'Siege of Ages',3000:'Chronicle of Valor',4000:'Echo of the Citadel',6000:'Fallen Kingdom',7500:'High Sovereignty',8000:'Eternal Waystone',9000:'Final Trial'};
+ return {icon:'💠',name:milestoneNames[wave]||'Ascension Tribute',detail:fmt(sigils)+' Primal Sigils · One-time tier achievement',kind:'deepSigils',amount:sigils};
 }
 function milestoneKey(tier,wave){return tier+':'+wave;}
-function nextMilestone(tier,wave){return milestonesAt.find(x=>x>=wave)||null;}
+function nextMilestone(tier,wave){return milestonesAt.find(w=>w>=wave&&!p.milestones[milestoneKey(tier,w)])||milestonesAt.find(w=>w>=wave)||null;}
 function rewardMilestone(tier,wave){
- const key=milestoneKey(tier,wave);if(p.milestones[key])return false;
- const prize=tierMilestone(tier,wave);p.milestones[key]=true;
+ const key=milestoneKey(tier,wave);
+ if(p.milestones[key]||!milestonesAt.includes(wave))return false;
+ const prize=tierMilestone(tier,wave);
+ p.milestones[key]=true;
  if(prize.kind==='gold')p.gold+=prize.amount;
  if(prize.kind==='essence')p.essence+=prize.amount;
- if(prize.kind==='sigils')p.sigils+=prize.amount;
+ if(['sigils','deepSigils','path','eternal'].includes(prize.kind))p.sigils+=prize.amount;
  if(prize.kind==='legacy'){p.sigils+=prize.amount;p.legacyUnlocked=true;}
- if(prize.kind==='tier'){p.unlockedTier=Math.max(p.unlockedTier,Math.min(12,tier+1));p.sigils+=prize.amount;}
- if(prize.kind==='rune'){p.gold+=prize.amount;p.runes.push({id:'milestone_'+key,type:['ember','storm','frost','fortune'][(tier-1)%4],tier:Math.min(12,2+Math.floor(tier/3))});}
+ if(prize.kind==='tier'){p.unlockedTier=Math.max(p.unlockedTier,Math.min(MAX_TIER,tier+1));p.sigils+=prize.amount;}
+ if(prize.kind==='rune'){p.gold+=prize.amount;if(p.runes.length<inventoryCap*3)p.runes.push({id:'milestone_'+key,type:['ember','storm','frost','fortune'][(tier-1)%4],tier:Math.min(12,2+Math.floor(tier/3))});}
  if(prize.kind==='banner'){const banner='Banner of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
+ if(prize.kind==='eternal'){const banner='Eternal Victor of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
  if(prize.kind==='century'){p.essence+=prize.amount;p.sigils+=12+tier*3;}
- notice('MILESTONE '+wave+' • '+prize.name.toUpperCase());message('✦ WAVE '+wave+' MILESTONE UNLOCKED');
+ notice('MILESTONE '+fmt(wave)+' • '+prize.name.toUpperCase());
+ message('✦ WAVE '+fmt(wave)+' MILESTONE UNLOCKED');
  save();return true;
 }
 let chosenTier=p.selectedTier;
