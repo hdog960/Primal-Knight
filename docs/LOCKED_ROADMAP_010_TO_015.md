@@ -56,3 +56,14 @@ This is the agreed production roadmap for Alpha 0.10.0 through 0.15.0. Treat its
 - Run `node --check game.js`, `node tests/smoke.js`, `node tests/balance.js` and encounter-specific tests.
 - Publish through GitHub Pages only after quality checks pass. Confirm actual deployment completion before announcing the release.
 - State what was and was not tested. Browser visual QA on a physical iPhone remains necessary.
+
+
+## Implementation ledger (append-only)
+
+### Alpha 0.10.0 — Living Onslaught, slice 1
+Delivered: deterministic 100-wave encounter director, five faction rosters, seven wave categories, shield guards, raiders, shamans, siege commanders, phase-II warlords, reward-safe treasure raids, initial enemy art, faction briefing and encounter tests.
+
+### Alpha 0.10.1 — Living Onslaught, slice 2
+Delivered: three additional factions (**eight total**), frost casters, interruptible sappers, rallying bannerets, siegebeast charge telegraphs, priority-aware automated targeting, original consistent pixel-art sprites, one-time flawless chapter objectives, mobile HUD indicator, extended combat and save-regression QA. See `docs/ALPHA_0101_LIVING_ONSLAUGHT.md`.
+
+**Alpha 0.10.0 is still in progress.** Next: two more factions, higher-identity chapter boss variants, optional non-chapter events, improved telegraphs and iPhone hardware playtesting. Do not move to 0.11.0 until the broader Living Onslaught criteria are assessed.
