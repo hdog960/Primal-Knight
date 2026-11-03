@@ -29,3 +29,4 @@ jobs:
         run: |
           node --check game.js
           node tests/smoke.js
+          node tests/balance.js
