@@ -551,3 +551,13 @@
  .chamber-tabs button{min-height:27px;padding:4px 12px;font-size:10px}
  .panel-content-scroll{padding:10px 14px 20px}
 }
+
+
+/* Alpha 0.5.3 - pre-siege menu navigation safety net.
+   An open progression panel must always paint ABOVE the tier selector.
+   The elevated z-index also protects browsers running a cached game script. */
+#app .panel:not([hidden]){z-index:30!important}
+#app[data-view="menu"] #tierLobby{display:none!important;pointer-events:none!important;visibility:hidden!important}
+#app[data-view="menu"] #panel:not([hidden]){z-index:30!important;visibility:visible!important}
+#app[data-view="battle"] #panel{display:none!important}
+#app[data-view="battle"] #tierLobby:not([hidden]){display:flex!important;visibility:visible!important}
