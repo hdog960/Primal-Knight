@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.6.6. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.6.7. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -224,7 +224,7 @@ const tabInfo={
  settings:['SETTINGS & SAVES','The Chronicle','Keep your progress safe with local saves and downloadable backups.','Safeguard your journey']
 };
 let heroSelectedSkill='aim';
-let activeByHub={battle:'battle',hero:'hero',power:'training',gear:'equipment',fortress:'stations'}, selectedSchool='Marksman',trainFilter='All',gearFilter='All',runePickSlot=null;
+let activeByHub={battle:'battle',hero:'hero',power:'training',gear:'equipment',fortress:'stations'}, selectedSchool='Marksman',trainFilter='Offense',gearFilter='All',runePickSlot=null;
 let armoryDrawerSlot=null,armorySellRarities=new Set(),lastGearSale=null;
 const gearSlotLabels={helm:'HELM',amulet:'AMULET',chest:'CHEST PLATE',legs:'PLATE LEGS',boots:'BOOTS',gauntlets:'GAUNTLETS',charm:'CHARM',ring1:'RING I',ring2:'RING II',ring3:'RING III',ring4:'RING IV',ring:'RING'};
 const gearSlotDescriptions={helm:'Head protection',amulet:'Relic and offensive power',chest:'Main torso armor',legs:'Leg protection',boots:'Movement and footing',gauntlets:'Strength and strikes',charm:'Utility and enchantment',ring:'Ring power'};
@@ -458,6 +458,110 @@ function handleArmoryClick(target){
    p.gold-=gold;p.inventory.push(...items);lastGearSale=null;save();refreshHUD();renderPanel();notice('LAST SALE REVERSED');return;}
  if(target.dataset.action){action(target.dataset.action);return;}
 }
+function trainCostAt(row,lv){
+ const [id,,,base,mul]=row;
+ return Math.floor(base*(1+lv*.075+lv*lv*.004)*Math.pow(1+(mul-1)*.07,Math.min(lv,120))*Math.pow(1.002,Math.max(0,lv-120)));
+}
+function trainBatchQuote(row,limit=10){
+ let level=t(row[0]),remaining=p.essence,cost=0,count=0;
+ while(count<limit&&level<row[5]){
+  const price=trainCostAt(row,level);
+  if(price>remaining)break;
+  remaining-=price;cost+=price;level++;count++;
+ }
+ return {count,cost};
+}
+function renderPowerHeader(kind){
+ const isTraining=kind==='training';
+ const trainingTotal=training.reduce((sum,row)=>sum+t(row[0]),0);
+ const researchTotal=research.reduce((sum,row)=>sum+res(row[0]),0);
+ const trainingMax=training.reduce((sum,row)=>sum+row[5],0);
+ const researchMax=research.reduce((sum,row)=>sum+row[5],0);
+ return `<div class="ascension-shell ${isTraining?'ascension-training':'ascension-research'}">
+  <div class="ascension-scene" aria-hidden="true"></div>
+  <div class="ascension-copy">
+   <span class="ascension-kicker">${isTraining?'✦ THE ETERNAL ASCENT':'✧ THE ROYAL ARCHIVES'}</span>
+   <h2>${isTraining?'Forge Your Power':'Research the Kingdom'}</h2>
+   <p>${isTraining?'Invest Hero Essence in the knight you command. Every rank endures.':'Spend Knowledge on permanent efficiencies, better rewards, and the art of advancement.'}</p>
+  </div>
+  <div class="ascension-treasury">
+   <div class="ascension-money ${isTraining?'primary':''}"><small>🔷 HERO ESSENCE</small><strong>${fmt(p.essence)}</strong></div>
+   <div class="ascension-money ${!isTraining?'primary':''}"><small>📖 KNOWLEDGE</small><strong>${fmt(p.knowledge)}</strong></div>
+   <div class="ascension-money"><small>💠 PRIMAL SIGILS</small><strong>${fmt(p.sigils)}</strong></div>
+  </div>
+  <div class="ascension-progress"><span>${isTraining?'TRAINING RANKS':'COMPLETED RESEARCH'}</span><b>${fmt(isTraining?trainingTotal:researchTotal)} <small>/ ${fmt(isTraining?trainingMax:researchMax)}</small></b>
+  <div class="ascension-progress-track"><i style="width:${meterPct(isTraining?trainingTotal:researchTotal,isTraining?trainingMax:researchMax)}%"></i></div></div>
+ </div>`;
+}
+function renderTrainingLedger(){
+ const categories={
+  Offense:['power','haste','crit','critDmg','pierce'],
+  Techniques:['range','multishot','boss','shock'],
+  Defense:['fort','regen','resist'],
+  Economy:['gold','xp','essence','loot'],
+  Legacy:[],
+  All:training.map(row=>row[0])
+ };
+ const current=Object.prototype.hasOwnProperty.call(categories,trainFilter)?trainFilter:'Offense';
+ const categoryNav=Object.keys(categories).map(name=>`<button type="button" class="ascension-filter${current===name?' selected':''}" data-train-filter="${name}" aria-pressed="${current===name}">${name==='Legacy'?'✦ ':''}${name}</button>`).join('');
+ const icons={
+  power:'battle',haste:'power',crit:'battle',critDmg:'skills',pierce:'battle',range:'battle',multishot:'battle',boss:'suppression',shock:'runes',
+  fort:'fortress',regen:'research',resist:'hero',gold:'runes',xp:'skills',essence:'power',loot:'gear'
+ };
+ const rows=training.filter(row=>categories[current].includes(row[0])).map(row=>{
+  const [id,name,desc,,,max]=row,rank=t(id),cost=trainCost(row),full=rank>=max,afford=!full&&p.essence>=cost,bulk=full?{count:0,cost:0}:trainBatchQuote(row,10);
+  const buyCount=bulk.count;
+  return `<article class="ascension-upgrade" data-train-row="${id}">
+   <div class="ascension-emblem"><span class="pixel-symbol pixel-symbol-${icons[id]||'power'}" aria-hidden="true"></span></div>
+   <div class="ascension-upgrade-copy"><div class="ascension-upgrade-name"><strong>${name}</strong><small>RANK ${fmt(rank)} / ${fmt(max)}</small></div>
+    <p>${desc}</p>
+    <div class="ascension-rank-track" role="progressbar" aria-label="${name} rank" aria-valuenow="${rank}" aria-valuemin="0" aria-valuemax="${max}"><span style="width:${meterPct(rank,max)}%"></span></div></div>
+   <div class="ascension-action-cell"><div class="ascension-next-cost">${full?'FULLY MASTERED':`NEXT 🔷 ${fmt(cost)}`}</div><div class="ascension-action-buttons">
+    <button type="button" data-action="train:${id}" ${!afford?'disabled':''}>${full?'MAX':'UP +1'}</button>
+    <button type="button" class="ascension-multi" data-action="trainBatch:${id}" ${buyCount<2?'disabled':''}>${buyCount>=2?'UP +'+buyCount:'×10'}</button>
+   </div></div>
+  </article>`;
+ }).join('');
+ const legacyRows=legacyPaths.map(row=>{
+  const [id,name,desc,,max]=row,rank=lr(id),cost=legacyCost(row),full=rank>=max,ready=p.sigils>=cost&&!full;
+  return `<article class="ascension-upgrade ascension-legacy-upgrade">
+    <div class="ascension-emblem"><span class="pixel-symbol pixel-symbol-${id==='goldenTouch'?'runes':id==='guardianOath'?'fortress':'battle'}" aria-hidden="true"></span></div>
+    <div class="ascension-upgrade-copy"><div class="ascension-upgrade-name"><strong>${name}</strong><small>RANK ${rank} / ${max}</small></div><p>${desc}</p><div class="ascension-rank-track"><span style="width:${meterPct(rank,max)}%"></span></div></div>
+    <div class="ascension-action-cell"><div class="ascension-next-cost">${full?'MASTERED':`NEXT 💠 ${fmt(cost)}`}</div><div class="ascension-action-buttons"><button type="button" data-action="legacy:${id}" ${!ready?'disabled':''}>${full?'MAX':'UP +1'}</button></div></div>
+   </article>`;
+ }).join('');
+ return `${renderPowerHeader('training')}
+  <div class="ascension-ledger">
+   <div class="ascension-ledger-heading"><div><small>✦ THE KNIGHT'S FORGE</small><strong>${current==='Legacy'?'Legacy Masteries':current==='All'?'All Training Paths':current+' Training'}</strong></div><span>One rank or many · Purchases are permanent</span></div>
+   <div class="ascension-filter-row" role="group" aria-label="Training specialization">${categoryNav}</div>
+   <div class="ascension-row-list">${current==='Legacy'?(p.legacyUnlocked?legacyRows:`<div class="ascension-legacy-gate"><span>✦</span><strong>Legacy Masteries are sealed</strong><p>Clear Tier I, Wave 15 to unlock these permanent Sigil-powered disciplines.</p></div>`):rows}</div>
+   <div class="ascension-ledger-note">The +10 button purchases up to 10 ranks that you can afford; the displayed +number tells you exactly how many will be purchased. No additional currencies or purchases are required.</div>
+  </div>`;
+}
+function renderResearchArchive(){
+ const researchIcons={discount:'gear',fusion:'runes',interest:'power',excavation:'gear',bounties:'battle',studies:'research'};
+ const groupings=[
+  ['CRAFT & DISCOVERY',['discount','fusion','excavation']],
+  ['ROYAL ECONOMY',['interest','bounties','studies']]
+ ];
+ const markup=groupings.map(([heading,ids])=>{
+  const entries=ids.map(id=>{
+   const row=research.find(x=>x[0]===id),[,,desc,,,max]=row,rank=res(id),cost=researchCost(row,p.research),full=rank>=max,ready=!full&&p.knowledge>=cost;
+   return `<article class="archive-entry" data-research-row="${id}">
+    <div class="archive-emblem"><span class="pixel-symbol pixel-symbol-${researchIcons[id]}" aria-hidden="true"></span></div>
+    <div class="archive-details"><div class="archive-entry-top"><strong>${row[1]}</strong><small>${rank} / ${max}</small></div><p>${desc}</p><div class="archive-progress"><i style="width:${meterPct(rank,max)}%"></i></div></div>
+    <div class="archive-action"><small>${full?'RESEARCH COMPLETE':`📖 ${fmt(cost)} KNOWLEDGE`}</small><button type="button" data-action="research:${id}" ${!ready?'disabled':''}>${full?'MAXED':'RESEARCH +1'}</button></div>
+   </article>`;
+  }).join('');
+  return `<section class="archive-school"><h3><span>✧ ${heading}</span><small>THREE PERMANENT PROJECTS</small></h3>${entries}</section>`;
+ }).join('');
+ return `${renderPowerHeader('research')}
+ <div class="archive-room">
+  <div class="archive-headline"><div><small>✧ THE GRAND RESEARCH LEDGER</small><h2>Six paths to prosperity</h2></div><p>Invest Knowledge from your sieges to reduce expenses, improve loot, and earn more for every wave you survive.</p></div>
+  <div class="archive-grid">${markup}</div>
+  <div class="archive-seal">✦ ROYAL EDICT · ALL RESEARCH IS PERMANENT ✦</div>
+ </div>`;
+}
 function renderPanel(){
  if(tab==='battle')return;
  const [title,asideTitle,description,motto]=tabInfo[tab]||tabInfo.hero;
@@ -479,17 +583,8 @@ function renderPanel(){
  if(tab==='skills'){
   html+=renderTreeFocus();
  }
- if(tab==='training'){
-  html+=highlight('The long road to mastery','Hero Essence is separate from Gold. These upgrades are permanent and many have hundreds of levels.','↟');
-  let groups={All:training.map(x=>x[0]),Offense:['power','haste','crit','critDmg','pierce','range','multishot','boss','shock'],Defense:['fort','regen','resist'],Economy:['gold','xp','essence','loot']};
-  html+=`<div class="filter-bar" role="group" aria-label="Training category">${Object.keys(groups).map(g=>`<button class="${g===trainFilter?'selected':''}" data-train-filter="${g}">${g}</button>`).join('')}</div>`;
-  html+=cards(training.filter(row=>groups[trainFilter]?.includes(row[0])).map(row=>{const [id,name,desc,,,max]=row,rank=t(id),cost=trainCost(row);return card(name,desc,`RANK ${fmt(rank)} / ${fmt(max)}`,cost,rank>=max?'MAXED':p.essence<cost?'MORE ESSENCE NEEDED':'TRAIN +1','train:'+id,rank>=max||p.essence<cost)}));
-  html+=section('LEGACY MASTERIES · PRIMAL SIGILS',p.legacyUnlocked?cards(legacyPaths.map(row=>{const [id,name,desc,,max]=row,rank=lr(id),cost=legacyCost(row);return card(name,desc,`RANK ${rank} / ${max}`,cost,rank>=max?'MAXED':p.sigils<cost?'MORE SIGILS NEEDED':'MASTER +1','legacy:'+id,rank>=max||p.sigils<cost)})):'<div class="legacy-lock">🔒 Clear Wave 15 on Tier I to unlock your first three permanent Sigil-powered mastery paths.</div>');
- }
- if(tab==='research'){
-  html+=highlight('Invest in your future','Knowledge earned from waves builds economic advantages. Discounts are capped for balance.','⚗');
-  html+=cards(research.map(row=>{const [id,name,desc,,,max]=row,rank=res(id),cost=researchCost(row,p.research);return card(name,desc,`RESEARCH ${rank} / ${max}`,cost,rank>=max?'COMPLETE':p.knowledge<cost?'MORE KNOWLEDGE NEEDED':'RESEARCH +1','research:'+id,rank>=max||p.knowledge<cost)}));
- }
+ if(tab==='training'){ html=renderTrainingLedger(); }
+ if(tab==='research'){ html=renderResearchArchive(); }
  if(tab==='equipment'){
   html+=renderArmoryShowcase();
  }
@@ -550,6 +645,7 @@ function openTab(next,fromHub=false){
  refreshHUD();
 }
 function action(text){let[type,id]=text.split(':');if(type==='train'){let row=training.find(x=>x[0]===id),cost=trainCost(row);if(p.essence>=cost&&t(id)<row[5]){p.essence-=cost;p.training[id]=t(id)+1;run.maxHealth=maxWall();run.health=Math.min(run.health+12,run.maxHealth);}}
+ else if(type==='trainBatch'){let row=training.find(x=>x[0]===id);if(row){const q=trainBatchQuote(row,10);if(q.count>=2){p.essence-=q.cost;p.training[id]=t(id)+q.count;run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+12*q.count);notice('TRAINED '+q.count+' RANKS');}}}
  else if(type==='legacy'){let row=legacyPaths.find(x=>x[0]===id);if(row&&p.legacyUnlocked&&lr(id)<row[4]&&p.sigils>=legacyCost(row)){p.sigils-=legacyCost(row);p.legacy[id]=lr(id)+1;run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+Math.round(run.maxHealth*.03));}}
  else if(type==='skill'){let found=Object.values(skills).flat().find(x=>x[0]===id);if(found&&p.points>0&&skill(id)<5){p.points--;p.skills[id]=skill(id)+1;run.maxHealth=maxWall();}}
  else if(type==='station'){let row=stationData.find(x=>x[0]===id),cost=stationCost(row);if(row&&p.gold>=cost&&station(id)<row[6]){p.gold-=cost;p.stations[id]=station(id)+1;}}
