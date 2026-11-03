@@ -1443,3 +1443,85 @@
  .panel[data-theme="equipment"] .armory-slot-gem .forge-pixel-icon{width:calc(100% - 2px);height:calc(100% - 2px)}
  .panel[data-theme="runes"] .rune-picker .rune-option{gap:5px}
 }
+
+
+/* Alpha 0.8.0 — long-form 10,000 wave milestone ladder, Tier XVI, and Ascension Chronicle. */
+.tier-choice{position:relative;padding-bottom:12px}
+.tier-choice.tier-conquered{border-color:#e4d495;background:linear-gradient(140deg,#4f4a38,#1e3243)}
+.tier-choice .tier-progress-track{display:block;height:4px;overflow:hidden;border:1px solid #ad8b5a;background:#101b28;width:100%;margin-top:3px}
+.tier-choice .tier-progress-track>span{display:block;height:100%;background:linear-gradient(90deg,#9b764c,#ffdc97);box-shadow:0 0 5px #f6c87e55}
+.milestone-waystone{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid #a9a06e;padding:10px;margin:0 0 8px;background:linear-gradient(135deg,#374238,#242a42 76%);box-shadow:inset 0 1px #ffeda734}
+.milestone-waystone>div:first-child{min-width:0}
+.milestone-waystone strong{display:block;font:700 12px Georgia,serif;color:#ffe6ad;margin-bottom:3px}
+.milestone-waystone small{display:block;font:10px/1.3 Arial,sans-serif;color:#d6d5c7}
+.milestone-waystone-choices{display:flex;align-items:stretch;gap:4px}
+.milestone-waystone-choices button{min-height:39px;min-width:76px;border:1px solid #bb9c6d;background:linear-gradient(#334858,#202c3a);color:#e8d5b5;padding:6px 8px;font:700 10px Arial,sans-serif}
+.milestone-waystone-choices button.selected{border-color:#ffe4a4;background:linear-gradient(#94673a,#50362e);color:#fff5d5;box-shadow:inset 0 1px #ffedb966}
+.milestone-waystone-empty{display:flex;flex-direction:column;gap:3px;background:linear-gradient(145deg,#263544,#1b2c39)}
+.milestone-ladder-heading{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:5px 7px 8px;border-bottom:1px solid #c8a36c7d;margin:0 0 7px}
+.milestone-ladder-heading span{font:700 12px Georgia,serif;letter-spacing:.4px;color:#ffdeb0}
+.milestone-ladder-heading small{font:700 9px Arial,sans-serif;color:#c1c4b7;white-space:nowrap}
+.milestone-entry.milestone-deep{background:linear-gradient(100deg,#26354a,#182b40);border-color:#7a7e82}
+.milestone-entry.milestone-deep.claimed{border-color:#508e77;background:#193d3acc}
+.milestone-entry.milestone-path{border-left:4px solid #c6a0de;background:linear-gradient(100deg,#40354e,#1f3042)}
+.milestone-entry.milestone-final{border:2px solid #e9c57a;background:linear-gradient(100deg,#5b4631,#303647)}
+.milestone-entry.milestone-final .milestone-medal{color:#fff4bf;border-color:#f6df92}
+.milestone-entry.milestone-final strong{color:#fff0b7}
+.milestone-entry.milestone-deep .milestone-medal{font-size:18px}
+.forge-ascension-chamber{--forge-category-color:#e6be92;margin-top:10px;padding:7px;border:2px ridge #b28c6b;
+ background:linear-gradient(145deg,#413444ee,#1f3040ed 74%),url('assets/chambers/training.webp') center/cover;
+ box-shadow:inset 0 0 0 2px #172333,0 7px 13px #0008}
+.forge-ascension-chamber .forge-category-head{margin-bottom:4px}
+.forge-ascension-chamber .forge-category-heading h3{font-size:21px}
+.forge-ascension-chamber .forge-category-heading p{font-size:10px}
+.forge-ascension-chamber .forge-category-crest .forge-pixel-icon{width:35px;height:36px}
+.forge-ascension-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.forge-ascension-chamber .ascension-endgame-row{display:grid;grid-template-columns:37px minmax(0,1fr) 92px;gap:6px;align-items:center;min-height:70px;clip-path:none;border:1px solid #b69a6c;padding:6px;background:linear-gradient(110deg,#304054,#1a2b3e);box-shadow:inset 0 1px #f1d7b52c}
+.forge-ascension-chamber .ascension-endgame-row:nth-child(3n+2){background:linear-gradient(110deg,#38334d,#233349)}
+.forge-ascension-chamber .ascension-endgame-row.ascension-locked{filter:saturate(.58)}
+.forge-ascension-chamber .ascension-endgame-row.ascension-locked .ascension-next-cost{color:#dac9aa}
+.forge-ascension-chamber .ascension-endgame-row .ascension-emblem{width:36px;height:39px;display:grid;place-items:center;border:1px solid #bca076;background:#1c2e40}
+.forge-ascension-chamber .ascension-endgame-row .ascension-emblem .forge-pixel-icon{width:35px;height:37px}
+.forge-ascension-chamber .ascension-endgame-row .ascension-upgrade-name strong{font-size:13px}
+.forge-ascension-chamber .ascension-endgame-row .ascension-upgrade-name small{font-size:8px}
+.forge-ascension-chamber .ascension-endgame-row .ascension-upgrade-copy p{font:10px/1.25 Arial,sans-serif;color:#e0d2be;margin:2px 0}
+.forge-ascension-chamber .ascension-endgame-row .ascension-next-cost{font-size:10px}
+.forge-ascension-chamber .ascension-endgame-row .ascension-action-buttons button{min-height:34px;font-size:12px}
+.forge-ascension-footer{display:flex;justify-content:space-between;gap:9px;align-items:center;flex-wrap:wrap;border-top:1px solid #d6b48560;padding:8px 4px 2px;margin-top:8px;color:#d6c7ad;font:10px/1.35 Arial,sans-serif}
+.forge-ascension-footer b{color:#ffdfa8}
+@media(max-width:1000px){
+ .milestone-waystone{grid-template-columns:1fr;gap:7px}
+ .milestone-waystone-choices{flex-wrap:wrap}
+ .forge-ascension-rows{grid-template-columns:1fr}
+ .forge-ascension-chamber .ascension-endgame-row{grid-template-columns:36px minmax(0,1fr) 93px}
+}
+@media(orientation:portrait) and (max-width:680px){
+ .tier-choice{min-height:66px;padding:6px 7px}
+ .tier-choice strong{font-size:11px}
+ .tier-choice small{font-size:8px}
+ .tier-choice-number{font-size:8px}
+ .milestone-waystone{padding:7px}
+ .milestone-waystone strong{font-size:11px}
+ .milestone-waystone small{font-size:9px}
+ .milestone-waystone-choices button{min-height:36px}
+ .milestone-ladder-heading span{font-size:10px}
+ .milestone-ladder-heading small{font-size:8px}
+ .milestone-entry.milestone-deep{min-height:51px}
+ .milestone-entry.milestone-deep .milestone-copy strong{font-size:11px}
+ .milestone-entry.milestone-deep .milestone-copy small{font-size:9px}
+ .milestone-entry.milestone-deep .milestone-status{font-size:8px}
+ .forge-ascension-chamber{padding:5px}
+ .forge-ascension-chamber .forge-category-heading h3{font-size:17px}
+ .forge-ascension-chamber .forge-category-heading p{font-size:9px}
+ .forge-ascension-chamber .ascension-endgame-row{min-height:64px;grid-template-columns:32px minmax(0,1fr) 87px;padding:4px;gap:4px}
+ .forge-ascension-chamber .ascension-endgame-row .ascension-emblem{width:31px;height:36px}
+ .forge-ascension-chamber .ascension-endgame-row .ascension-emblem .forge-pixel-icon{width:30px;height:34px}
+ .forge-ascension-chamber .ascension-endgame-row .ascension-upgrade-name strong{font-size:12px}
+ .forge-ascension-chamber .ascension-endgame-row .ascension-upgrade-copy p{font-size:9px}
+ .forge-ascension-footer{font-size:9px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .tier-choice{min-height:62px;padding:5px}
+ .tier-choice strong{font-size:11px}
+ .forge-ascension-rows{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
