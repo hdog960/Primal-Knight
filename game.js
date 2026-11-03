@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.4. Tiered endless siege and persistent milestones. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.6. Character armory, equipment wardrobe and safe gear selling. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -176,15 +176,24 @@ const tabInfo={
  settings:['SETTINGS & SAVES','The Chronicle','Keep your progress safe with local saves and downloadable backups.','Safeguard your journey']
 };
 let activeByHub={battle:'battle',hero:'hero',power:'training',gear:'equipment',fortress:'stations'}, selectedSchool='Marksman',trainFilter='All',gearFilter='All',runePickSlot=null;
+let armoryDrawerSlot=null,armorySellRarities=new Set(),lastGearSale=null;
+const gearSlotLabels={weapon:'WEAPON',armor:'ARMOR',charm:'CHARM'};
+const gearSlotDescriptions={weapon:'Damage and ranged attacks',armor:'Fortress vitality',charm:'Overall combat power'};
+const gearSlotArt={weapon:'battle',armor:'gear',charm:'runes'};
+function equippedGear(slot){return p.inventory.find(g=>g.id===p.equipped[slot])||null;}
+function gearTitle(g){return gearNames[g.slot][g.rarity]||'Unknown Equipment';}
+function gearSellPrice(g){const base=Math.floor(24*Math.pow(2.1,g.rarity));let refund=0;for(let i=0;i<Math.min(50,g.plus);i++)refund+=gearCost({...g,plus:i})*.18;return Math.max(1,Math.floor(base+refund));}
+function canSellGear(g){return !!g&&!Object.values(p.equipped).includes(g.id);}
+
 const currencyGlyph={gold:'🟡',essence:'🔷',knowledge:'📖',sigils:'💠',points:'✦'};
 const currencyFor=action=>({train:'essence',skill:'points',station:'gold',research:'knowledge',suppress:'knowledge',enhance:'gold',fuse:'gold'}[String(action).split(':')[0]]||'gold');
 const cardArt={train:'power',skill:'skills',station:'stations',research:'research',suppress:'suppression',equip:'gear',enhance:'gear',fuse:'runes'};
 const meterPct=(n,max)=>max?Math.min(100,Math.max(0,100*n/max)):0;
 const upgradeArt={
-power:'battle',haste:'power',fort:'hero',crit:'battle',critDmg:'skills',pierce:'battle',regen:'research',gold:'runes',xp:'skills',essence:'power',range:'battle',multishot:'battle',boss:'suppression',loot:'runes',resist:'hero',shock:'runes',
-aim:'battle',quiver:'battle',penetrate:'battle',double:'battle',focus:'hero',storm:'runes',ember:'runes',frost:'runes',spark:'runes',inferno:'runes',hail:'runes',tempest:'runes',
-stone:'fortress',mend:'research',thorns:'fortress',ward:'hero',bulwark:'fortress',laststand:'hero',fortune:'runes',scavenger:'gear',wisdom:'skills',midas:'runes',salvage:'gear',prosperity:'research',
-ballista:'battle',cryo:'runes',thunder:'runes',gravity:'stations',discount:'gear',fusion:'runes',interest:'research',excavation:'gear',bounties:'battle',studies:'skills',health:'suppression',speed:'suppression',damage:'suppression',armor:'suppression'
+ power:'battle',haste:'power',fort:'hero',crit:'battle',critDmg:'skills',pierce:'battle',regen:'research',gold:'runes',xp:'skills',essence:'power',range:'battle',multishot:'battle',boss:'suppression',loot:'runes',resist:'hero',shock:'runes',
+ aim:'battle',quiver:'battle',penetrate:'battle',double:'battle',focus:'hero',storm:'runes',ember:'runes',frost:'runes',spark:'runes',inferno:'runes',hail:'runes',tempest:'runes',
+ stone:'fortress',mend:'research',thorns:'fortress',ward:'hero',bulwark:'fortress',laststand:'hero',fortune:'runes',scavenger:'gear',wisdom:'skills',midas:'runes',salvage:'gear',prosperity:'research',
+ ballista:'battle',cryo:'runes',thunder:'runes',gravity:'stations',discount:'gear',fusion:'runes',interest:'research',excavation:'gear',bounties:'battle',studies:'skills',health:'suppression',speed:'suppression',damage:'suppression',armor:'suppression'
 };
 const chamberArt=tabName=>'assets/chambers/'+(tabName in tabInfo?tabName:'hero')+'.webp';
 function card(title,description,level,cost,label,actionId,disabled=false,accent='',progress=null){
@@ -194,6 +203,94 @@ function card(title,description,level,cost,label,actionId,disabled=false,accent=
 const section=(head,body)=>`<h2 class="section-title">${head}</h2>${body}`;
 const cards=arr=>`<div class="cards">${arr.join('')}</div>`;
 const highlight=(title,body,icon='✦')=>`<div class="highlight-banner"><div><b>${title}</b><small>${body}</small></div><div class="banner-emblem" aria-hidden="true">${icon}</div></div>`;
+
+function slotCard(slot){
+ const g=equippedGear(slot),label=gearSlotLabels[slot],icon=gearSlotArt[slot],cost=g?gearCost(g):0;
+ const name=g?gearTitle(g):'Empty '+slot.charAt(0).toUpperCase()+slot.slice(1)+' Slot';
+ const rarity=g?rarities[g.rarity]:'EMPTY SLOT';
+ return `<section class="armory-slot armory-${slot}" aria-label="${label} equipment slot">
+  <div class="armory-slot-label"><span>${label}</span><span>${g?'✦ EQUIPPED':'◇ AVAILABLE'}</span></div>
+  <button class="armory-slot-select" type="button" data-gear-slot="${slot}" aria-label="Choose ${slot} equipment: ${name}">
+    <span class="armory-slot-gem ${g?'has-gear rarity-outline-'+g.rarity:'is-empty'}"><span class="pixel-symbol pixel-symbol-${icon}" aria-hidden="true"></span></span>
+    <span class="armory-slot-copy"><small class="${g?'rarity-'+g.rarity:'empty-rarity'}">${rarity}</small><strong>${name}</strong><em>${g?'Enhancement +'+g.plus+' / 50':'Tap to equip'}</em></span>
+    <span class="armory-slot-prompt">${g?'CHANGE ITEM':'EQUIP ITEM'} <span aria-hidden="true">›</span></span>
+  </button>
+  ${g?`<button type="button" class="armory-enhance" data-action="enhance:${g.id}" ${g.plus>=50||p.gold<cost?'disabled':''}>${g.plus>=50?'MAX ENHANCEMENT':`✦ ENHANCE +1 · 🟡 ${fmt(cost)}`}</button>`:''}
+ </section>`;
+}
+function renderArmoryShowcase(){
+ const slots=['weapon','armor','charm'];
+ return `<div class="armory-intro"><div><span>THE WARDEN'S ARMORY</span><h2>Equip your champion</h2><p>Every piece has its own place. Tap a slot to browse its equipment, compare rarity and enhancements, or sell unwanted loot.</p></div><div class="armory-wallet">🟡 <strong>${fmt(p.gold)}</strong><small>GOLD</small></div></div>
+ <section class="armory-showcase" aria-label="Hero equipment screen">
+   <div class="armory-scene-heading">✦ THE LONE DEFENDER ✦</div>
+   <div class="armory-hero-plinth"><div class="armory-halo" aria-hidden="true"></div><img src="assets/hero.png" alt="Your red-cloaked Primal Knight seen from behind, ready to equip gear"><span class="armory-hero-level">LEVEL ${p.level} · PRIMAL KNIGHT</span></div>
+   ${slots.map(slotCard).join('')}
+ </section>
+ <div class="armory-wardrobe-bar"><div><strong>YOUR COLLECTION</strong><small>${p.inventory.length} / 100 items · Nine rarities · Equipped items protected</small></div><button type="button" data-gear-slot="all">OPEN FULL INVENTORY <span aria-hidden="true">›</span></button></div>
+ <div class="armory-note">✦ <b>Tip:</b> Empty a slot from its inventory drawer, or equip a different item to replace what you're wearing. All selling uses Gold and updates your save immediately.</div>`;
+}
+function renderArmoryDrawer(){
+ const drawer=$('armoryDrawer');if(!drawer)return;
+ if(tab!=='equipment'||!armoryDrawerSlot){drawer.hidden=true;drawer.innerHTML='';return;}
+ drawer.hidden=false;
+ const all=armoryDrawerSlot==='all',category=all?'ALL EQUIPMENT':gearSlotLabels[armoryDrawerSlot];
+ const items=p.inventory.filter(g=>all||g.slot===armoryDrawerSlot).sort((a,b)=>b.rarity-a.rarity||b.plus-a.plus||gearTitle(a).localeCompare(gearTitle(b)));
+ const current=!all?equippedGear(armoryDrawerSlot):null;
+ const groupMarkup=rarities.map((rarity,i)=>({rarity,i,items:items.filter(g=>g.rarity===i)})).filter(g=>g.items.length).reverse().map(group=>`
+ <section class="armory-rarity-group rarity-group-${group.i}" aria-label="${group.rarity} equipment">
+  <h3><span class="armory-rarity-sigil rarity-${group.i}">◆</span>${group.rarity.toUpperCase()} <small>${group.items.length} ${group.items.length===1?'ITEM':'ITEMS'}</small></h3>
+  <div class="armory-inventory-grid">${group.items.map(g=>{
+   const active=p.equipped[g.slot]===g.id,price=gearSellPrice(g),cost=gearCost(g);
+   return `<article class="armory-inventory-item rarity-outline-${g.rarity}" data-item-id="${g.id}">
+    <div class="armory-item-icon"><span class="pixel-symbol pixel-symbol-${gearSlotArt[g.slot]}" aria-hidden="true"></span></div>
+    <div class="armory-item-details"><small class="rarity-${g.rarity}">${rarities[g.rarity]} · ${gearSlotLabels[g.slot]}</small><strong>${gearTitle(g)}</strong><em>Enhancement +${g.plus} / 50 ${active?'· CURRENTLY EQUIPPED':''}</em></div>
+    <div class="armory-item-buttons"><button type="button" data-action="equip:${g.id}" ${active?'disabled':''}>${active?'✓ EQUIPPED':'EQUIP'}</button><button type="button" data-action="enhance:${g.id}" ${g.plus>=50||p.gold<cost?'disabled':''}>${g.plus>=50?'MAXED':`UPGRADE · 🟡${fmt(cost)}`}</button><button type="button" class="armory-sell-item" data-gear-sell="${g.id}" ${active?'disabled title="Unequip before selling"':''}>${active?'EQUIPPED · SAFE':`SELL · 🟡${fmt(price)}`}</button></div>
+   </article>`;}).join('')}</div>
+ </section>`).join('');
+ const rarityCounts=rarities.map((name,i)=>({name,i,count:p.inventory.filter(g=>g.rarity===i&&canSellGear(g)).length}));
+ drawer.innerHTML=`<div class="armory-drawer-header"><button type="button" data-gear-back class="armory-drawer-back">‹ BACK TO HERO</button><div class="armory-drawer-title"><small>THE ROYAL ARMORY</small><h2>${category}</h2><span>${items.length} ITEMS · SORTED BY RARITY</span></div><div class="armory-drawer-gold">🟡 ${fmt(p.gold)}</div></div>
+ <div class="armory-drawer-scroll" id="armoryDrawerScroll">
+  ${!all?`<div class="armory-current"><span>YOUR CURRENT ${category}</span><strong>${current?gearTitle(current)+' · +'+current.plus:'EMPTY · READY TO EQUIP'}</strong>${current?`<button type="button" data-gear-unequip="${armoryDrawerSlot}">UNEQUIP ${category}</button>`:''}</div>`:''}
+  <div class="armory-salvage"><div class="armory-salvage-heading"><div><small>THE SALVAGE COUNTER</small><h3>Sell gear by rarity</h3><p>Select one or more rarities. Bulk selling applies to <b>all three equipment categories</b> and never sells equipped items.</p></div><span>🟡 GOLD RETURNS</span></div>
+    <div class="armory-rarity-options" role="group" aria-label="Select equipment rarities to sell">${rarityCounts.map(r=>`<label class="armory-rarity-choice rarity-choice-${r.i} ${r.count===0?'no-items':''}"><input type="checkbox" data-sell-rarity="${r.i}" ${armorySellRarities.has(r.i)?'checked':''} ${r.count===0?'disabled':''}><span class="rarity-${r.i}">${r.name}</span><small>${r.count}</small></label>`).join('')}</div>
+    <div class="armory-salvage-actions"><button type="button" data-gear-bulk-sell id="armoryBulkSell">CHOOSE RARITIES TO SELL</button><span id="armoryBulkSummary">Equipped gear is always protected.</span></div>
+    ${lastGearSale?`<div class="armory-undo"><span>Last sale: ${lastGearSale.items.length} item(s) for 🟡${fmt(lastGearSale.gold)}</span><button type="button" data-gear-undo ${p.gold<lastGearSale.gold||p.inventory.length+lastGearSale.items.length>100?'disabled':''}>UNDO LAST SALE</button></div>`:''}
+  </div>
+  <div class="armory-items-header"><h3>${all?'ALL STORED EQUIPMENT':category+' COLLECTION'}</h3><p>Highest rarity first · Tap Equip to change your hero's loadout.</p></div>
+  ${groupMarkup||`<div class="armory-empty"><strong>No equipment in this category yet.</strong><p>Defend the wall to collect gear. Empty slots can remain unequipped.</p></div>`}
+ </div>`;
+ refreshBulkSalePreview();
+}
+function refreshBulkSalePreview(){
+ const button=$('armoryBulkSell'),description=$('armoryBulkSummary');if(!button||!description)return;
+ const selected=p.inventory.filter(g=>armorySellRarities.has(g.rarity)&&canSellGear(g));
+ const gold=selected.reduce((total,g)=>total+gearSellPrice(g),0);
+ button.disabled=selected.length===0;
+ button.textContent=selected.length?`SELL ${selected.length} ITEMS · 🟡 ${fmt(gold)}`:'SELECT RARITIES TO SELL';
+ description.textContent=selected.length?`${selected.length} unequipped items across all slots · ${fmt(gold)} Gold`:'Equipped gear is always protected.';
+}
+function completeGearSale(items){
+ const allowed=items.filter(g=>p.inventory.some(i=>i.id===g.id)&&canSellGear(g));if(!allowed.length){notice('NO UNEQUIPPED GEAR TO SELL');return;}
+ const amount=allowed.reduce((total,g)=>total+gearSellPrice(g),0),ids=new Set(allowed.map(g=>g.id));
+ p.inventory=p.inventory.filter(g=>!ids.has(g.id));p.gold+=amount;
+ lastGearSale={items:allowed.map(g=>({...g})),gold:amount};save();refreshHUD();renderPanel();
+ notice('SOLD '+allowed.length+' ITEM'+(allowed.length>1?'S':'')+' · +'+fmt(amount)+' GOLD');
+}
+function handleArmoryClick(target){
+ if(target.dataset.gearBack!==undefined){armoryDrawerSlot=null;armorySellRarities.clear();renderArmoryDrawer();return;}
+ if(target.dataset.gearUnequip){const slot=target.dataset.gearUnequip;delete p.equipped[slot];save();refreshHUD();renderPanel();notice(gearSlotLabels[slot]+' SLOT UNEQUIPPED');return;}
+ if(target.dataset.gearSell){const g=p.inventory.find(x=>x.id===target.dataset.gearSell);if(!canSellGear(g))return;
+   if((g.rarity>=4||g.plus>0)&&!confirm(`Sell ${gearTitle(g)} (+${g.plus}) for ${fmt(gearSellPrice(g))} Gold?`))return;
+   completeGearSale([g]);return;}
+ if(target.dataset.gearBulkSell!==undefined){const items=p.inventory.filter(g=>armorySellRarities.has(g.rarity)&&canSellGear(g));if(!items.length)return;
+   const amount=items.reduce((total,g)=>total+gearSellPrice(g),0);
+   if(!confirm(`Sell ${items.length} unequipped item(s) for ${fmt(amount)} Gold? Equipped items will NOT be sold.`))return;
+   completeGearSale(items);return;}
+ if(target.dataset.gearUndo!==undefined){if(!lastGearSale)return;const {items,gold}=lastGearSale;
+   if(p.gold<gold||p.inventory.length+items.length>100){notice('NOT ENOUGH GOLD OR INVENTORY SPACE TO UNDO');return;}
+   p.gold-=gold;p.inventory.push(...items);lastGearSale=null;save();refreshHUD();renderPanel();notice('LAST SALE REVERSED');return;}
+ if(target.dataset.action){action(target.dataset.action);return;}
+}
 function renderPanel(){
  if(tab==='battle')return;
  const [title,asideTitle,description,motto]=tabInfo[tab]||tabInfo.hero;
@@ -236,15 +333,7 @@ function renderPanel(){
   html+=cards(research.map(row=>{const [id,name,desc,,,max]=row,rank=res(id),cost=researchCost(row,p.research);return card(name,desc,`RESEARCH ${rank} / ${max}`,cost,rank>=max?'COMPLETE':p.knowledge<cost?'MORE KNOWLEDGE NEEDED':'RESEARCH +1','research:'+id,rank>=max||p.knowledge<cost)}));
  }
  if(tab==='equipment'){
-  html+=highlight('Three slots · one hero','Weapon boosts attacks, armor fortifies your wall and charms improve overall power.','⚒');
-  html+=section('EQUIPPED AT THE FORGE',cards(['weapon','armor','charm'].map(slot=>{
-   const g=p.inventory.find(g=>g.id===p.equipped[slot]);if(!g)return'';const cost=gearCost(g);
-   return card(`<span class="badge-rarity rarity-${g.rarity}">${rarities[g.rarity]}</span> ${gearNames[slot][g.rarity]}`,`${slot.toUpperCase()} · Enhancement +${g.plus} · ${slot==='weapon'?'Increases ranged damage':slot==='armor'?'Improves fortress health':'Strengthens general combat power'}`,`ENHANCEMENT +${g.plus} / 50`,cost,g.plus>=50?'MAXED':p.gold<cost?'MORE GOLD NEEDED':'ENHANCE +1','enhance:'+g.id,g.plus>=50||p.gold<cost);
-  })));
-  html+=section(`YOUR ARMORY · ${p.inventory.length} / 100`,`<div class="filter-bar">${['All','weapon','armor','charm'].map(f=>`<button data-gear-filter="${f}" class="${f===gearFilter?'selected':''}">${f==='All'?'All Items':f==='weapon'?'Weapons':f==='armor'?'Armor':'Charms'}</button>`).join('')}</div>`+cards(p.inventory.filter(g=>gearFilter==='All'||g.slot===gearFilter).map(g=>{
-   const equipped=p.equipped[g.slot]===g.id;
-   return card(`<span class="badge-rarity rarity-${g.rarity}">${rarities[g.rarity]}</span> ${gearNames[g.slot][g.rarity]}`,`${g.slot.toUpperCase()} · Enhancement +${g.plus}`,equipped?'CURRENTLY EQUIPPED':'READY TO EQUIP',null,equipped?'✓ EQUIPPED':'EQUIP ITEM','equip:'+g.id,equipped,'',equipped?100:0);
-  })));
+  html+=renderArmoryShowcase();
  }
  if(tab==='runes'){
   html+=highlight('Socket. Combine. Ascend.','Place a rune in each equipped item. To fuse, collect three of the same family and tier.','◇');
@@ -274,6 +363,7 @@ function renderPanel(){
   html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div><div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.4 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  $('panelContent').innerHTML=html;
+ if(tab==='equipment')renderArmoryDrawer();else{const drawer=$('armoryDrawer');if(drawer){drawer.hidden=true;drawer.innerHTML='';}}
  const imp=$('importFile');if(imp)imp.onchange=async ev=>{let file=ev.target.files?.[0];if(!file)return;try{let obj=JSON.parse(await file.text());if(!obj.inventory||!obj.equipped||!obj.training)throw Error('Invalid save');if(!confirm('Replace your current progress with this backup?'))return;p={...defaultState(),...obj};p.bestByTier??={};p.milestones??={};p.legacy??={};p.banners??=['Crimson Standard'];p.sigils??=0;p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,12);chosenTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);save();initRun();showLobby();refreshHUD();renderPanel();notice('SAVE RESTORED');}catch(e){notice('Invalid save file')}};
 }
 function openTab(next,fromHub=false){
@@ -282,7 +372,8 @@ function openTab(next,fromHub=false){
  if(fromHub&&next in hubs)next=activeByHub[next];
  if(next!=='settings'&&next!=='battle'&&!tabInfo[next])return;
  const previous=tab;tab=next;
- // Authoritative screen state: progression menus must never be hidden by the siege tier lobby.
+ if(next!=='equipment'){armoryDrawerSlot=null;armorySellRarities.clear();}
+ // This is the single authoritative screen state: CSS never lets the lobby cover a menu.
  $('app').dataset.view=next==='battle'?'battle':'menu';
  const hub=Object.keys(hubs).find(key=>hubs[key].includes(next));if(hub)activeByHub[hub]=next;
  for(let b of document.querySelectorAll('[data-hub]'))b.classList.toggle('selected',b.dataset.hub===hub);
@@ -305,7 +396,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  else if(type==='station'){let row=stationData.find(x=>x[0]===id),cost=stationCost(row);if(row&&p.gold>=cost&&station(id)<row[6]){p.gold-=cost;p.stations[id]=station(id)+1;}}
  else if(type==='research'){let row=research.find(x=>x[0]===id),cost=researchCost(row,p.research);if(row&&p.knowledge>=cost&&res(id)<row[5]){p.knowledge-=cost;p.research[id]=res(id)+1;}}
  else if(type==='suppress'){let row=suppression.find(x=>x[0]===id),cost=researchCost(row,p.suppression);if(row&&p.knowledge>=cost&&sup(id)<row[5]){p.knowledge-=cost;p.suppression[id]=sup(id)+1;}}
- else if(type==='equip'){let g=p.inventory.find(g=>g.id===id);if(g)p.equipped[g.slot]=g.id;}
+ else if(type==='equip'){let g=p.inventory.find(g=>g.id===id);if(g){p.equipped[g.slot]=g.id;notice(gearTitle(g)+' EQUIPPED');}}
  else if(type==='enhance'){let g=p.inventory.find(g=>g.id===id);if(g&&p.gold>=gearCost(g)&&g.plus<50){p.gold-=gearCost(g);g.plus++;}}
  else if(type==='fuse'){let r=p.runes.find(x=>x.id===id);if(!r)return;let same=p.runes.filter(x=>x.type===r.type&&x.tier===r.tier&&!Object.values(p.socketed).includes(x.id));let cost=Math.floor(85*r.tier*r.tier*(1-Math.min(.4,res('fusion')*.012)));if(same.length>=3&&p.gold>=cost&&r.tier<12){p.gold-=cost;let ids=same.slice(0,3).map(x=>x.id);p.runes=p.runes.filter(x=>!ids.includes(x.id));p.runes.push({id:'r'+Date.now()+Math.random(),type:r.type,tier:r.tier+1});notice('RUNE FUSED TO TIER '+(r.tier+1));}}
  else if(type==='socket'){runePickSlot=id;renderPanel();return;}
@@ -317,6 +408,7 @@ $('nav').addEventListener('click',e=>{let b=e.target.closest('[data-hub]');if(b)
 $('subnav').addEventListener('click',e=>{let b=e.target.closest('[data-subtab]');if(b)openTab(b.dataset.subtab)});
 $('panelContent').addEventListener('click',e=>{
  let target=e.target.closest('button');if(!target||target.disabled)return;
+ if(target.dataset.gearSlot){armoryDrawerSlot=target.dataset.gearSlot;armorySellRarities.clear();lastGearSale=null;renderArmoryDrawer();return;}
  if(target.dataset.action){action(target.dataset.action);return;}
  if(target.dataset.goto){openTab(target.dataset.goto);return;}
  if(target.dataset.banner){if(p.banners.includes(target.dataset.banner)){p.activeBanner=target.dataset.banner;save();renderPanel();notice('BANNER EQUIPPED');}return;}
@@ -326,6 +418,9 @@ $('panelContent').addEventListener('click',e=>{
  if(target.dataset.socketSlot){runePickSlot=runePickSlot===target.dataset.socketSlot?null:target.dataset.socketSlot;renderPanel();return;}
  if(target.dataset.socketRune){let [slot,id]=target.dataset.socketRune.split(':');if(id==='none')delete p.socketed[slot];else if(p.runes.some(r=>r.id===id))p.socketed[slot]=id;runePickSlot=null;save();refreshHUD();renderPanel();notice(id==='none'?'RUNE REMOVED':'RUNE SOCKETED');return;}
 });
+const armoryDrawerEl=$('armoryDrawer');
+armoryDrawerEl.addEventListener('click',e=>{const target=e.target.closest('button');if(!target||target.disabled)return;handleArmoryClick(target);});
+armoryDrawerEl.addEventListener('change',e=>{const target=e.target.closest('[data-sell-rarity]');if(!target)return;const rarity=Number(target.dataset.sellRarity);if(target.checked)armorySellRarities.add(rarity);else armorySellRarities.delete(rarity);refreshBulkSalePreview();});
 $('settingsButton').onclick=()=>openTab('settings');$('closePanel').onclick=()=>openTab('battle');
 $('startButton').onclick=()=>{if(!$('tierLobby').hidden)enterSiege()};
 $('launchTierButton').onclick=enterSiege;
@@ -334,5 +429,5 @@ $('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer};requestAnimationFrame(loop);
 })();
