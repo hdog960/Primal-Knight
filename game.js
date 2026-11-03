@@ -215,8 +215,8 @@ const tabIcons={hero:'hero',skills:'skills',training:'training',research:'resear
 const tabInfo={
  hero:['HERO HALL','The Defender','Your hero, your legend. Every upgrade serves this one warrior.','The heart of the fortress'],
  skills:['PATHS OF POWER','The Hall of Talents','Spend level points on lasting specialties. Learn talents in order, or explore other schools.','Learn and specialize'],
- training:['HERO TRAINING','The Eternal Ascent','Thousands of ranks, each making your hero stronger. Spend Essence to grow for the long haul.','Your strength never rests'],
- research:['ROYAL RESEARCH','The Royal Archive','Make every reward go further. Invest Knowledge to reduce costs and boost future income.','Wisdom builds kingdoms'],
+ training:['ASCENSION FORGE','The Eternal Ascent','Thousands of ranks, each making your hero stronger. Spend Essence to grow for the long haul.','Your strength never rests'],
+ research:['ROYAL ARCHIVE','The Royal Archive','Make every reward go further. Invest Knowledge to reduce costs and boost future income.','Wisdom builds kingdoms'],
  equipment:['FORGE & ARMORY','The Royal Forge','Wear your strongest discoveries, then enhance each item with Gold.','The forge burns bright'],
  runes:['RUNIC WORKSHOP','The Rune Sanctum','Socket a rune into each item. Combine three matching runes to advance their tier.','Magic is forged here'],
  stations:['DEFENSIVE STATIONS','The Siege Works','Strengthen permanent fortress machinery for extra firepower, control and wealth.','Guard every stone'],
@@ -676,7 +676,7 @@ $('panelContent').addEventListener('click',e=>{
  if(target.dataset.banner){if(p.banners.includes(target.dataset.banner)){p.activeBanner=target.dataset.banner;save();renderPanel();notice('BANNER EQUIPPED');}return;}
  if(target.dataset.heroInspect){heroSelectedSkill=target.dataset.heroInspect;const sc=$('panelContent');const y=sc.scrollTop;renderPanel();sc.scrollTop=y;return;}
  if(target.dataset.school){selectedSchool=target.dataset.school;renderPanel();return;}
- if(target.dataset.trainFilter){trainFilter=target.dataset.trainFilter;renderPanel();return;}
+ if(target.dataset.trainFilter){trainFilter=target.dataset.trainFilter;renderPanel();$('panelContent').scrollTop=0;return;}
  if(target.dataset.gearFilter){gearFilter=target.dataset.gearFilter;renderPanel();return;}
  if(target.dataset.socketSlot){runePickSlot=runePickSlot===target.dataset.socketSlot?null:target.dataset.socketSlot;renderPanel();return;}
  if(target.dataset.socketRune){let [slot,id]=target.dataset.socketRune.split(':');if(id==='none')delete p.socketed[slot];else if(p.runes.some(r=>r.id===id))p.socketed[slot]=id;runePickSlot=null;save();refreshHUD();renderPanel();notice(id==='none'?'RUNE REMOVED':'RUNE SOCKETED');return;}
