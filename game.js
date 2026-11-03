@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.7. Living Onslaught phase 8: safe thirty-tier backup restoration, emergency rollback and deep-wave resilience and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.8. Living Onslaught phase 9: frame-independent effects, capped canvas redraws and compact iPhone combat HUD and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -788,9 +788,24 @@ function specialEnemyMotion(e,dt){
  }
  return motion;
 }
+// Advance transient cosmetic effects with simulated elapsed time, not with display refreshes.
+function advanceBattleVisuals(dt){
+ if(!Number.isFinite(dt)||dt<=0)return;
+ run.shakes=Math.max(0,run.shakes-dt*.96);
+ run.flashes=Math.max(0,run.flashes-dt);
+ for(let i=run.particles.length-1;i>=0;i--){
+  const particle=run.particles[i];
+  particle.life-=dt;particle.x+=particle.vx*dt;particle.y+=particle.vy*dt;particle.vy+=48*dt;
+  if(particle.life<=0)run.particles.splice(i,1);
+ }
+ for(let i=run.floats.length-1;i>=0;i--){
+  const label=run.floats[i];label.life-=dt;label.y-=25.8*dt;
+  if(label.life<=0)run.floats.splice(i,1);
+ }
+}
 function tick(dt){
  if((run.phase==='fighting'||run.phase==='intermission')&&run.speed===0)return;
- if((run.phase==='fighting'||run.phase==='intermission')&&run.speed>0){p.battleSeconds+=dt;saveClock+=dt;if(saveClock>=30){saveClock=0;save();}}
+ if((run.phase==='fighting'||run.phase==='intermission')&&run.speed>0){p.battleSeconds+=dt;saveClock+=dt;advanceBattleVisuals(dt*run.speed);if(saveClock>=30){saveClock=0;save();}}
  if(run.phase==='intermission'){run.rewardTimer-=dt*run.speed;if(run.rewardTimer<=0)beginWave();return;}if(run.phase!=='fighting')return;dt*=run.speed;run.time+=dt;run.heroChill=Math.max(0,(run.heroChill||0)-dt);run.spawnClock-=dt;run.shotClock-=dt;run.stationClock-=dt;
  if(run.spawned<run.total&&run.spawnClock<=0){spawnEnemy();run.spawned++;run.spawnClock=Math.max(.26,1.05-run.wave*.018);}
  let gravity=1-Math.min(.4,station('gravity')*.018),cryo=1-Math.min(.4,station('cryo')*.018);
@@ -884,7 +899,7 @@ function completeWave(){
  run.wave++;run.phase='intermission';run.rewardTimer=1.2;run.enemies=[];run.shots=[];
  save();refreshHUD();
 }
-function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0){ctx.translate(rnd(-2,2),rnd(-2,2));run.shakes-=.016;}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}
+function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0&&!reduceMotion){ctx.translate(rnd(-2,2),rnd(-2,2));}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}
  // Subtle animated fog and light make the illustrated environment breathe.
  const time=performance.now()/1000;let gd=ctx.createLinearGradient(0,96,0,415);gd.addColorStop(0,'rgba(5,25,39,.08)');gd.addColorStop(1,'rgba(18,10,21,.13)');ctx.fillStyle=gd;ctx.fillRect(0,90,960,350);
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
@@ -952,10 +967,10 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  // Draw AFTER enemies: attackers remain behind the wall, never over it.
  if(foreground.complete&&foreground.naturalWidth){ctx.drawImage(foreground,0,0,w,h);}
  for(const s of run.shots){ctx.beginPath();ctx.lineWidth=s.kind==='lightning'?3:2;ctx.strokeStyle=s.kind==='lightning'?'#90f2ff':s.kind==='ballista'?'#ffd285':'#ffe8a9';ctx.moveTo(s.x,s.y);let tail=s.trail[0]||[s.x-7,s.y+6];ctx.lineTo(tail[0],tail[1]);ctx.stroke();ctx.fillStyle='#fff5b9';ctx.fillRect(s.x-2,s.y-2,4,4);}
- for(let i=run.particles.length-1;i>=0;i--){let t=run.particles[i];t.life-=1/60;t.x+=t.vx/60;t.y+=t.vy/60;t.vy+=48/60;if(t.life<=0){run.particles.splice(i,1);continue}ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.fillRect(t.x,t.y,t.size,t.size)}ctx.globalAlpha=1;
- for(let i=run.floats.length-1;i>=0;i--){let f=run.floats[i];f.life-=1/60;f.y-=.43;ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y);if(f.life<=0)run.floats.splice(i,1)}ctx.globalAlpha=1;
+ for(const t of run.particles){ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.fillRect(t.x,t.y,t.size,t.size)}ctx.globalAlpha=1;
+ for(const f of run.floats){ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y)}ctx.globalAlpha=1;
  // Animated bow glow and string release marks the single hero as the shooter.
- if(run.flashes>0){run.flashes-=1/60;ctx.fillStyle=`rgba(255,226,142,${clamp(run.flashes*3,0,.68)})`;ctx.beginPath();ctx.arc(540,360,20+run.flashes*70,0,Math.PI*2);ctx.fill();}ctx.restore();}
+ if(run.flashes>0&&!reduceMotion){ctx.fillStyle=`rgba(255,226,142,${clamp(run.flashes*3,0,.68)})`;ctx.beginPath();ctx.arc(540,360,20+run.flashes*70,0,Math.PI*2);ctx.fill();}ctx.restore();}
 // Actual active windups temporarily replace the static encounter advice; no timer spam.
 function activeEncounterThreat(){
  if(run.phase!=='fighting')return null;
@@ -975,9 +990,11 @@ function activeEncounterThreat(){
  }
  return highest?{priority:highest.priority,text:highest.text}:null;
 }
+let lastResourceMarkup='';
 function refreshHUD(){
  let r=[['🟡','GOLD',p.gold],['🔷','ESSENCE',p.essence],['📖','KNOWLEDGE',p.knowledge],['💠','SIGILS',p.sigils],['✦','SKILL POINTS',p.points]];
- $('resources').innerHTML=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');
+ const resourceMarkup=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');
+ if(resourceMarkup!==lastResourceMarkup){$('resources').innerHTML=resourceMarkup;lastResourceMarkup=resourceMarkup;}
  $('stageName').textContent='TIER '+roman(run.tier)+' · '+tierNames[run.tier-1];
  $('waveName').textContent='WAVE '+formatWave(run.wave)+' / '+formatWave(MAX_WAVE);
  const bossHud=$('bossHud');
@@ -1649,7 +1666,25 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  save();refreshHUD();renderPanel();
  if(['train','trainBatch','legacy','ascension','oath','research'].includes(type))scrollPane.scrollTop=keepScroll;
 }
-function loop(tm){let dt=clamp(((tm-(loop.last||tm))/1000),0,.05);loop.last=tm;tick(dt);draw();if(tm-(loop.lastHud||0)>160){refreshHUD();loop.lastHud=tm}requestAnimationFrame(loop)}
+// A ProMotion iPhone may request 120+ RAF callbacks/sec. Keep combat physics responsive
+// but avoid re-painting the large layered pixel-art canvas more than 60 times/sec.
+// Low-motion devices use 30Hz rendering without altering wave timers or earned rewards.
+const reduceMotion=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function drawInterval(){
+ if(document.hidden)return Infinity;
+ if($('app').dataset.view==='menu')return 100;
+ return reduceMotion?1000/30:1000/60;
+}
+function loop(tm){
+ const dt=clamp(((tm-(loop.last||tm))/1000),0,.05);
+ loop.last=tm;tick(dt);
+ const interval=drawInterval();
+ if(Number.isFinite(interval)&&(loop.lastDraw===undefined||tm-loop.lastDraw>=interval-.5)){
+  draw();loop.lastDraw=tm;
+ }
+ if(tm-(loop.lastHud||0)>160){refreshHUD();loop.lastHud=tm}
+ requestAnimationFrame(loop);
+}
 $('nav').addEventListener('click',e=>{let b=e.target.closest('[data-hub]');if(b)openTab(b.dataset.hub,true)});
 $('subnav').addEventListener('click',e=>{let b=e.target.closest('[data-subtab]');if(b)openTab(b.dataset.subtab)});
 $('panelContent').addEventListener('click',e=>{
@@ -1677,5 +1712,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
