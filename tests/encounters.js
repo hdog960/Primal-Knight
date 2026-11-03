@@ -1,4 +1,4 @@
-// Alpha 0.10.3 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
+// Alpha 0.10.4 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const code=fs.readFileSync('game.js','utf8');
 function createWorld(seedValue=117){
@@ -31,7 +31,7 @@ for(const type of spriteTypes){
 }
 const {hooks}=createWorld();
 const encounter=hooks.encounterDirector;
-const expected=[[1,'standard'],[5,'vanguard'],[10,'elite'],[17,'ambush'],[25,'commander'],[37,'treasure'],[43,'relic'],[50,'commander'],[61,'bannerAssault'],[75,'commander'],[100,'chapterBoss'],[200,'chapterBoss'],[10000,'chapterBoss']];
+const expected=[[1,'standard'],[5,'vanguard'],[10,'elite'],[17,'ambush'],[25,'commander'],[37,'treasure'],[43,'relic'],[50,'commander'],[61,'bannerAssault'],[75,'commander'],[94,'arcane'],[100,'chapterBoss'],[200,'chapterBoss'],[10000,'chapterBoss']];
 for(const [wave,kind] of expected)assert.equal(encounter(wave,1).kind,kind,'Wave '+wave+' director chooses '+kind);
 assert.equal(encounter(100,1).bossType,'warlord','Every century ends with a warlord');
 assert.equal(encounter(25,1).bossType,'siegebeast','Each quarter century commander is a siege beast');
@@ -302,4 +302,47 @@ assert.equal(progress.runes.length,240,'Recovering rune respects inventory cap')
 assert(progress.runes.some(r=>r.id==='relic1_43'),'Original earned rune identity survives recovery');
 assert.equal(progress.pendingRelics.length,0,'Claimed rune is removed from temporary vault');
 assert.equal(vh.claimPendingRelics(),0,'Recovered rune cannot be claimed twice');
-console.log('PASS: 10 factions, 9 encounter classes, differentiated Relic Wardens and Standard Assault formations, readable live boss phase warnings, guaranteed queued rune rewards, existing progression and combat caps.');
+// Phase 5: Arcane Convergence is real playable content, capped and readable.
+const arcane=encounter(94,1);
+assert.equal(arcane.kind,'arcane','Wave 94 is a specialist Arcane Convergence encounter');
+assert.equal(encounter(221,1).kind,'arcane','Arcane cycle takes priority over an ordinary night ambush');
+assert.equal(hooks.encounterUnit(arcane,0),'frostbinder','Arcane wave opens with a visible slow-caster threat');
+assert.equal(hooks.encounterUnit(arcane,2),'shaman','Arcane wave recruits healing support');
+assert.equal(hooks.encounterUnit(arcane,4),'thornweaver','Arcane wave recruits protective ward casters');
+assert.equal(hooks.encounterKnowledgeBonus('arcane'),1.18,'Caster event Knowledge bonus is bounded to 18%');
+assert.equal(hooks.encounterKnowledgeBonus('standard'),1,'Ordinary Knowledge reward is unchanged');
+assert(hooks.encounterAdvice('arcane').includes('CASTERS'),'Encounter HUD gives practical counterplay');
+const arcWorld=createWorld(1397),ah=arcWorld.hooks,ar=ah.run();
+ar.tier=1;ar.wave=94;ar.maxHealth=ah.maxWall();ar.health=ar.maxHealth;ah.beginWave();
+const arcHint=arcWorld.sandbox.document.getElementById('encounterHint');
+assert(!arcHint.hidden&&arcHint.textContent.includes('+18% WAVE KNOWLEDGE'),'Real Arcane bonus is advertised on battlefield');
+for(let i=0;i<ar.total;i++){ar.spawned=i;ah.spawnEnemy();}
+const casters=ar.enemies.filter(e=>['shaman','frostbinder','thornweaver'].includes(e.type)&&!e.dead);
+assert.equal(ar.enemies.length,ar.total,'Arcane formation respects normal wave enemy budget');
+assert(casters.some(e=>e.type==='shaman')&&casters.some(e=>e.type==='frostbinder')&&casters.some(e=>e.type==='thornweaver'),'All three forms of magic are physically present');
+assert(casters.length<=3,'No more than three spellcasters can be active simultaneously');
+assert.equal(ah.allowedSpecialist('shaman',casters),'skeleton','Enemy wave blocks extra casters under pressure');
+casters.forEach(e=>e.dead=true);
+assert.equal(ah.allowedSpecialist('shaman',casters),'shaman','New caster can appear when prior casters die');
+assert.equal(ah.allowedSpecialist('sapper',[{type:'sapper',dead:false},{type:'sapper',dead:false}]),'skeleton','Original explosive specialist cap remains two');
+const normalWorld=createWorld(1398),nh=normalWorld.hooks,nr=nh.run(),np=nh.p();
+nr.tier=1;nr.wave=94;nr.maxHealth=nh.maxWall();nr.health=nr.maxHealth;nr.phase='fighting';
+nr.encounter={...nh.encounterDirector(94,1),kind:'standard'};
+const noBonusKnowledge=np.knowledge;nh.completeWave();
+const normalGain=np.knowledge-noBonusKnowledge;
+const eventWorld=createWorld(1398),eh=eventWorld.hooks,er=eh.run(),ep=eh.p();
+er.tier=1;er.wave=94;er.maxHealth=eh.maxWall();er.health=er.maxHealth;er.phase='fighting';er.encounter=eh.encounterDirector(94,1);
+const beforeArcane=ep.knowledge;eh.completeWave();
+const eventGain=ep.knowledge-beforeArcane;
+assert.equal(eventGain,Math.round(normalGain*1.18),'Knowledge bonus is awarded through actual completion, not just UI');
+assert.equal(ep.sigils,np.sigils,'Arcane rewards do not mint extra finite Sigils');
+const codex=ah.renderSiegeCodex();
+assert(codex.includes('FIELD MANUAL')&&codex.includes('Thornwake Circle')&&codex.includes('Riftborne Court'),'Faction codex describes all real factions');
+assert(codex.includes('Arcane Convergence')&&codex.includes('Relic Hunt'),'Field manual explains optional wave rewards');
+assert(ah.threatPriority({type:'banneret',dead:false,y:200,x:300})>ah.threatPriority({type:'goblin',dead:false,y:226,x:300}),'Auto-combat prioritizes rallying standard bearers');
+assert(ah.threatPriority({type:'shaman',dead:false,y:200,x:300,ritualClock:1})>ah.threatPriority({type:'goblin',dead:false,y:230,x:300}),'Auto-combat responds to impending support heals');
+const basicWorld=createWorld(1400),basic=basicWorld.hooks,bas=basic.run();
+bas.tier=1;bas.wave=1;bas.maxHealth=basic.maxWall();bas.health=bas.maxHealth;basic.beginWave();
+for(let i=0;i<bas.total;i++){bas.spawned=i;basic.spawnEnemy();}
+assert(!bas.enemies.some(e=>['shaman','frostbinder','thornweaver'].includes(e.type)),'Early tutorial remains protected from new magic specialists');
+console.log('PASS: 10 factions, 10 encounter classes, caster-safe Arcane Convergence, earned Knowledge, live tactical instructions and faction field manual, earlier progression and rune reward integrity.');
