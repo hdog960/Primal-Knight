@@ -20,6 +20,25 @@ assert(el('tierGrid').innerHTML.includes('TIER XII'),'Twelve difficulty choices 
 assert(el('tierGrid').innerHTML.includes('disabled'),'Higher tiers initially locked');
 assert(el('milestoneList').innerHTML.includes('Wave 20'),'Milestones are visible');
 assert(el('milestoneList').innerHTML.includes('Legacy Training'),'Gameplay unlocks are visible');
+// Regression: all progression sections must work before the player starts combat.
+for(const hub of ['hero','power','gear','fortress']){
+ clickHub(hub);
+ assert.equal(el('panel').hidden,false,hub+' opens before siege');
+ assert.equal(el('tierLobby').hidden,true,hub+' not blocked by lobby');
+ assert.equal(hooks.run().phase,'ready','Browsing '+hub+' does not start a siege');
+ const alternate={hero:'skills',power:'research',gear:'runes',fortress:'suppression'}[hub];
+ clickSub(alternate);
+ assert(el('panelContent').innerHTML.length>100,alternate+' renders before siege');
+ assert.equal(el('tierLobby').hidden,true,'Lobby remains hidden in '+alternate);
+ clickSub(({hero:'hero',power:'training',gear:'equipment',fortress:'stations'})[hub]);
+}
+clickHub('battle');
+assert.equal(el('tierLobby').hidden,false,'Battle returns to tier selection');
+assert.equal(hooks.run().phase,'ready','No accidental siege when browsing');
+el('settingsButton').onclick();
+assert.equal(el('tierLobby').hidden,true,'Settings opens over tier lobby');
+el('closePanel').onclick();
+assert.equal(el('tierLobby').hidden,false,'Closing settings restores tier selection');
 el('launchTierButton').onclick();assert.equal(el('tierLobby').hidden,true);assert.equal(hooks.run().phase,'fighting');
 assert.equal(hooks.run().tier,1);assert.equal(el('exitRunButton').hidden,false);
 assert(el('waveName').textContent.includes('ENDLESS'),'No fixed stage cap');
