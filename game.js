@@ -77,7 +77,7 @@ function migrateEquipmentSave(){
 migrateEquipmentSave();
 
 let ctx=$('game').getContext('2d'),c=$('game'),background=new Image();background.src='assets/battlefield.png';const foreground=new Image();foreground.src='assets/foreground.png';let sprites={};for(const type of ['hero','goblin','skeleton','warg','imp','ogre']){const i=new Image();i.src='assets/'+type+'.png';sprites[type]=i;}
-let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,rewardTimer:0,shakes:0,flashes:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0;
+let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,rewardTimer:0,shakes:0,flashes:0,encounter:null};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0;
 // The Tower-inspired structure: difficulty is chosen once, then every wave
 // automatically follows the previous one until the fortress falls or player retreats.
 const tierNames=['Verdant March','Ashen Frontier','Frostbound Pass','Sunken Dominion','Stormscar Reach','Hollow Kingdom','Emberfall Vale','Eclipse Bastion','Ancient Wilds','Astral Descent','Shattered Crown','Primordial Siege','Cinder Throne','Obsidian Expanse','Eternal Rift','Last Kingdom','Bloodglass Frontier','Moonveil Catacombs','Sunforged Divide','Thorned Crown','Gloamwater Depths','Shattered Zenith','Dreadroot Wilds','The Hollow Star','Obsidian Choir','Thundergrave Expanse','The Golden Abyss','The Fallen Pantheon','Worldscar Dominion','The Origin Gate'];
@@ -177,6 +177,38 @@ function waveArmor(wave,tier){
  const w=Math.max(1,Math.min(MAX_WAVE,wave));
  return .21*Math.min(w,100)+(w>100?.20*Math.pow(w-100,.92):0)+(tier-1)*2;
 }
+// Alpha 0.10.0, slice 1 — deterministic encounter director; no extra save fields.
+const encounterFactions=[
+ {id:'mire',name:'Mirebound Swarm',units:['goblin','skeleton','raider','warg'],color:'#a8d185'},
+ {id:'iron',name:'Ironbound Host',units:['guardian','guardian','skeleton','goblin'],color:'#b7cfda'},
+ {id:'ash',name:'Ashen Covenant',units:['skeleton','shaman','goblin','raider'],color:'#d9a8d8'},
+ {id:'night',name:'Nightpack Raiders',units:['raider','raider','warg','goblin'],color:'#e5ad87'},
+ {id:'crown',name:'Crownless Legion',units:['guardian','shaman','raider','skeleton'],color:'#efd29b'}
+];
+const encounterLabels={standard:'PATROL',vanguard:'VANGUARD',elite:'ELITE STRIKE',commander:'SIEGE COMMANDER',chapterBoss:'CHAPTER WARLORD',treasure:'TREASURE RAID',ambush:'NIGHT AMBUSH'};
+function encounterDirector(wave,tier=1){
+ const w=clamp(Math.floor(Number(wave)||1),1,MAX_WAVE);
+ const t=clamp(Math.floor(Number(tier)||1),1,MAX_TIER);
+ const chapter=1+Math.floor((w-1)/100);
+ const faction=encounterFactions[(t-1+chapter-1)%encounterFactions.length];
+ const kind=w%100===0?'chapterBoss':w%25===0?'commander':w%10===0?'elite':w%5===0?'vanguard':w>=15&&w%37===0?'treasure':w>=8&&w%17===0?'ambush':'standard';
+ const bossType=kind==='chapterBoss'?'warlord':kind==='commander'?'siegebeast':['elite','vanguard'].includes(kind)?'ogre':null;
+ return {wave:w,tier:t,chapter,factionId:faction.id,faction:faction.name,color:faction.color,units:faction.units,kind,bossType,label:encounterLabels[kind]};
+}
+function encounterUnit(encounter,spawned=0){
+ if(encounter.wave<=3)return spawned%3===0?'skeleton':'goblin';
+ if(encounter.wave<=7)return ['goblin','skeleton','warg'][spawned%3];
+ if(encounter.kind==='ambush')return spawned%3===0?'warg':'raider';
+ const candidates=encounter.units.filter(type=>encounter.wave>=20||type!=='shaman');
+ return candidates[Math.floor(Math.random()*candidates.length)]||'goblin';
+}
+function isSiegeBoss(enemy){return !!enemy&&(enemy.isBoss===true||['ogre','warlord','siegebeast'].includes(enemy.type));}
+function shieldAuraReduction(enemy,units){
+ if(!enemy||enemy.dead||enemy.type==='guardian')return 1;
+ const defender=units.some(other=>other&&!other.dead&&other.type==='guardian'&&Math.hypot(other.x-enemy.x,other.y-enemy.y)<=115);
+ return defender?.78:1;
+}
+function encounterSpecialBonus(kind){return kind==='treasure'?1.35:1;}
 function waveEnemyCount(wave){
  return Math.min(24,8+Math.floor(Math.max(1,wave)*1.5)+(wave%5===0?1:0));
 }
@@ -397,9 +429,30 @@ function randomGear(forceRarity=null){
  return {id:'item_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),slot:['helm','amulet','chest','legs','boots','gauntlets','charm','ring'][Math.floor(Math.random()*8)],rarity:r,plus:0};
 }
 function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015;if(Math.random()<prob&&p.inventory.length<inventoryCap){let g=randomGear();p.inventory.push(g);notice('FOUND '+rarities[g.rarity].toUpperCase()+' EQUIPMENT');}if(p.runes.length<240&&Math.random()<.32+res('excavation')*.013){let types=Object.keys(runeNames),kind=types[Math.floor(Math.random()*types.length)];p.runes.push({type:kind,tier:1,id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)});}}
-function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.breaches=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;}
-function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.total=waveEnemyCount(run.wave);message(run.wave%5===0?'ELITE HORDE INCOMING':'WAVE '+run.wave+' BEGINS');refreshHUD();}
-function spawnEnemy(){const isBoss=run.wave%5===0&&run.spawned===run.total-1;let type=isBoss?'ogre':(run.wave>=6?['goblin','skeleton','warg','warg']:run.wave>=3?['goblin','skeleton','warg']:['goblin','skeleton'])[Math.floor(Math.random()*(run.wave>=6?4:run.wave>=3?3:2))];const trial=dominionTrial(run.tier);const trait=trial?.trait||'';let mul=waveThreat(run.wave)*tierThreat(run.tier)*outerDepthPressure(run.tier,run.wave)*(trait==='armored'?1.15:1)*(trait==='elite'&&isBoss?1.3:1);let hp=(type==='ogre'?300:type==='warg'?58:type==='skeleton'?42:type==='imp'?28:36)*mul*(1-Math.min(.35,sup('health')*.005));const e={type,x:rnd(140,820),y:rnd(122,154),hp,max:hp,speed:(type==='ogre'?7:type==='warg'?25:type==='imp'?22:17)*enemySpeedFactor(run.wave)*(1+(run.tier-1)*.06)*(trait==='swift'?1.12:1)*(1-Math.min(.35,sup('speed')*.005)),armor:((type==='ogre'?7:type==='skeleton'?2:0)+waveArmor(run.wave,run.tier))*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(trait==='armored'?1.18:1)*(1-Math.min(.5,sup('armor')*.01)),buildup:0,burn:0,slow:0,wobble:rnd(0,6.28),golden:Math.random()<.02+station('midas')*.012,dead:false,valued:isBoss?45:Math.round(type==='warg'?12:10)};run.enemies.push(e);}
+function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.breaches=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;run.encounter=null;}
+function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.total=waveEnemyCount(run.wave);run.encounter=encounterDirector(run.wave,run.tier);message(run.encounter.label+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
+function spawnEnemy(){
+ const encounter=run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier);
+ const isBoss=!!encounter.bossType&&run.wave%5===0&&run.spawned===run.total-1;
+ let type=isBoss?encounter.bossType:encounterUnit(encounter,run.spawned);
+ if(type==='shaman'&&run.enemies.filter(e=>!e.dead&&e.type==='shaman').length>=2)type='skeleton';
+ const trial=dominionTrial(run.tier),trait=trial?.trait||'';
+ const mul=waveThreat(run.wave)*tierThreat(run.tier)*outerDepthPressure(run.tier,run.wave)*(trait==='armored'?1.15:1)*(trait==='elite'&&isBoss?1.3:1);
+ const baseHp={goblin:36,skeleton:42,warg:58,imp:28,ogre:300,raider:39,guardian:82,shaman:52,siegebeast:390,warlord:445};
+ const baseSpeed={goblin:17,skeleton:17,warg:25,imp:22,ogre:7,raider:33,guardian:12,shaman:14,siegebeast:7,warlord:9};
+ const baseArmor={skeleton:2,ogre:7,guardian:13,siegebeast:11,warlord:14};
+ const e={type,isBoss,x:rnd(140,820),y:rnd(122,154),
+  hp:Math.max(1,(baseHp[type]||36)*mul*(1-Math.min(.35,sup('health')*.005))),
+  max:0,
+  speed:(baseSpeed[type]||17)*enemySpeedFactor(run.wave)*(1+(run.tier-1)*.06)*(trait==='swift'?1.12:1)*(1-Math.min(.35,sup('speed')*.005)),
+  armor:((baseArmor[type]||0)+waveArmor(run.wave,run.tier))*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(trait==='armored'?1.18:1)*(1-Math.min(.5,sup('armor')*.01)),
+  buildup:0,burn:0,slow:0,wobble:rnd(0,6.28),
+  dashClock:type==='raider'?rnd(1.2,3.0):0,dashTime:0,ritualClock:type==='shaman'?rnd(3.2,5.5):0,bossPhase:1,
+  golden:encounter.kind==='treasure'||Math.random()<.02+station('midas')*.012,
+  dead:false,valued:isBoss?65:type==='guardian'?17:type==='shaman'?16:type==='raider'?13:Math.round(type==='warg'?12:10)};
+ e.max=e.hp;
+ run.enemies.push(e);
+}
 function effect(x,y,color,count=8){const available=Math.max(0,140-run.particles.length);for(let i=0;i<Math.min(count,available);i++)run.particles.push({x,y,vx:rnd(-70,70),vy:rnd(-78,35),life:rnd(.25,.7),max:.7,color,size:rnd(2,5)});}
 function float(x,y,text,color='#ffe9b2'){if(run.floats.length>=28)run.floats.shift();run.floats.push({x,y,text,color,life:1.25});}
 function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let siegeOath=(e.type==='ogre'||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(e.type==='ogre'?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;effect(e.x,e.y,'#fbd47b',3);if(kind==='arrow'){
