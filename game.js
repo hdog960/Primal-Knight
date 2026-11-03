@@ -482,7 +482,7 @@ function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.he
 function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;message(run.encounter.label+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
 function spawnEnemy(){
  const encounter=run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier);
- const isBoss=!!encounter.bossType&&run.wave%5===0&&run.spawned===run.total-1;
+ const isBoss=!!encounter.bossType&&run.wave%5===0&&!run.reinforcementPhase&&run.spawned===run.total-1;
  let type=isBoss?encounter.bossType:run.reinforcementPhase&&run.spawned>=run.total-2?({iron:'guardian',ember:'raider',rift:'warg'}[encounter.bossStyle]):encounterUnit(encounter,run.spawned);
  if(['shaman','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type)&&run.enemies.filter(e=>!e.dead&&e.type===type).length>=2)type='skeleton';
  const trial=dominionTrial(run.tier),trait=trial?.trait||'';
