@@ -1,4 +1,4 @@
-// Alpha 0.7.2: Gear and Rune pixel-art consistency, Fortress sprites, 12 research projects, progression and saves,
+// Alpha 0.8.0: 10000-wave progression, 16 tiers, five Ascension routes, waystones, Gear and Rune regression,
 // skills, legacy purchases, save and menu navigation, with no browser dependencies.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 let nextFrame=null,storedSave=null;
@@ -16,7 +16,7 @@ vm.runInNewContext(fs.readFileSync('game.js','utf8'),sandbox,{filename:'game.js'
 const hooks=sandbox.window.__PK_TEST_TOOLS__,clickHub=hub=>el('nav').listeners.click({target:{closest:()=>({dataset:{hub}})}}),clickSub=tab=>el('subnav').listeners.click({target:{closest:()=>({dataset:{subtab:tab}})}}),clickButton=ds=>el('panelContent').listeners.click({target:{closest:()=>({dataset:ds,disabled:false})}});
 assert(hooks&&nextFrame,'Game initialized with test hooks and game loop');
 assert.equal(el('tierLobby').hidden,false,'Pregame tier selection shown');
-assert(el('tierGrid').innerHTML.includes('TIER XII'),'Twelve difficulty choices available');
+assert(el('tierGrid').innerHTML.includes('TIER XVI'),'Sixteen difficulty tiers available');
 assert(el('tierGrid').innerHTML.includes('disabled'),'Higher tiers initially locked');
 assert(el('milestoneList').innerHTML.includes('Wave 20'),'Milestones are visible');
 assert(el('milestoneList').innerHTML.includes('Legacy Training'),'Gameplay unlocks are visible');
@@ -45,7 +45,7 @@ el('closePanel').onclick();
 assert.equal(el('tierLobby').hidden,false,'Closing settings returns to tier selection');
 el('launchTierButton').onclick();assert.equal(el('tierLobby').hidden,true);assert.equal(hooks.run().phase,'fighting');
 assert.equal(hooks.run().tier,1);assert.equal(el('exitRunButton').hidden,false);
-assert(el('waveName').textContent.includes('ENDLESS'),'No fixed stage cap');
+assert(el('waveName').textContent.includes('10,000'),'Wave HUD shows the 10,000-wave tier goal');
 // Complete waves in test mode; in real gameplay these are cleared by kills.
 for(let w=1;w<=20;w++){
  assert.equal(hooks.run().wave,w);
@@ -58,7 +58,7 @@ assert(hooks.p().milestones['1:5']&&hooks.p().milestones['1:10']&&hooks.p().mile
 assert.equal(hooks.p().legacyUnlocked,true);
 assert(hooks.p().sigils>0,'Special currency is awarded');
 assert.equal(hooks.p().bestByTier[1],20);
-const sigils=hooks.p().sigils;hooks.renderTierLobby();assert(el('tierGrid').innerHTML.includes('BEST WAVE 20'));
+const sigils=hooks.p().sigils;hooks.renderTierLobby();assert(el('tierGrid').innerHTML.includes('BEST 20 / 10,000'));
 // Replaying never duplicates a previously claimed tier milestone.
 hooks.retreatFromSiege();hooks.enterSiege();for(let w=1;w<=20;w++){hooks.completeWave();hooks.beginWave();}
 assert.equal(hooks.p().sigils,sigils,'Milestone currencies only pay once');
@@ -268,4 +268,4 @@ assert.equal(restored.equipped.chest,'owned_armor','Old armor converted to chest
 assert.equal(restored.socketed.amulet,'seedember','Old socketed rune follows old bow');
 assert.equal(new Set(restored.inventory.map(g=>g.id)).size,restored.inventory.length,'No duplicated item IDs');
 assert.equal(restored.version,3,'Save migration version updated');
-console.log('PASS: twelve functional Royal Archive projects, Forge, battle, milestones, legacy, all hubs, armory, runes and save migration.');
+console.log('PASS: 10,000-wave chronicle, 16 tiers, waystones, Ascension routes, balance limits, original research, Forge, Gear, legacy and save migration.');
