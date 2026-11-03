@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.10.4 (Living Onslaught, Slice 5)
+## Current release — Alpha 0.10.5 (Living Onslaught, Slice 6)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -10,9 +10,11 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 
 **New in 0.10.4:** Arcane Convergence special formations with 18% bonus wave Knowledge; a shared cap of three living enemy casters to keep stacked spells fair; improved threat-aware automatic targeting of Shamans, Bannerets and Relic Wardens; a ten-faction expandable Field Manual inside the tier lobby; and compact battle encounter hints. Still free and iPhone-first, using the same local save.
 
+**New in 0.10.5:** damage-driven interruptions let the hero break Cinder Regent charges, Void Monarch warps and Siege Beast crusher windups; Iron Tyrant wards can be shattered. Counters create a brief exposed window with +12% follow-up damage and clear gold battle effects. The Field Manual and boss HP overlay explain the mechanic; bounded cooldowns prevent untelegraphed rapid blinks. Saves and the established progression economy remain unchanged.
+
 **Play:** https://hdog960.github.io/Primal-Knight/
 
-Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0104_ARCANE_CONVERGENCE.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js` for the automated suite.
+Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0105_BOSS_COUNTERPLAY.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js` for the automated suite.
 
 ---
 

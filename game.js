@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.4. Living Onslaught phase 5: Arcane Convergence, caster fairness, counterplay codex and encounter reward clarity and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.5. Living Onslaught phase 6: interruptible boss windups, Iron Ward shatter and build-powered stagger and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -77,7 +77,7 @@ function migrateEquipmentSave(){
 migrateEquipmentSave();
 
 let ctx=$('game').getContext('2d'),c=$('game'),background=new Image();background.src='assets/battlefield.png';const foreground=new Image();foreground.src='assets/foreground.png';let sprites={};for(const type of ['hero','goblin','skeleton','warg','imp','ogre','guardian','raider','shaman','siegebeast','warlord','warlord_iron','warlord_ember','warlord_rift','frostbinder','sapper','banneret','thornweaver','riftstalker']){const i=new Image();i.src='assets/'+type+(['guardian','raider','shaman','siegebeast','warlord','warlord_iron','warlord_ember','warlord_rift','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type)?'.svg':'.png');sprites[type]=i;}
-let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,heroChill:0,rewardTimer:0,shakes:0,flashes:0,encounter:null,reinforcementPhase:false};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0;
+let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,heroChill:0,rewardTimer:0,shakes:0,flashes:0,encounter:null,reinforcementPhase:false,bossCounters:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0;
 // The Tower-inspired structure: difficulty is chosen once, then every wave
 // automatically follows the previous one until the fortress falls or player retreats.
 const tierNames=['Verdant March','Ashen Frontier','Frostbound Pass','Sunken Dominion','Stormscar Reach','Hollow Kingdom','Emberfall Vale','Eclipse Bastion','Ancient Wilds','Astral Descent','Shattered Crown','Primordial Siege','Cinder Throne','Obsidian Expanse','Eternal Rift','Last Kingdom','Bloodglass Frontier','Moonveil Catacombs','Sunforged Divide','Thorned Crown','Gloamwater Depths','Shattered Zenith','Dreadroot Wilds','The Hollow Star','Obsidian Choir','Thundergrave Expanse','The Golden Abyss','The Fallen Pantheon','Worldscar Dominion','The Origin Gate'];
@@ -239,7 +239,8 @@ function threatPriority(enemy){
  const keeper=enemy.relicGuardian?48:0;
  const shield=enemy.type==='guardian'&&run.enemies.some(other=>other&&!other.dead&&other!==enemy&&Math.hypot(other.x-enemy.x,other.y-enemy.y)<=115)?26:0;
  const boss=isSiegeBoss(enemy)?28:0;
- return enemy.y+charge+frost+thorn+rift+ward+healing+rally+keeper+shield+boss;
+ const bossWindup=enemy.crushWindup>0||enemy.bossFuryWindup>0||enemy.bossBlinkWindup>0?170:0;
+ return enemy.y+charge+frost+thorn+rift+ward+healing+rally+keeper+shield+boss+bossWindup;
 }
 function chapterChallenge(encounter){
  return encounter&&encounter.kind==='chapterBoss'?{key:encounter.tier+':'+encounter.chapter,desc:'HOLD THE LINE · FINISH WITH ZERO BREACHES'}:null;
@@ -250,7 +251,7 @@ function relicChallenge(encounter){
 function encounterSpecialBonus(kind){return kind==='treasure'?1.35:kind==='bannerAssault'?1.20:1;}
 function encounterKnowledgeBonus(kind){return kind==='arcane'?1.18:1;}
 function encounterAdvice(kind){
- return {chapterBoss:'DEFEND THE WALL · FLAWLESS BONUS',commander:'CHARGE WINDUP · INTERRUPT THE SIEGE BEAST',
+ return {chapterBoss:'BREAK BOSS CASTS · FLAWLESS BONUS',commander:'CHARGE WINDUP · INTERRUPT THE SIEGE BEAST',
  treasure:'TREASURE RAID · +35% WAVE GOLD',relic:'RELIC WARDEN · NO BREACHES FOR A RUNE',
  bannerAssault:'BREAK THE BANNERS · +20% WAVE GOLD',
  arcane:'PRIORITIZE CASTERS · +18% WAVE KNOWLEDGE',
@@ -448,7 +449,7 @@ function renderSiegeCodex(){
     <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. The hero auto-targets dangerous support units, but your gear and fortress upgrades determine whether your defense holds.</p>
     <div class="codex-factions">${cards}</div>
     <div class="codex-events">
-      <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Look for phase-II warnings and reinforcements.</p>
+      <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Breaking a warned charge or warp, or shattering an Iron Ward, briefly exposes the boss to +12% damage. Siege Beast crusher windups can be interrupted too.</p>
       <p><strong>Relic Hunt:</strong> Protect the wall without a breach to earn one non-farmable rune and bonus Knowledge.</p>
       <p><strong>Standard Assault:</strong> Break support banners for +20% wave Gold.</p>
       <p><strong>Arcane Convergence:</strong> Caster-focused formations offer +18% wave Knowledge; at most three enemy casters may be active at once.</p>
@@ -529,8 +530,8 @@ function randomGear(forceRarity=null){
  return {id:'item_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),slot:['helm','amulet','chest','legs','boots','gauntlets','charm','ring'][Math.floor(Math.random()*8)],rarity:r,plus:0};
 }
 function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015;if(Math.random()<prob&&p.inventory.length<inventoryCap){let g=randomGear();p.inventory.push(g);notice('FOUND '+rarities[g.rarity].toUpperCase()+' EQUIPMENT');}if(p.runes.length<240&&Math.random()<.32+res('excavation')*.013){let types=Object.keys(runeNames),kind=types[Math.floor(Math.random()*types.length)];p.runes.push({type:kind,tier:1,id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)});}}
-function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.breaches=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;run.heroChill=0;run.encounter=null;run.reinforcementPhase=false;}
-function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;message(run.encounter.label+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
+function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.breaches=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;run.heroChill=0;run.encounter=null;run.reinforcementPhase=false;run.bossCounters=0;}
+function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;message(run.encounter.label+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
 function spawnEnemy(){
  const encounter=run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier);
  const isBoss=!!encounter.bossType&&run.wave%5===0&&!run.reinforcementPhase&&run.spawned===run.total-1;
@@ -548,7 +549,7 @@ function spawnEnemy(){
   speed:(baseSpeed[type]||17)*(relicGuardian?.88:1)*enemySpeedFactor(run.wave)*(1+(run.tier-1)*.06)*(trait==='swift'?1.12:1)*(1-Math.min(.35,sup('speed')*.005)),
   armor:((baseArmor[type]||0)+(relicGuardian?3:0)+waveArmor(run.wave,run.tier))*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(trait==='armored'?1.18:1)*(1-Math.min(.5,sup('armor')*.01)),
   buildup:0,burn:0,slow:0,wobble:rnd(0,6.28),
-  dashClock:type==='raider'?rnd(1.2,3.0):0,dashTime:0,ritualClock:type==='shaman'?rnd(3.2,5.5):0,bossPhase:1,frostCastClock:type==='frostbinder'?rnd(3.4,4.6):0,frostWindup:0,fuseTime:0,fuseSpent:false,bannerGlow:0,crushStarted:false,crushWindup:0,crushSurge:0,thornCastClock:type==='thornweaver'?rnd(3.1,4.5):0,thornWindup:0,thornWardTimer:0,blinkStarted:false,blinkWindup:0,bossStyle:isBoss&&type==='warlord'?encounter.bossStyle:null,bossWardTimer:0,bossFuryClock:3.8,bossFuryWindup:0,bossFurySurge:0,bossBlinkStarted:false,bossBlinkWindup:0,
+  dashClock:type==='raider'?rnd(1.2,3.0):0,dashTime:0,ritualClock:type==='shaman'?rnd(3.2,5.5):0,bossPhase:1,frostCastClock:type==='frostbinder'?rnd(3.4,4.6):0,frostWindup:0,fuseTime:0,fuseSpent:false,bannerGlow:0,crushStarted:false,crushWindup:0,crushSurge:0,thornCastClock:type==='thornweaver'?rnd(3.1,4.5):0,thornWindup:0,thornWardTimer:0,blinkStarted:false,blinkWindup:0,bossStyle:isBoss&&type==='warlord'?encounter.bossStyle:null,bossWardTimer:0,bossFuryClock:3.8,bossFuryWindup:0,bossFurySurge:0,bossBlinkStarted:false,bossBlinkWindup:0,bossBlinkCooldown:0,bossCastDamage:0,bossWardDamage:0,bossExposedTimer:0,
   golden:encounter.kind==='treasure'||Math.random()<.02+station('midas')*.012,
   dead:false,valued:isBoss?65:relicGuardian?25:type==='guardian'?17:type==='shaman'||type==='frostbinder'?16:type==='banneret'||type==='thornweaver'?17:type==='riftstalker'?16:type==='sapper'?14:type==='raider'?13:Math.round(type==='warg'?12:10)};
  e.max=e.hp;
@@ -556,12 +557,36 @@ function spawnEnemy(){
 }
 function effect(x,y,color,count=8){const available=Math.max(0,140-run.particles.length);for(let i=0;i<Math.min(count,available);i++)run.particles.push({x,y,vx:rnd(-70,70),vy:rnd(-78,35),life:rnd(.25,.7),max:.7,color,size:rnd(2,5)});}
 function float(x,y,text,color='#ffe9b2'){if(run.floats.length>=28)run.floats.shift();run.floats.push({x,y,text,color,life:1.25});}
-function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let siegeOath=(isSiegeBoss(e)||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(isSiegeBoss(e)?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));dealt*=shieldAuraReduction(e,run.enemies)*thornWardReduction(e,run.enemies)*(e.type==='warlord'&&e.bossWardTimer>0?.78:1);if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;
+// Boss defenses and attacks have short, build-sensitive counterplay windows.
+function bossCounterplay(e,dealt){
+ if(!e||e.dead||e.hp<=0||!Number.isFinite(e.max)||e.max<=0)return false;
+ let interrupted='';
+ if(e.type==='warlord'&&e.bossWardTimer>0){
+  e.bossWardDamage=(e.bossWardDamage||0)+dealt;
+  if(e.bossWardDamage>=e.max*.10){
+   e.bossWardTimer=0;e.bossWardDamage=0;interrupted='IRON WARD SHATTERED';
+  }
+ }else if((e.type==='warlord'&&e.bossFuryWindup>0)||(e.type==='warlord'&&e.bossBlinkWindup>0)||(e.type==='siegebeast'&&e.crushWindup>0)){
+  e.bossCastDamage=(e.bossCastDamage||0)+dealt;
+  if(e.bossCastDamage>=e.max*.09){
+   if(e.type==='siegebeast'){e.crushWindup=0;e.crushSurge=0;interrupted='CRUSHER INTERRUPTED';}
+   else if(e.bossFuryWindup>0){e.bossFuryWindup=0;e.bossFurySurge=0;e.bossFuryClock=4.5;interrupted='EMBER CHARGE BROKEN';}
+   else{e.bossBlinkWindup=0;e.bossBlinkCooldown=5.5;interrupted='VOID STEP DISRUPTED';}
+  }
+ }
+ if(!interrupted)return false;
+ e.bossCastDamage=0;e.bossExposedTimer=1.3;
+ run.bossCounters=(run.bossCounters||0)+1;
+ float(e.x,e.y-38,interrupted,'#fff0a9');
+ effect(e.x,e.y-15,'#f5d98e',9);
+ return true;
+}
+function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let siegeOath=(isSiegeBoss(e)||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(isSiegeBoss(e)?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));dealt*=shieldAuraReduction(e,run.enemies)*thornWardReduction(e,run.enemies)*(e.type==='warlord'&&e.bossWardTimer>0?.78:1)*(e.bossExposedTimer>0?1.12:1);if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;bossCounterplay(e,dealt);
  if(e.type==='warlord'&&e.bossPhase===1&&e.hp>0&&e.hp<=e.max*.55){
   e.bossPhase=2;e.speed*=1.14;
-  if(e.bossStyle==='iron')e.bossWardTimer=1.8;
+  if(e.bossStyle==='iron'){e.bossWardTimer=2.2;e.bossWardDamage=0;}
   if(e.bossStyle==='ember')e.bossFuryClock=.85;
-  if(e.bossStyle==='rift')e.bossBlinkWindup=1.05;
+  if(e.bossStyle==='rift'){e.bossBlinkWindup=1.05;e.bossCastDamage=0;}
   if(run.encounter?.kind==='chapterBoss'&&!run.reinforcementPhase){
    run.reinforcementPhase=true;run.total=Math.min(24,run.total+2);
   }
@@ -586,6 +611,7 @@ function sapperBlastDamage(){
 }
 function specialEnemyMotion(e,dt){
  let motion=1;
+ if(isSiegeBoss(e))e.bossExposedTimer=Math.max(0,(e.bossExposedTimer||0)-dt);
  if(e.type==='frostbinder'){
   if(e.frostWindup>0){
    e.frostWindup=Math.max(0,e.frostWindup-dt);motion=.55;
@@ -640,13 +666,22 @@ function specialEnemyMotion(e,dt){
   if(e.bossStyle==='ember'){
    if(e.bossFuryWindup>0){
     e.bossFuryWindup=Math.max(0,e.bossFuryWindup-dt);motion=.25;
-    if(e.bossFuryWindup===0){e.bossFurySurge=1.0;e.bossFuryClock=6;effect(e.x,e.y,'#ffa46f',10);}
+    if(e.bossFuryWindup===0){e.bossFurySurge=1.0;e.bossFuryClock=6;e.bossCastDamage=0;effect(e.x,e.y,'#ffa46f',10);}
    }else if(e.bossFurySurge>0){e.bossFurySurge=Math.max(0,e.bossFurySurge-dt);motion=1.70;}
-   else{e.bossFuryClock=(e.bossFuryClock??3)-dt;if(e.bossFuryClock<=0){e.bossFuryWindup=.9;motion=.25;float(e.x,e.y-28,'EMBER CHARGE','#ffad7e');}}
+   else{e.bossFuryClock=(e.bossFuryClock??3)-dt;if(e.bossFuryClock<=0){e.bossFuryWindup=.9;e.bossCastDamage=0;motion=.25;float(e.x,e.y-28,'EMBER CHARGE','#ffad7e');}}
   }
-  if(e.bossStyle==='rift'&&e.bossBlinkWindup>0){
-   e.bossBlinkWindup=Math.max(0,e.bossBlinkWindup-dt);motion=.20;
-   if(e.bossBlinkWindup===0){e.y=Math.min(398,e.y+26);effect(e.x,e.y,'#b29af6',12);float(e.x,e.y-28,'VOID STEP','#d9c9ff');}
+  if(e.bossStyle==='rift'){
+   e.bossBlinkCooldown=Math.max(0,(e.bossBlinkCooldown||0)-dt);
+   if(e.bossBlinkWindup>0){
+    e.bossBlinkWindup=Math.max(0,e.bossBlinkWindup-dt);motion=.20;
+    if(e.bossBlinkWindup===0){
+     e.y=Math.min(398,e.y+26);e.bossBlinkCooldown=7;e.bossCastDamage=0;
+     effect(e.x,e.y,'#b29af6',12);float(e.x,e.y-28,'VOID STEP','#d9c9ff');
+    }
+   }else if(e.bossBlinkCooldown<=0&&e.y<325){
+    e.bossBlinkWindup=1.05;e.bossCastDamage=0;motion=.20;
+    float(e.x,e.y-28,'VOID RIFT OPENING','#dbc1ff');
+   }
   }
  }
  if(e.type==='siegebeast'){
@@ -656,7 +691,7 @@ function specialEnemyMotion(e,dt){
   }
   if(e.crushWindup>0){
    e.crushWindup=Math.max(0,e.crushWindup-dt);motion=.25;
-   if(e.crushWindup===0){e.crushSurge=1.3;effect(e.x,e.y-10,'#d9b18c',12);}
+   if(e.crushWindup===0){e.crushSurge=1.3;e.bossCastDamage=0;effect(e.x,e.y-10,'#d9b18c',12);}
   }else if(e.crushSurge>0){e.crushSurge=Math.max(0,e.crushSurge-dt);motion=1.85;}
  }
  return motion;
@@ -797,6 +832,11 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  if(e.type==='riftstalker'&&e.blinkWindup>0){
   ctx.strokeStyle='#d4b5ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.x,py+sh*.2,14,0,Math.PI*2*(1-e.blinkWindup/.95));ctx.stroke();
  }
+ if(e.bossExposedTimer>0&&isSiegeBoss(e)){
+  ctx.strokeStyle='rgba(255,223,134,.9)';ctx.lineWidth=3;
+  ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.55,Math.max(8,10*s),0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ffe29f';ctx.fillRect(e.x-4,py-13,8,3);
+ }
  if(e.type==='warlord'&&e.bossWardTimer>0){
   ctx.strokeStyle='#a9d4f4';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.52,Math.max(9,11*s),0,0,Math.PI*2);ctx.stroke();
  }
@@ -839,13 +879,15 @@ function refreshHUD(){
    $('bossPhase').textContent=boss.type==='warlord'?(boss.bossPhase===2?'PHASE II':'PHASE I'):'SIEGE ENGINE';
    $('bossHealth').textContent=Math.max(0,Math.ceil(100*boss.hp/(boss.max||1)))+'%';
    $('bossFill').style.width=clamp(100*boss.hp/(boss.max||1),0,100)+'%';
-   const warning=boss.crushWindup>0?'CRUSHER CHARGING':
-    boss.bossFuryWindup>0?'EMBER CHARGE INCOMING':
-    boss.bossBlinkWindup>0?'VOID STEP INCOMING':
-    boss.bossWardTimer>0?'IRON WARD · ARMOR UP':
+   const warning=boss.bossExposedTimer>0?'EXPOSED · +12% DAMAGE':
+    boss.crushWindup>0?'CRUSHER · BREAK THE WINDUP':
+    boss.bossFuryWindup>0?'EMBER CHARGE · INTERRUPT':
+    boss.bossBlinkWindup>0?'VOID STEP · INTERRUPT':
+    boss.bossWardTimer>0?'IRON WARD · SHATTER IT':
     boss.bossFurySurge>0?'REGENT SURGING':boss.bossPhase===2?'REINFORCEMENTS DEPLOYED':'WATCH FOR PHASE II';
    $('bossWarning').textContent=warning;
    bossHud.dataset.warning=Number(boss.crushWindup>0||boss.bossFuryWindup>0||boss.bossBlinkWindup>0)?'true':'false';
+   bossHud.dataset.exposed=boss.bossExposedTimer>0?'true':'false';
   }
  }
  const encounterRibbon=$('encounterRibbon');
@@ -1503,5 +1545,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,renderSiegeCodex,refreshHUD,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,renderSiegeCodex,refreshHUD,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();

@@ -1,4 +1,4 @@
-// Alpha 0.10.4 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
+// Alpha 0.10.5 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const code=fs.readFileSync('game.js','utf8');
 function createWorld(seedValue=117){
@@ -346,4 +346,65 @@ const basicWorld=createWorld(1400),basic=basicWorld.hooks,bas=basic.run();
 bas.tier=1;bas.wave=1;bas.maxHealth=basic.maxWall();bas.health=bas.maxHealth;basic.beginWave();
 for(let i=0;i<bas.total;i++){bas.spawned=i;basic.spawnEnemy();}
 assert(!bas.enemies.some(e=>['shaman','frostbinder','thornweaver'].includes(e.type)),'Early tutorial remains protected from new magic specialists');
-console.log('PASS: 10 factions, 10 encounter classes, caster-safe Arcane Convergence, earned Knowledge, live tactical instructions and faction field manual, earlier progression and rune reward integrity.');
+// Alpha 0.10.5: boss counterplay must be earned by hits during real, interruptible windups.
+const counterWorld=createWorld(1544),counter=counterWorld.hooks,combat=counter.run();
+const ironCounter={type:'warlord',bossStyle:'iron',bossPhase:2,bossWardTimer:2.2,bossWardDamage:0,bossExposedTimer:0,hp:800,max:1000,x:300,y:240,dead:false};
+assert.equal(counter.bossCounterplay(ironCounter,60),false,'Partial pressure does not instantly shatter the Iron Ward');
+assert.equal(ironCounter.bossWardTimer,2.2,'Iron Tyrant retains protection until counter threshold');
+assert.equal(counter.bossCounterplay(ironCounter,45),true,'Accumulated ten-percent damage shatters Iron Ward');
+assert.equal(ironCounter.bossWardTimer,0,'Successful counter removes real defense');
+assert(ironCounter.bossExposedTimer>1,'Countered Iron Tyrant exposes a short vulnerability window');
+assert.equal(combat.bossCounters,1,'Successful mechanic counters are counted once');
+assert.equal(counter.bossCounterplay(ironCounter,120),false,'An already shattered ward cannot be farmed for counters');
+counter.specialEnemyMotion(ironCounter,.5);
+assert(ironCounter.bossExposedTimer<1.3,'Exposure timer expires during live combat');
+
+const emberCounter={type:'warlord',bossStyle:'ember',bossPhase:2,bossFuryWindup:.9,bossFurySurge:0,bossFuryClock:0,bossCastDamage:0,bossExposedTimer:0,hp:700,max:1000,x:350,y:250,dead:false};
+assert(counter.threatPriority({...emberCounter,bossFuryWindup:.9})>counter.threatPriority({type:'goblin',dead:false,x:350,y:315}),'Hero responds to major-boss casting windows');
+assert.equal(counter.bossCounterplay(emberCounter,40),false,'Small hit alone does not cancel Ember charge');
+assert.equal(counter.bossCounterplay(emberCounter,55),true,'Focused damage can cancel Cinder Regent charge');
+assert.equal(emberCounter.bossFuryWindup,0,'Countered Cinder Regent cannot complete its pending charge');
+assert(emberCounter.bossFuryClock>=4,'Interrupted charge incurs meaningful recovery time');
+assert(emberCounter.bossExposedTimer>0,'Interrupted Cinder Regent exposes its weak point');
+assert(counter.specialEnemyMotion(emberCounter,.1)<=1,'Countered Regent cannot surge immediately');
+
+const voidCounter={type:'warlord',bossStyle:'rift',bossPhase:2,bossBlinkWindup:1.05,bossCastDamage:0,bossBlinkCooldown:0,bossExposedTimer:0,hp:650,max:1000,x:360,y:220,dead:false};
+const oldVoidY=voidCounter.y;
+assert.equal(counter.bossCounterplay(voidCounter,95),true,'Focused damage disrupts Void Step');
+assert.equal(voidCounter.bossBlinkWindup,0,'Void Monarch cannot warp after its interrupted windup');
+assert(voidCounter.bossBlinkCooldown>=5,'Interrupted warp imposes a retry cooldown');
+counter.specialEnemyMotion(voidCounter,.1);
+assert.equal(voidCounter.y,oldVoidY,'Interrupted Void Step advances no distance');
+counter.specialEnemyMotion(voidCounter,5.5);
+assert(voidCounter.bossBlinkWindup>0,'Void Monarch can try again after a cooldown');
+counter.specialEnemyMotion(voidCounter,1.1);
+assert(voidCounter.y>oldVoidY&&voidCounter.y<=oldVoidY+26.1,'Successful retry remains bounded to only 26 pixels');
+assert(voidCounter.bossBlinkCooldown>=6,'Successful Void Step has a long refractory period');
+voidCounter.bossBlinkCooldown=0;voidCounter.bossBlinkWindup=0;voidCounter.y=341;
+counter.specialEnemyMotion(voidCounter,.1);
+assert.equal(voidCounter.bossBlinkWindup,0,'Void Monarch cannot begin a new surprise blink near the fortress');
+
+const beastCounter={type:'siegebeast',bossPhase:1,crushStarted:true,crushWindup:1.1,crushSurge:0,bossExposedTimer:0,bossCastDamage:0,hp:750,max:1000,x:370,y:240,dead:false};
+assert.equal(counter.bossCounterplay(beastCounter,95),true,'Siege Beast crusher can be stopped while telegraphed');
+assert.equal(beastCounter.crushWindup,0,'Interrupted siege crusher has no remaining windup');
+assert.equal(beastCounter.crushSurge,0,'Interrupted crusher produces no phantom speed surge');
+counter.specialEnemyMotion(beastCounter,.1);
+assert.equal(beastCounter.crushSurge,0,'Once interrupted, Siege Beast does not immediately restart the attack');
+
+const plainHit={type:'warlord',bossPhase:2,bossStyle:'iron',bossWardTimer:0,bossExposedTimer:0,armor:0,hp:1000,max:1000,dead:false,x:320,y:220};
+const exposedHit={...plainHit,bossExposedTimer:1};
+counter.hurt(plainHit,100,'ballista');
+counter.hurt(exposedHit,100,'ballista');
+assert(exposedHit.hp<plainHit.hp,'Exposed boss truly takes more damage, not just visual feedback');
+assert.equal(counter.bossCounterplay({type:'warlord',bossWardTimer:1,hp:0,max:1000},300),false,'Dead bosses cannot generate extra counters');
+const totalCounters=combat.bossCounters;
+assert.equal(totalCounters,4,'One ward shatter and three interrupted attacks produce four legitimate counters');
+combat.phase='ready';combat.wave=100;counter.beginWave();
+assert.equal(combat.bossCounters,0,'Boss counter statistics reset per wave');
+const counterHudWorld=createWorld(1545),counterHud=counterHudWorld.hooks,counterHudRun=counterHud.run();
+counterHudRun.phase='fighting';counterHudRun.tier=1;counterHudRun.wave=100;counterHudRun.encounter=counterHud.encounterDirector(100,1);
+counterHudRun.enemies=[{type:'warlord',isBoss:true,bossPhase:2,bossStyle:'iron',bossExposedTimer:1,bossWardTimer:0,dead:false,x:320,y:220,hp:700,max:1000}];
+counterHud.refreshHUD();
+assert.equal(counterHudWorld.sandbox.document.getElementById('bossWarning').textContent,'EXPOSED · +12% DAMAGE','On-screen HUD explains real vulnerability payoff');
+assert.equal(counterHudWorld.sandbox.document.getElementById('bossHud').dataset.exposed,'true','Exposure status is available for distinct gold on-field styling');
+console.log('PASS: Alpha 0.10.5 boss ward shatter, Cinder/void/crusher interrupt windows, real exposure damage, restrained repeated steps, priority targeting, stat resets and readable HUD.');
