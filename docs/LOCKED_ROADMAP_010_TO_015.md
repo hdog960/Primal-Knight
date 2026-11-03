@@ -72,3 +72,8 @@ Delivered: three additional factions (**eight total**), frost casters, interrupt
 Delivered: Thornwake Circle and Riftborne Court (ten total factions); interruptible short-lived thorn wards and bounded rift blinks; three century boss styles with original-palette sprite variants, visible phase II mechanics, and reinforcements inside the 24-enemy cap; rare zero-breach Relic Hunts with finite first-clear rune/Knowledge rewards; persistent non-farmable ledger and expanded regression QA. See `docs/ALPHA_0102_LIVING_ONSLAUGHT.md`.
 
 **The broader Alpha 0.10 Living Onslaught phase still requires hardware approval** and further boss/event variety evaluation before 0.11 begins. Preserve all decisions and progression goals.
+
+### Alpha 0.10.3 — Living Onslaught, slice 4
+Delivered: readable on-field major-boss health, live phase labels and impending-attack warnings; real gold-marked Relic Warden foes on rare relic waves; new Standard Assault formations with a bounded +20% normal wave Gold bonus; no-loss pending Relic Vault recovery when the 240-rune cap is reached; accurate tier-gate guidance and expanded encounter tests. See `docs/ALPHA_0103_ENCOUNTER_CLARITY.md`.
+
+**Alpha 0.10 Living Onslaught remains in review** for extended encounter variety, real-device visual legibility and boss fairness. Do not proceed to the locked 0.11 phase until these are evaluated.
