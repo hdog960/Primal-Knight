@@ -411,6 +411,7 @@ function renderEncounterIntel(tier){
 }
 function renderTierLobby(){
  chosenTier=clamp(chosenTier,1,MAX_TIER);
+ const tierHint=$('tierUnlockHint');if(tierHint){const gate=tierAdvanceWave(chosenTier);tierHint.textContent=gate?'Clear wave '+formatWave(gate)+' to unlock the next tier':'Final tier · conquer wave 10,000';}
  $('tierGrid').innerHTML=tierNames.map((name,i)=>{
   const tier=i+1,locked=tier>p.unlockedTier,best=Math.min(MAX_WAVE,p.bestByTier[tier]||0),conquered=best>=MAX_WAVE;
   return `<button data-tier="${tier}" ${locked?'disabled':''} class="tier-choice ${chosenTier===tier?'selected':''} ${locked?'locked':''} ${conquered?'tier-conquered':''}" aria-pressed="${chosenTier===tier}">
