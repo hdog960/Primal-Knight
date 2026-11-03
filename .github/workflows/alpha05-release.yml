@@ -67,8 +67,8 @@ jobs:
               "art=(kind==='equip'||kind==='enhance')?(item?.slot==='weapon'?'battle':item?.slot==='armor'?'gear':'runes'):(upgradeArt[String(actionId).split(':')[1]]||cardArt[kind]||'hero'),info=level||''"
           )
           change(
-              """return `<article class="upgrade-card art-card kind-${String(actionId).split(':')[0]}">`""",
-              """return `<article class="upgrade-card art-card kind-${String(actionId).split(':')[0]} ${!disabled?'available-to-buy':''}">`"""
+              """return `<article class="upgrade-card art-card kind-${String(actionId).split(':')[0]}">""",
+              """return `<article class="upgrade-card art-card kind-${String(actionId).split(':')[0]} ${!disabled?'available-to-buy':''}">"""
           )
           change(
               "$('asideIcon').className='pixel-symbol pixel-symbol-'+(tabIcons[tab]||'hero');",
