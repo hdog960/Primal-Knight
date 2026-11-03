@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.8.0. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.9.0. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -45,8 +45,8 @@ const gearNames={
  charm:['Copper Locket','Hunter Sigil','Wolfsbane Charm','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone'],
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
-function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},ascension:{},sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.ascension??={};p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,16);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
+function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},ascension:{},dominionCrests:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.ascension??={};p.dominionCrests??={};p.firstWatchClaimed??=[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -80,12 +80,61 @@ let ctx=$('game').getContext('2d'),c=$('game'),background=new Image();background
 let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,rewardTimer:0,shakes:0,flashes:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0;
 // The Tower-inspired structure: difficulty is chosen once, then every wave
 // automatically follows the previous one until the fortress falls or player retreats.
-const tierNames=['Verdant March','Ashen Frontier','Frostbound Pass','Sunken Dominion','Stormscar Reach','Hollow Kingdom','Emberfall Vale','Eclipse Bastion','Ancient Wilds','Astral Descent','Shattered Crown','Primordial Siege','Cinder Throne','Obsidian Expanse','Eternal Rift','Last Kingdom'];
-const roman=x=>['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI'][x]||String(x);
+const tierNames=['Verdant March','Ashen Frontier','Frostbound Pass','Sunken Dominion','Stormscar Reach','Hollow Kingdom','Emberfall Vale','Eclipse Bastion','Ancient Wilds','Astral Descent','Shattered Crown','Primordial Siege','Cinder Throne','Obsidian Expanse','Eternal Rift','Last Kingdom','Bloodglass Frontier','Moonveil Catacombs','Sunforged Divide','Thorned Crown','Gloamwater Depths','Shattered Zenith','Dreadroot Wilds','The Hollow Star','Obsidian Choir','Thundergrave Expanse','The Golden Abyss','The Fallen Pantheon','Worldscar Dominion','The Origin Gate'];
+const roman=x=>{let n=Math.floor(Number(x));if(!Number.isFinite(n)||n<1||n>3999)return String(x);let out='';for(const [v,r] of [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']])while(n>=v){out+=r;n-=v;}return out;};
 const MAX_WAVE=10000;
 const formatWave=value=>Math.round(Math.max(0,value)).toLocaleString('en-US');
 const MAX_TIER=tierNames.length;
-const milestonesAt=[5,10,15,20,35,50,75,100,150,250,400,500,750,1000,1500,2000,2500,3000,4000,5000,6000,7500,8000,9000,MAX_WAVE];
+const milestonesAt=[1,2,3,5,8,10,12,15,20,25,35,40,50,60,75,100,125,150,225,250,375,400,500,625,750,875,1000,1250,1500,1750,2000,2500,3000,3500,4000,5000,6000,6500,7500,8000,8500,9000,9500,MAX_WAVE];
+const outerMilestones=new Set([125,225,375,625,875,1250,1750,3500,6500,8500,9500]);
+const newBeginningMilestones=new Set([1,2,3,8,12,25,40,60]);
+const CONQUEST_HOUR_TARGET=1250;
+const earlyWatchChapters=[
+ [3,'First Blood',220,45,0,0],
+ [6,'The First Standard',350,75,0,1],
+ [10,'A Warrior Awakens',400,110,1,0],
+ [16,'Bastion Keeper',650,160,0,2],
+ [24,'The Spoils of Courage',900,250,0,1],
+ [36,'A Rising Star',1300,320,1,2],
+ [52,'The Dawn Vanguard',1700,450,0,4],
+ [75,'Banner of the Dawn',2100,600,1,5],
+ [105,'Unyielding',3000,800,1,7],
+ [145,'The Iron Promise',3800,1100,1,8],
+ [200,'The First Citadel',4700,1500,1,10],
+ [270,'Bearer of the Standard',5800,2100,2,12],
+ [365,'Veteran of the March',7200,2800,2,14],
+ [490,'Oath of the Defender',9000,3600,2,16],
+ [645,'Before the Long Road',11000,4500,2,20],
+ [750,'The First Watch Complete',15000,5500,3,25]
+];
+const dominionTrials=[
+ {tier:17,crest:'Glassheart Crest',stat:'damage',bonus:.012,trial:'Sundering Glass',trait:'armored'},
+ {tier:18,crest:'Moonveil Crest',stat:'essence',bonus:.018,trial:'Lunar Hunt',trait:'swift'},
+ {tier:19,crest:'Sunforged Crest',stat:'boss',bonus:.025,trial:'Solar Challenge',trait:'elite'},
+ {tier:20,crest:'Thorncrown Crest',stat:'wall',bonus:.019,trial:'Rootbound Siege',trait:'crushing'},
+ {tier:21,crest:'Gloamwater Crest',stat:'knowledge',bonus:.018,trial:'Sunken Testament',trait:'swift'},
+ {tier:22,crest:'Zenith Crest',stat:'critical',bonus:.020,trial:'Falling Stars',trait:'elite'},
+ {tier:23,crest:'Dreadroot Crest',stat:'healing',bonus:.018,trial:'The Old Roots',trait:'armored'},
+ {tier:24,crest:'Hollow Star Crest',stat:'runes',bonus:.018,trial:'Starless Night',trait:'crushing'},
+ {tier:25,crest:'Obsidian Crest',stat:'armor',bonus:.018,trial:'Blackglass Rebellion',trait:'armored'},
+ {tier:26,crest:'Thundergrave Crest',stat:'stations',bonus:.022,trial:'Stormbound Triumph',trait:'swift'},
+ {tier:27,crest:'Abyssal Gold Crest',stat:'gold',bonus:.020,trial:'The Golden Depth',trait:'crushing'},
+ {tier:28,crest:'Pantheon Crest',stat:'xp',bonus:.018,trial:'Fallen Gods',trait:'elite'},
+ {tier:29,crest:'Worldscar Crest',stat:'damage',bonus:.016,trial:'The Last Scars',trait:'crushing'},
+ {tier:30,crest:'Origin Crest',stat:'all',bonus:.012,trial:'The First and Last Gate',trait:'elite'}
+];
+const dominionCrestWaves=[250,1000,5000,MAX_WAVE];
+function dominionTrial(tier){return tier>=17?dominionTrials[tier-17]||null:null;}
+function dominionBonus(key){
+ let total=0;for(const trial of dominionTrials){
+  if(trial.stat===key||trial.stat==='all'&&['damage','wall','essence','knowledge','gold','xp','boss','runes','stations','healing'].includes(key))
+   total+=Math.min(4,Number(p.dominionCrests?.[trial.tier])||0)*trial.bonus;
+ }
+ return total;
+}
+function tierThreat(tier){const t=Math.max(1,Math.min(MAX_TIER,Number(tier)||1));return 1+(t-1)*.64+(t>16?.12*Math.pow(t-16,1.6):0);}
+function tierReward(tier){const t=Math.max(1,Math.min(MAX_TIER,Number(tier)||1));return 1+(t-1)*.32+Math.max(0,t-16)*.055;}
+
 const waystonesAt=[100,250,500,1000,1500,2500,4000,6000,8000];
 const ascensionPaths=[
  ['vanguard','Vanguard Doctrine','Permanent damage +6% per rank.',8,40,150],
