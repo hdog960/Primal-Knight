@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.13. Living Onslaught phase 14: accurate waystone runs and interactive after-action Siege Chronicle and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.14. Living Onslaught phase 15: truthful boss defeats, Iron Ward target focus and readable cast breaks and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -331,7 +331,10 @@ function threatPriority(enemy){
  const shield=enemy.type==='guardian'&&run.enemies.some(other=>other&&!other.dead&&other!==enemy&&Math.hypot(other.x-enemy.x,other.y-enemy.y)<=115)?26:0;
  const boss=isSiegeBoss(enemy)?28:0;
  const bossWindup=enemy.crushWindup>0||enemy.bossFuryWindup>0||enemy.bossBlinkWindup>0?170:0;
- return enemy.y+charge+frost+thorn+rift+ward+healing+rally+keeper+shield+boss+bossWindup;
+ // The active Iron Ward lasts just 2.2 seconds. Give it a fair focus-fire priority,
+ // without overriding a Sapper whose fuse is dangerously close to the wall.
+ const bossWard=enemy.type==='warlord'&&enemy.bossWardTimer>0?195:0;
+ return enemy.y+charge+frost+thorn+rift+ward+healing+rally+keeper+shield+boss+bossWindup+bossWard;
 }
 function chapterChallenge(encounter){
  return encounter&&encounter.kind==='chapterBoss'?{key:encounter.tier+':'+encounter.chapter,desc:'HOLD THE LINE · FINISH WITH ZERO BREACHES'}:null;
@@ -475,7 +478,7 @@ function buildSiegeReport(reason){
  return {reason,tier:run.tier,startWave:run.startWave||1,lastWave:run.wave,
   cleared:run.wavesCleared||0,enemies:run.enemiesDefeated||0,
   bossBreaks:run.totalBossBreaks||0,specialistBreaks:run.totalSpecialistBreaks||0,
-  bosses:run.bossVictories||0,breaches:run.totalBreaches||0,
+  bosses:run.bossVictories||0,bossEscapes:run.bossEscapes||0,breaches:run.totalBreaches||0,
   sabotage:run.sapperBlasts||0};
 }
 function finishSiege(reason){
@@ -496,7 +499,8 @@ function renderSiegeReport(){
   ['ENEMIES DEFEATED',data.enemies],
   ['BOSS CASTS BROKEN',data.bossBreaks],
   ['SPECIALISTS STOPPED',data.specialistBreaks],
-  ['BOSS VICTORIES',data.bosses],
+  ['BOSSES DEFEATED',data.bosses],
+  ['BOSSES BREACHED',data.bossEscapes],
   ['TOTAL BREACHES',data.breaches]
  ];
  $('siegeReportMetrics').innerHTML=metrics.map(([name,value])=>
@@ -706,9 +710,9 @@ function randomGear(forceRarity=null){
 function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015;if(Math.random()<prob&&p.inventory.length<inventoryCap){let g=randomGear();p.inventory.push(g);notice('FOUND '+rarities[g.rarity].toUpperCase()+' EQUIPMENT');}if(p.runes.length<240&&Math.random()<.32+res('excavation')*.013){let types=Object.keys(runeNames),kind=types[Math.floor(Math.random()*types.length)];p.runes.push({type:kind,tier:1,id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)});}}
 function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.breaches=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;run.heroChill=0;run.encounter=null;run.reinforcementPhase=false;run.bossCounters=0;
  run.startWave=1;run.wavesCleared=0;run.enemiesDefeated=0;run.totalBossBreaks=0;
- run.totalSpecialistBreaks=0;run.totalBreaches=0;run.bossVictories=0;run.sapperBlasts=0;
+ run.totalSpecialistBreaks=0;run.totalBreaches=0;run.bossVictories=0;run.bossEscapes=0;run.bossesKilledThisWave=0;run.sapperBlasts=0;
 }
-function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;message(run.encounter.label+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
+function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.bossesKilledThisWave=0;run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;message(run.encounter.label+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
 function spawnEnemy(){
  const encounter=run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier);
  const isBoss=!!encounter.bossType&&run.wave%5===0&&!run.reinforcementPhase&&run.spawned===run.total-1;
@@ -807,7 +811,7 @@ function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,
  }
  if(e.hp<=0)kill(e);
 }
-function kill(e){e.dead=true;run.kills++;run.enemiesDefeated=(run.enemiesDefeated||0)+1;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(tierReward(run.tier))*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));if(e.golden){amount*=2;}else if(Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((isSiegeBoss(e)?70:8)*(1+run.wave*.055)*(tierReward(run.tier))));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
+function kill(e){e.dead=true;run.kills++;run.enemiesDefeated=(run.enemiesDefeated||0)+1;if(e.isBoss)run.bossesKilledThisWave=(run.bossesKilledThisWave||0)+1;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(tierReward(run.tier))*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));if(e.golden){amount*=2;}else if(Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((isSiegeBoss(e)?70:8)*(1+run.wave*.055)*(tierReward(run.tier))));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
 function projectileCount(){return Math.min(12,1+Math.floor(t('multishot')/8)+Math.floor(ascRank('volley')/6));}
 function shoot(target,power=damage(),kind='arrow',originX=496,originY=390){if(!target||run.shots.length>=48)return;run.shots.push({x:originX,y:originY,target,power,kind,life:1.8,trail:[]});run.flashes=.13;}
 function sapperBlastDamage(){
@@ -944,7 +948,11 @@ function tick(dt){
   rush*=specialEnemyMotion(e,dt);
   rush*=rallyAuraFactor(e,run.enemies);
   e.y+=e.speed*dt*rush*(e.slow>0?.5:1)*gravity*cryo;
-  e.x+=Math.sin(e.wobble)*dt*(e.type==='imp'||e.type==='raider'?11:4);e.slow=Math.max(0,e.slow-dt);e.buildup=Math.max(0,e.buildup-dt);if(e.burn>0){e.burn-=dt;e.hp-=dt*(2+skill('ember')*1.3);if(e.hp<=0){kill(e);continue;}}if(e.y>430){e.dead=true;run.breaches++;run.totalBreaches=(run.totalBreaches||0)+1;let pressure=1+Math.min(2.4,run.breaches*(.015+.09*Math.min(1,run.wave/1000)));let attack=Math.ceil(pressure*(isSiegeBoss(e)?36:13)*(e.type==='siegebeast'?2.0*(e.crushSurge>0?1.18:1):e.type==='warlord'&&e.bossPhase===2?1.4:1)*(1+run.wave*.055)*(1+(run.tier-1)*.25)*(dominionTrial(run.tier)?.trait==='crushing'?1.22:1)*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04)));run.health-=attack;run.shakes=.18;float(750,450,'BREACH '+run.breaches+' · -'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);}}
+  e.x+=Math.sin(e.wobble)*dt*(e.type==='imp'||e.type==='raider'?11:4);e.slow=Math.max(0,e.slow-dt);e.buildup=Math.max(0,e.buildup-dt);if(e.burn>0){e.burn-=dt;e.hp-=dt*(2+skill('ember')*1.3);if(e.hp<=0){kill(e);continue;}}if(e.y>430){e.dead=true;run.breaches++;run.totalBreaches=(run.totalBreaches||0)+1;
+  if(e.isBoss&&['chapterBoss','commander'].includes(run.encounter?.kind)){
+   run.bossEscapes=(run.bossEscapes||0)+1;
+   notice('MAJOR BOSS BREACHED THE FORTRESS');
+  }let pressure=1+Math.min(2.4,run.breaches*(.015+.09*Math.min(1,run.wave/1000)));let attack=Math.ceil(pressure*(isSiegeBoss(e)?36:13)*(e.type==='siegebeast'?2.0*(e.crushSurge>0?1.18:1):e.type==='warlord'&&e.bossPhase===2?1.4:1)*(1+run.wave*.055)*(1+(run.tier-1)*.25)*(dominionTrial(run.tier)?.trait==='crushing'?1.22:1)*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04)));run.health-=attack;run.shakes=.18;float(750,450,'BREACH '+run.breaches+' · -'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);}}
  if(run.health<=0){run.health=0;run.phase='fallen';finishSiege('fallen');message('THE FORTRESS HAS FALLEN');notice('Tier '+roman(run.tier)+' · Wave '+run.wave+' • Permanent progress saved');save();showLobby('FORTRESS FALLEN · Tier '+roman(run.tier)+' · Reached Wave '+run.wave+' · Select a tier to fight again');refreshHUD();return;}
  if(run.shotClock<=0&&run.enemies.some(e=>!e.dead)){const targets=run.enemies.filter(e=>!e.dead).sort((a,b)=>threatPriority(b)-threatPriority(a));let count=projectileCount();for(let i=0;i<count;i++){const tar=targets[i%targets.length];shoot(tar);if(Math.random()<skill('double')*.08)shoot(tar,damage()*.65,'arrow',476,390);}run.shotClock=attackInterval();}
  if(run.stationClock<=0){let targets=run.enemies.filter(e=>!e.dead).sort((a,b)=>threatPriority(b)-threatPriority(a));if(targets.length){if(station('ballista'))shoot(targets[0],damage()*(.6+station('ballista')*.22),'ballista',240,360);if(station('thunder'))shoot(targets[Math.min(1,targets.length-1)],damage()*(.4+station('thunder')*.15),'lightning',760,360);}run.stationClock=Math.max(.48,2.9/(1+station('ballista')*.06+station('thunder')*.05));}
@@ -992,7 +1000,7 @@ function completeWave(){
  if(run.phase!=='fighting')return;
  const cleared=run.wave,tier=run.tier,multi=tierReward(tier);
  run.wavesCleared=(run.wavesCleared||0)+1;
- if(run.encounter?.wave===cleared&&['chapterBoss','commander'].includes(run.encounter.kind))
+ if(run.encounter?.wave===cleared&&['chapterBoss','commander'].includes(run.encounter.kind)&&run.bossesKilledThisWave>0)
   run.bossVictories=(run.bossVictories||0)+1;
  let essence=Math.round((12+cleared*4)*(1+t('essence')*.028)*multi*(1+Math.min(16,res('distillation'))*.015)*(1+dominionBonus('essence'))*(1+oathRank('sovereignTribute')*.0125));
  let knowledge=Math.round((5+cleared*1.6)*(1+res('studies')*.045)*multi*(1+dominionBonus('knowledge'))*(1+oathRank('sovereignTribute')*.0125));
@@ -1146,6 +1154,9 @@ function refreshHUD(){
     const value=clamp(cast.ward?100*cast.remaining/cast.duration:100*(1-cast.remaining/cast.duration),0,100);
     $('bossCastFill').style.width=value+'%';
     $('bossCastLabel').textContent=cast.label+' · '+cast.remaining.toFixed(1)+'s';
+    const counterAmount=cast.ward?boss.bossWardDamage:boss.bossCastDamage;
+    const counterGoal=Math.max(1,(boss.max||0)*(cast.ward?.10:.09));
+    $('bossCastBreak').textContent='BREAK '+Math.floor(clamp((Number(counterAmount)||0)/counterGoal,0,1)*100)+'%';
     castTrack.dataset.ward=cast.ward?'true':'false';
    }
   }
