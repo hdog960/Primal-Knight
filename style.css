@@ -1387,3 +1387,59 @@
  .panel[data-theme="stations"] .kind-station .card-art .forge-pixel-icon,
  .panel[data-theme="suppression"] .kind-suppress .card-art .forge-pixel-icon{width:40px;height:40px}
 }
+
+
+/* Alpha 0.7.2 — consistent, standalone pixel-art emblems across the entire Gear hub.
+   Replaces generic cropped menu assets without changing Gear layouts or mechanics. */
+.panel[data-theme="equipment"] .armory-slot-gem .forge-pixel-icon,
+.panel[data-theme="equipment"] .armory-item-icon .forge-pixel-icon,
+.panel[data-theme="runes"] .rune-socket .forge-pixel-icon,
+.panel[data-theme="runes"] .rune-picker .forge-pixel-icon,
+.panel[data-theme="runes"] .kind-fuse .card-art .forge-pixel-icon{
+ display:block;
+ width:100%;
+ height:100%;
+ max-width:100%;
+ max-height:100%;
+ object-fit:contain;
+ image-rendering:pixelated;
+ shape-rendering:crispEdges;
+ filter:drop-shadow(0 2px 2px #000a);
+}
+.panel[data-theme="equipment"] .armory-slot-gem,
+.panel[data-theme="equipment"] .armory-item-icon,
+.panel[data-theme="runes"] .kind-fuse .card-art{
+ display:grid;
+ place-items:center;
+ overflow:hidden;
+}
+.panel[data-theme="equipment"] .armory-slot-gem .forge-pixel-icon{width:calc(100% - 3px);height:calc(100% - 3px)}
+.panel[data-theme="equipment"] .armory-item-icon .forge-pixel-icon{width:87%;height:87%}
+.panel[data-theme="runes"] .kind-fuse .card-art .forge-pixel-icon{width:90%;height:90%}
+.panel[data-theme="runes"] .rune-socket strong{display:flex;align-items:center;gap:8px}
+.panel[data-theme="runes"] .rune-socket-emblem{
+ flex:0 0 29px;
+ width:29px;height:31px;
+ display:grid;place-items:center;
+ border:1px solid #c1a0db;
+ background:radial-gradient(circle,#8063b059,#1e2b3b 76%);
+ box-shadow:inset 0 1px #ebd9ff30;
+}
+.panel[data-theme="runes"] .rune-socket-emblem .forge-pixel-icon{width:28px;height:28px}
+.panel[data-theme="runes"] .rune-picker .rune-option{display:inline-flex;align-items:center;justify-content:flex-start;gap:7px}
+.panel[data-theme="runes"] .rune-choice-icon{
+ flex:0 0 26px;width:26px;height:27px;
+ display:inline-grid;place-items:center;
+ border:1px solid #b8a0d5;
+ background:#202f49;
+}
+.panel[data-theme="runes"] .rune-choice-icon .forge-pixel-icon{width:24px;height:25px}
+@media(max-width:1050px){
+ .panel[data-theme="equipment"] .armory-item-icon .forge-pixel-icon{width:90%;height:90%}
+ .panel[data-theme="runes"] .rune-socket-emblem{flex-basis:26px;width:26px;height:27px}
+ .panel[data-theme="runes"] .rune-socket-emblem .forge-pixel-icon{width:24px;height:25px}
+}
+@media(orientation:portrait) and (max-width:680px){
+ .panel[data-theme="equipment"] .armory-slot-gem .forge-pixel-icon{width:calc(100% - 2px);height:calc(100% - 2px)}
+ .panel[data-theme="runes"] .rune-picker .rune-option{gap:5px}
+}
