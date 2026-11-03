@@ -270,7 +270,7 @@ const schoolIcons={Marksman:'🏹',Arcanist:'✧',Guardian:'♜',Prospector:'✦
 const heroCritChance=()=>Math.round((.06+t('crit')*.002)*1000)/10;
 const heroCritDamage=()=>Math.round((1.7+t('critDmg')*.025+skill('focus')*.2)*100);
 const goldBonusPct=()=>Math.round((t('gold')*.028+skill('fortune')*.08+res('bounties')*.03+lr('goldenTouch')*.04)*100);
-const xpBonusPct=()=>Math.round((t('xp')*.025+skill('wisdom')*.07)*100);
+const xpBonusPct=()=>Math.round(((1+t('xp')*.025+skill('wisdom')*.07)*(1+Math.min(16,res('almanac'))*.015)-1)*100);
 const dropBonusPct=()=>Math.round((t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015)*1000)/10;
 const discountPct=()=>Math.round(Math.min(.42,res('discount')*.014+skill('salvage')*.02)*100);
 const suppressionPct=()=>Math.round(Math.min(.35,sup('health')*.005)*100);
