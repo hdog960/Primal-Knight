@@ -696,7 +696,10 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  else if(type==='socket'){runePickSlot=id;renderPanel();return;}
  else if(type==='save'){save();notice('PROGRESS SAVED')}
  else if(type==='export'){let blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='primal-knight-onslaught-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return;}
- save();refreshHUD();renderPanel();}
+ const scrollPane=$('panelContent'),keepScroll=scrollPane.scrollTop;
+ save();refreshHUD();renderPanel();
+ if(['train','trainBatch','legacy','research'].includes(type))scrollPane.scrollTop=keepScroll;
+}
 function loop(tm){let dt=clamp(((tm-(loop.last||tm))/1000),0,.05);loop.last=tm;tick(dt);draw();if(tm-(loop.lastHud||0)>160){refreshHUD();loop.lastHud=tm}requestAnimationFrame(loop)}
 $('nav').addEventListener('click',e=>{let b=e.target.closest('[data-hub]');if(b)openTab(b.dataset.hub,true)});
 $('subnav').addEventListener('click',e=>{let b=e.target.closest('[data-subtab]');if(b)openTab(b.dataset.subtab)});
