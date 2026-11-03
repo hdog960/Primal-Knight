@@ -1,4 +1,4 @@
-// Alpha 0.6.9: Tier lobby, compact icon-safe Forge, all visible upgrades, bulk ranks, research,
+// Alpha 0.7.0: Tier lobby, 12 functional research projects, icon-safe Forge, upgrades, bulk ranks, saves,
 // skills, legacy purchases, save and menu navigation, with no browser dependencies.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 let nextFrame=null,storedSave=null;
@@ -105,14 +105,61 @@ clickButton({action:'trainBatch:power'});
 assert.equal(hooks.p().training.power,beforeBatchRank+10,'Training can purchase 10 affordable ranks');
 assert.equal(hooks.p().essence,beforeBatchEssence-tenCost,'Batch costs exactly the sum of individual ranks');
 clickSub('research');
-assert(el('panelContent').innerHTML.includes('archive-room'),'Research uses the Royal Archive');
-assert((el('panelContent').innerHTML.match(/class="forge-pixel-icon"/g)||[]).length===6,'All six research projects have independent pixel art icons');
-assert(el('panelContent').innerHTML.includes('Royal Treasury'),'All research upgrades remain accessible');
-assert(!el('panelContent').innerHTML.includes('upgrade-card'),'Old research cards are replaced');
-hooks.p().knowledge+=5000;
+let archive=el('panelContent').innerHTML;
+assert(archive.includes('archive-room'),'Research uses the Royal Archive');
+assert(archive.includes('Twelve royal discoveries'),'New 12-project Royal Archive header');
+for(const branch of ['craft','treasury','bastion','guild'])
+ assert(archive.includes('archive-branch-'+branch),'Research wing '+branch+' is available');
+const researchIds=['discount','fusion','excavation','interest','bounties','studies',
+ 'masonry','calibration','attunement','almanac','distillation','appraisal'];
+for(const id of researchIds)
+ assert(archive.includes('data-research-row="'+id+'"'),'Research '+id+' is available without extra navigation');
+assert.equal((archive.match(/data-research-row="/g)||[]).length,12,'Exactly 12 Royal Archive projects rendered');
+assert.equal((archive.match(/class="forge-pixel-icon"/g)||[]).length,12,'All 12 research projects display their own pixel icon');
+assert(!archive.includes('upgrade-card'),'Old research cards were replaced');
+hooks.p().knowledge+=100000;
 const prevResearch=hooks.p().research.discount||0;
 clickButton({action:'research:discount'});
-assert.equal(hooks.p().research.discount,prevResearch+1,'Research purchases still work');
+assert.equal(hooks.p().research.discount,prevResearch+1,'Original six research upgrades still work');
+const researchSave=hooks.p().research;
+const olderRanks={discount:researchSave.discount,fusion:researchSave.fusion||0,interest:researchSave.interest||0,excavation:researchSave.excavation||0,bounties:researchSave.bounties||0,studies:researchSave.studies||0};
+const baselineDamage=hooks.damage(),baselineWall=hooks.maxWall();
+const testGear={id:'test_gear',slot:'chest',rarity:3,plus:0};
+const baselineSale=hooks.gearSellPrice(testGear);
+const oldRuneSocket=hooks.p().socketed.helm;
+hooks.p().socketed.helm='seedember';
+const baselineRune=hooks.socketValue('ember');
+const oldLevel=hooks.p().level,oldXp=hooks.p().xp;
+hooks.p().level=70;hooks.p().xp=0;hooks.xpAdd(200);const baselineXp=hooks.p().xp;
+hooks.p().level=oldLevel;hooks.p().xp=oldXp;
+const battle=hooks.run();
+battle.phase='fighting';battle.wave=34;battle.tier=1;battle.maxHealth=hooks.maxWall();battle.health=battle.maxHealth;
+const oldEssence=hooks.p().essence;
+hooks.completeWave();const baselineWaveEssence=hooks.p().essence-oldEssence;
+for(const id of ['masonry','calibration','attunement','almanac','distillation','appraisal']){
+ const previous=hooks.p().research[id]||0;
+ const funds=hooks.p().knowledge;
+ clickButton({action:'research:'+id});
+ assert.equal(hooks.p().research[id],previous+1,'New '+id+' research upgrades by one rank');
+ assert(hooks.p().knowledge<funds,'New '+id+' consumes Knowledge');
+}
+assert(hooks.damage()>baselineDamage,'Sharpsight Optics increases attack damage');
+assert(hooks.maxWall()>baselineWall,'Stonewright Doctrine increases maximum wall health');
+assert.equal(hooks.run().maxHealth,hooks.maxWall(),'Stonewright Doctrine updates the active fortress immediately');
+assert(hooks.socketValue('ember')>baselineRune,'Runic Harmonics increases socketed rune effects');
+assert(hooks.gearSellPrice(testGear)>baselineSale,'Guild Appraisals increases gear sale prices');
+hooks.p().level=70;hooks.p().xp=0;hooks.xpAdd(200);
+assert(hooks.p().xp>baselineXp,'Warden Almanac increases XP rewards');
+hooks.p().level=oldLevel;hooks.p().xp=oldXp;
+battle.phase='fighting';battle.wave=34;battle.tier=1;battle.maxHealth=hooks.maxWall();battle.health=battle.maxHealth;
+const essenceBeforeDistilledWave=hooks.p().essence;
+hooks.completeWave();
+assert(hooks.p().essence-essenceBeforeDistilledWave>baselineWaveEssence,'Essence Distillation increases completed wave income');
+if(oldRuneSocket)hooks.p().socketed.helm=oldRuneSocket;
+else delete hooks.p().socketed.helm;
+for(const [id,rank] of Object.entries(olderRanks))
+ assert.equal(hooks.p().research[id]||0,rank,'Original research '+id+' rank preserved');
+assert(JSON.parse(storedSave).research.appraisal===1,'Research additions persist in the existing save');
 clickHub('gear');assert(el('panelContent').innerHTML.includes('Leather Cowl'));
 clickSub('runes');clickButton({socketSlot:'helm'});assert(el('panelContent').innerHTML.includes('rune-picker'));
 clickButton({socketRune:'helm:seedember'});assert(JSON.parse(storedSave).socketed.helm==='seedember');
@@ -176,4 +223,4 @@ assert.equal(restored.equipped.chest,'owned_armor','Old armor converted to chest
 assert.equal(restored.socketed.amulet,'seedember','Old socketed rune follows old bow');
 assert.equal(new Set(restored.inventory.map(g=>g.id)).size,restored.inventory.length,'No duplicated item IDs');
 assert.equal(restored.version,3,'Save migration version updated');
-console.log('PASS: tier selection, endless battle, milestones, legacy, five hubs, armory slots, rarity selling, undo, protected equipped gear, runes and saves.');
+console.log('PASS: twelve functional Royal Archive projects, Forge, battle, milestones, legacy, all hubs, armory, runes and save migration.');
