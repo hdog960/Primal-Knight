@@ -135,7 +135,7 @@ function dominionBonus(key){
 function tierThreat(tier){const t=Math.max(1,Math.min(MAX_TIER,Number(tier)||1));return 1+(t-1)*.64+(t>16?.12*Math.pow(t-16,1.6):0);}
 function tierReward(tier){const t=Math.max(1,Math.min(MAX_TIER,Number(tier)||1));return 1+(t-1)*.32+Math.max(0,t-16)*.055;}
 
-const waystonesAt=[100,250,500,1000,1500,2500,4000,6000,8000];
+const waystonesAt=[100,250,500,1000,1500,2500,4000,6000,8000,9000];
 const ascensionPaths=[
  ['vanguard','Vanguard Doctrine','Permanent damage +6% per rank.',8,40,150],
  ['bastion','Bastion Covenant','Permanent fortress HP +7% per rank.',9,40,400],
@@ -247,6 +247,48 @@ function showLobby(summary=''){
  $('tierLobby').hidden=tab!=='battle';$('lobbySummary').textContent=summary;
  $('exitRunButton').hidden=true;$('startButton').hidden=true;renderTierLobby();
 }
+function awardFirstWatch(){
+ if(!Array.isArray(p.firstWatchClaimed))p.firstWatchClaimed=[];
+ for(let i=0;i<earlyWatchChapters.length;i++){
+  if(p.firstWatchClaimed.includes(i))continue;
+  const [atMinutes,name,gold,essence,points,sigils]=earlyWatchChapters[i];
+  if(p.battleSeconds<atMinutes*60||p.uniqueClears<Math.ceil(atMinutes*1.5))break;
+  p.firstWatchClaimed.push(i);
+  p.gold+=gold;p.essence+=essence;p.points+=points;p.sigils+=sigils;
+  if(i===2||i===6||i===10||i===15){
+   if(p.inventory.length<inventoryCap)p.inventory.push(randomGear(i===15?4:i>=6?3:2));
+  }
+  if(i===4||i===9){
+   if(p.runes.length<240)p.runes.push({type:i===4?'frost':'storm',tier:i===4?2:3,id:'first_watch_'+i});
+  }
+  if(i===1||i===7||i===15){
+   const banner=i===1?'Dawn Scout Standard':i===7?'Banner of the Vanguard':'Standard of the First Watch';
+   if(!p.banners.includes(banner))p.banners.push(banner);
+  }
+  notice('FIRST WATCH · '+name.toUpperCase());
+  message('✦ FIRST WATCH CHAPTER '+(i+1)+' UNLOCKED');
+ }
+}
+function renderFirstWatch(){
+ const claimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];
+ const i=earlyWatchChapters.findIndex((row,n)=>!claimed.includes(n));
+ const total=earlyWatchChapters.length;
+ if(i<0)return '<section class="watch-ribbon watch-complete"><div><small>✦ THE FIRST WATCH</small><strong>FIRST WATCH COMPLETE</strong><p>All '+total+' opening chapters completed. The true Long Conquest begins.</p></div><span>✓ '+total+'/'+total+'</span></section>';
+ const [atMinutes,name,gold,essence,points,sigils]=earlyWatchChapters[i];
+ const timePct=Math.min(100,p.battleSeconds/(atMinutes*60)*100);
+ const clearsPct=Math.min(100,p.uniqueClears/(Math.ceil(atMinutes*1.5))*100);
+ const progress=Math.min(timePct,clearsPct);
+ return '<section class="watch-ribbon" aria-label="First Watch onboarding progress"><div><small>✦ THE FIRST WATCH · CHAPTER '+(i+1)+' / '+total+'</small><strong>'+name+'</strong><p>Earn '+fmt(gold)+' Gold, '+fmt(essence)+' Essence'+(points?' and '+points+' skill point'+(points>1?'s':''):'')+(sigils?' · '+sigils+' Sigils':'')+'. Battle victories and active play both advance your first 12.5 hours.</p><div class="watch-track"><i style="width:'+progress+'%"></i></div><small>'+Math.floor(p.battleSeconds/60)+' / '+atMinutes+' active minutes · '+fmt(p.uniqueClears)+' / '+fmt(Math.ceil(atMinutes*1.5))+' new wave victories</small></div><span>'+claimed.length+'/'+total+'</span></section>';
+}
+function renderDominionPreview(tier){
+ const trial=dominionTrial(tier);
+ if(!trial)return '';
+ const rank=Math.min(4,Number(p.dominionCrests[tier])||0);
+ const next=dominionCrestWaves[rank]||null;
+ const label={damage:'hero damage',essence:'wave Essence',boss:'boss damage',wall:'wall health',knowledge:'wave Knowledge',critical:'crit damage',healing:'wall regeneration',runes:'rune effects',armor:'armor penetration',stations:'station damage',gold:'Gold income',xp:'XP income',all:'general combat'}[trial.stat]||trial.stat;
+ return '<section class="dominion-preview" aria-label="Tier '+roman(tier)+' Dominion Trial"><div><small>♛ OUTER DOMINION · '+trial.trait.toUpperCase()+' HOST</small><strong>'+trial.trial+'</strong><p>'+trial.crest+' · +'+(trial.bonus*100).toFixed(1)+'% '+label+' per seal. Permanent across all tiers.</p></div><span>RANK '+rank+' / 4<br><small>'+(next?'NEXT SEAL '+formatWave(next):'COMPLETE')+'</small></span></section>';
+}
+
 function renderTierLobby(){
  chosenTier=clamp(chosenTier,1,MAX_TIER);
  $('tierGrid').innerHTML=tierNames.map((name,i)=>{
@@ -266,7 +308,8 @@ function renderTierLobby(){
    <button type="button" data-start-mode="waystone" ${useWaystone?'aria-pressed="true"':''} class="${useWaystone?'selected':''}">WAYSTONE ${formatWave(stone)}</button>
   </div></div>`:`<div class="milestone-waystone milestone-waystone-empty"><strong>✧ YOUR FIRST WAYSTONE AWAITS AT WAVE 100</strong><small>Push deeper to permanently unlock restart checkpoints and more powerful Ascension routes.</small></div>`;
  let claimedCount=0;
- const rewards=milestonesAt.map(w=>{
+ const tierLadder=tierMilestones(tier);
+ const rewards=tierLadder.map(w=>{
   const prize=tierMilestone(tier,w),claimed=!!p.milestones[milestoneKey(tier,w)];
   if(claimed)claimedCount++;
   const reached=best>=w;
@@ -276,7 +319,7 @@ function renderTierLobby(){
     <span class="milestone-status">${claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
    </div>`;
  }).join('');
- $('milestoneList').innerHTML=waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${milestonesAt.length} CLAIMED</small></div>`+rewards;
+ $('milestoneList').innerHTML=renderFirstWatch()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
  $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(useWaystone?stone:1)+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
@@ -332,7 +375,9 @@ function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,
 function kill(e){e.dead=true;run.kills++;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(1+(run.tier-1)*.32));if(e.golden||Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((e.type==='ogre'?70:8)*(1+run.wave*.055)*(1+(run.tier-1)*.32)));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
 function projectileCount(){return Math.min(12,1+Math.floor(t('multishot')/8)+Math.floor(ascRank('volley')/6));}
 function shoot(target,power=damage(),kind='arrow',originX=496,originY=390){if(!target||run.shots.length>=48)return;run.shots.push({x:originX,y:originY,target,power,kind,life:1.8,trail:[]});run.flashes=.13;}
-function tick(dt){if(run.phase==='intermission'){run.rewardTimer-=dt*run.speed;if(run.rewardTimer<=0)beginWave();return;}if(run.phase!=='fighting')return;dt*=run.speed;run.time+=dt;run.spawnClock-=dt;run.shotClock-=dt;run.stationClock-=dt;
+function tick(dt){
+ if((run.phase==='fighting'||run.phase==='intermission')&&run.speed>0){p.battleSeconds+=dt;saveClock+=dt;if(saveClock>=30){saveClock=0;save();}}
+ if(run.phase==='intermission'){run.rewardTimer-=dt*run.speed;if(run.rewardTimer<=0)beginWave();return;}if(run.phase!=='fighting')return;dt*=run.speed;run.time+=dt;run.spawnClock-=dt;run.shotClock-=dt;run.stationClock-=dt;
  if(run.spawned<run.total&&run.spawnClock<=0){spawnEnemy();run.spawned++;run.spawnClock=Math.max(.26,1.05-run.wave*.018);}
  let gravity=1-Math.min(.4,station('gravity')*.018),cryo=1-Math.min(.4,station('cryo')*.018);
  for(const e of run.enemies){if(e.dead)continue;e.wobble+=dt*2;e.y+=e.speed*dt*(e.slow>0?.5:1)*gravity*cryo;e.x+=Math.sin(e.wobble)*dt*(e.type==='imp'?11:4);e.slow=Math.max(0,e.slow-dt);e.buildup=Math.max(0,e.buildup-dt);if(e.burn>0){e.burn-=dt;e.hp-=dt*(2+skill('ember')*1.3);if(e.hp<=0){kill(e);continue;}}if(e.y>430){e.dead=true;run.breaches++;let pressure=1+Math.min(2.4,run.breaches*(.015+.09*Math.min(1,run.wave/1000)));let attack=Math.ceil(pressure*(e.type==='ogre'?36:13)*(1+run.wave*.055)*(1+(run.tier-1)*.25)*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04)));run.health-=attack;run.shakes=.18;float(750,450,'BREACH '+run.breaches+' · -'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);}}
@@ -349,10 +394,13 @@ function completeWave(){
  let knowledge=Math.round((5+cleared*1.6)*(1+res('studies')*.045)*multi);
  let waveGold=Math.round((35+cleared*9)*(1+res('interest')*.07+skill('prosperity')*.12)*multi);
  p.essence+=essence;p.knowledge+=knowledge;p.gold+=waveGold;
+ const firstClear=cleared>(p.bestByTier[tier]||0);
+ if(firstClear)p.uniqueClears++;
  p.best=Math.max(p.best,cleared);p.bestByTier[tier]=Math.max(p.bestByTier[tier]||0,cleared);
  p.highestWave=Math.max(p.highestWave,cleared+1);p.clears++;xpAdd(15+cleared*5);grantDrops();
  run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+run.maxHealth*(.08+.42*(1-Math.exp(-t('regen')/120))+skill('mend')*.025));
- if(milestonesAt.includes(cleared))rewardMilestone(tier,cleared);
+ if(tierMilestones(tier).includes(cleared))rewardMilestone(tier,cleared);
+ awardFirstWatch();
  else message('WAVE '+fmt(cleared)+' CLEARED · +'+fmt(essence)+' ESSENCE');
  if(cleared>=MAX_WAVE){
   run.phase='completed';run.wave=MAX_WAVE;run.enemies=[];run.shots=[];
