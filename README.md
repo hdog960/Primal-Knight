@@ -1,5 +1,20 @@
 # Primal KnIght – Onslaught
 
+## Current release — Alpha 0.10.2 (Living Onslaught, Slice 3)
+
+The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
+
+**New in 0.10.2:** 10 distinct rotating enemy factions (Thornwake Circle and Riftborne Court added), telegraphed thorn-ward and rift-blink specialists, three themed century-boss styles with bounded phase-II reinforcements, and rare optional zero-breach Relic Hunts awarding one-time runes and Knowledge without farming permanent Sigils. Existing save key and progress remain intact.
+
+**Play:** https://hdog960.github.io/Primal-Knight/
+
+Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0102_LIVING_ONSLAUGHT.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js` for the automated suite.
+
+---
+
+### Historical notes from earlier releases
+
+
 **Alpha 0.3 — Rebuilt Fantasy Menu Experience**
 
 A free, single-hero, rear-view fortress defense RPG for iPhone browsers and desktop. No subscriptions or paid services: HTML/CSS/JavaScript, original pixel-art imagery and GitHub Pages.
@@ -8,7 +23,7 @@ A free, single-hero, rear-view fortress defense RPG for iPhone browsers and desk
 
 https://hdog960.github.io/Primal-Knight/
 
-## Current features
+## Earlier foundational features
 
 - One auto-attacking hero protects the wall from escalating monster waves. Battle speed/pause and boss encounters.
 - **Five redesigned navigation hubs**: Battle; Hero (Overview, Skill Trees); Power (Training, Research); Gear (Equipment, Rune Workshop); Fortress (Stations, Enemy Suppression). Settings are available from the cog in the header.
