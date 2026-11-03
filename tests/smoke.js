@@ -1,4 +1,4 @@
-// Alpha 0.4: Tier lobby, continuous waves, persistent rewards, tier progression,
+// Alpha 0.6.7: Tier lobby, continuous waves, permanent training, bulk ranks, research,
 // skills, legacy purchases, save and menu navigation, with no browser dependencies.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 let nextFrame=null,storedSave=null;
@@ -76,13 +76,35 @@ hooks.p().points=Math.max(1,hooks.p().points);
 const beforeSkill=hooks.p().skills.aim||0,beforePoints=hooks.p().points;
 clickButton({action:'skill:aim'});assert.equal(hooks.p().skills.aim,beforeSkill+1,'Skill chart upgrades a talent');
 assert.equal(hooks.p().points,beforePoints-1,'Skill chart consumes one point');
-clickHub('power');assert(el('panelContent').innerHTML.includes('Might'));
-assert(el('panelContent').innerHTML.includes('Siegebreaker'),'Legacy mastery is displayed');
+clickHub('power');
+assert(el('panelContent').innerHTML.includes('ascension-shell'),'Power Training has its own illustrated chamber');
+assert(el('panelContent').innerHTML.includes('ascension-row-list'),'Training uses compact progression ledger');
+assert(el('panelContent').innerHTML.includes('Might'),'Offense training loads by default');
+assert(!el('panelContent').innerHTML.includes('upgrade-card'),'Oversized old training cards removed');
+clickButton({trainFilter:'Legacy'});
+assert(el('panelContent').innerHTML.includes('Siegebreaker'),'Legacy Masteries have a dedicated filter');
 clickButton({action:'legacy:siegebreaker'});assert(hooks.p().legacy.siegebreaker===1);
-clickButton({trainFilter:'Economy'});assert(el('panelContent').innerHTML.includes('Greed'));
-clickButton({trainFilter:'All'});clickButton({action:'train:power'});
+clickButton({trainFilter:'Defense'});assert(el('panelContent').innerHTML.includes('Fortitude'),'Defense category displays tank upgrades');
+clickButton({trainFilter:'Economy'});assert(el('panelContent').innerHTML.includes('Greed'),'Economy category displays gold upgrades');
+clickButton({trainFilter:'All'});
+assert(el('panelContent').innerHTML.includes('Treasure Sense'),'All category includes complete 16-upgrade system');
+clickButton({action:'train:power'});
 assert(storedSave&&JSON.parse(storedSave).training.power===1,'Essence purchases persist');
-clickSub('research');assert(el('panelContent').innerHTML.includes('Royal Treasury'));
+hooks.p().essence=100000;
+const beforeBatchRank=hooks.p().training.power, beforeBatchEssence=hooks.p().essence;
+const oneCostAt=lv=>Math.floor(8*(1+lv*.075+lv*lv*.004)*Math.pow(1+(1.125-1)*.07,Math.min(lv,120))*Math.pow(1.002,Math.max(0,lv-120)));
+const tenCost=Array.from({length:10},(_,i)=>oneCostAt(beforeBatchRank+i)).reduce((a,b)=>a+b,0);
+clickButton({action:'trainBatch:power'});
+assert.equal(hooks.p().training.power,beforeBatchRank+10,'Training can purchase 10 affordable ranks');
+assert.equal(hooks.p().essence,beforeBatchEssence-tenCost,'Batch costs exactly the sum of individual ranks');
+clickSub('research');
+assert(el('panelContent').innerHTML.includes('archive-room'),'Research uses the Royal Archive');
+assert(el('panelContent').innerHTML.includes('Royal Treasury'),'All research upgrades remain accessible');
+assert(!el('panelContent').innerHTML.includes('upgrade-card'),'Old research cards are replaced');
+hooks.p().knowledge+=5000;
+const prevResearch=hooks.p().research.discount||0;
+clickButton({action:'research:discount'});
+assert.equal(hooks.p().research.discount,prevResearch+1,'Research purchases still work');
 clickHub('gear');assert(el('panelContent').innerHTML.includes('Leather Cowl'));
 clickSub('runes');clickButton({socketSlot:'helm'});assert(el('panelContent').innerHTML.includes('rune-picker'));
 clickButton({socketRune:'helm:seedember'});assert(JSON.parse(storedSave).socketed.helm==='seedember');
