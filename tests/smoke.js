@@ -1,4 +1,4 @@
-// Alpha 0.7.0: Tier lobby, 12 functional research projects, icon-safe Forge, upgrades, bulk ranks, saves,
+// Alpha 0.7.1: Fortress sprite repair, 12 functional research projects, icon-safe Forge, progression, saves,
 // skills, legacy purchases, save and menu navigation, with no browser dependencies.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 let nextFrame=null,storedSave=null;
@@ -163,8 +163,32 @@ assert(JSON.parse(storedSave).research.appraisal===1,'Research additions persist
 clickHub('gear');assert(el('panelContent').innerHTML.includes('Leather Cowl'));
 clickSub('runes');clickButton({socketSlot:'helm'});assert(el('panelContent').innerHTML.includes('rune-picker'));
 clickButton({socketRune:'helm:seedember'});assert(JSON.parse(storedSave).socketed.helm==='seedember');
-clickHub('fortress');assert(el('panelContent').innerHTML.includes('Ironwood Ballista'));
-clickSub('suppression');assert(el('panelContent').innerHTML.includes('Weakening Sigils'));
+clickHub('fortress');
+const stationScreen=el('panelContent').innerHTML;
+assert(stationScreen.includes('Ironwood Ballista'),'Existing Station panel remains intact');
+for(const id of ['ballista','cryo','midas','thunder','gravity']){
+ assert(stationScreen.includes('aria-label="'+id+' pixel art icon"'),'Unique standalone sprite for Station '+id);
+ assert(stationScreen.includes('data-action="station:'+id+'"'),'Existing Station upgrade action preserved');
+}
+assert.equal((stationScreen.match(/class="forge-pixel-icon"/g)||[]).length,5,'Every Station card uses a self-contained pixel-art icon');
+assert(!stationScreen.includes('card-art"><span class="pixel-symbol'),'No Station card uses a cropped menu texture');
+hooks.p().gold+=100000;
+const stationRankBefore=hooks.p().stations.ballista||0;
+clickButton({action:'station:ballista'});
+assert.equal(hooks.p().stations.ballista,stationRankBefore+1,'Station upgrades remain functional');
+clickSub('suppression');
+const suppressionScreen=el('panelContent').innerHTML;
+assert(suppressionScreen.includes('Weakening Sigils'),'Existing Suppression panel remains intact');
+for(const id of ['health','speed','damage','armor']){
+ assert(suppressionScreen.includes('aria-label="'+id+' pixel art icon"'),'Unique standalone sprite for Suppression '+id);
+ assert(suppressionScreen.includes('data-action="suppress:'+id+'"'),'Existing Suppression upgrade action preserved');
+}
+assert.equal((suppressionScreen.match(/class="forge-pixel-icon"/g)||[]).length,4,'Every Suppression card uses a self-contained pixel-art icon');
+assert(!suppressionScreen.includes('card-art"><span class="pixel-symbol'),'No Suppression card uses a cropped menu texture');
+hooks.p().knowledge+=10000;
+const suppressionRankBefore=hooks.p().suppression.health||0;
+clickButton({action:'suppress:health'});
+assert.equal(hooks.p().suppression.health,suppressionRankBefore+1,'Suppression upgrades remain functional');
 clickHub('battle');assert.equal(el('tierLobby').hidden,true,'Ongoing run continues when browsing menus');
 el('exitRunButton').onclick();assert.equal(el('tierLobby').hidden,false);
 el('tierGrid').listeners.click({target:{closest:()=>({dataset:{tier:'2'},disabled:false})}});
