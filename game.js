@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.8. Living Onslaught phase 9: frame-independent effects, capped canvas redraws and compact iPhone combat HUD and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.9. Living Onslaught phase 10: boss attack progress and reliable mobile siege controls and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -585,7 +585,7 @@ function renderTierLobby(){
  $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(useWaystone?stone:1)+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
 }
-function enterSiege(){if(chosenTier>p.unlockedTier)return;p.selectedTier=chosenTier;initRun();run.wave=useWaystone?waystoneForTier(chosenTier):1;run.tier=chosenTier;$('tierLobby').hidden=true;$('exitRunButton').hidden=false;$('startButton').hidden=true;save();beginWave();}
+function enterSiege(){if(chosenTier>p.unlockedTier)return;p.selectedTier=chosenTier;initRun();run.speed=storedSpeed===2?2:1;syncBattleControls();run.wave=useWaystone?waystoneForTier(chosenTier):1;run.tier=chosenTier;$('tierLobby').hidden=true;$('exitRunButton').hidden=false;$('startButton').hidden=true;save();beginWave();}
 function retreatFromSiege(){const cleared=run.wave-(run.phase==='intermission'?1:run.phase==='fallen'?0:1);const summary=`Tier ${roman(run.tier)} · Reached wave ${run.wave} · Cleared ${Math.max(0,cleared)} this run`;
  run.phase='ready';run.enemies=[];run.shots=[];save();showLobby(summary);refreshHUD();}
 function legacyCost(row){return Math.ceil(row[3]*(1+lr(row[0])*.35+Math.pow(lr(row[0]),1.35)*.26));}
@@ -991,6 +991,17 @@ function activeEncounterThreat(){
  return highest?{priority:highest.priority,text:highest.text}:null;
 }
 let lastResourceMarkup='';
+function bossTelegraph(boss){
+ if(!boss||boss.dead)return null;
+ if(boss.type==='siegebeast'&&boss.crushWindup>0)
+  return {label:'CRUSHER STRIKE',remaining:boss.crushWindup,duration:1.1,ward:false};
+ if(boss.type==='warlord'){
+  if(boss.bossFuryWindup>0)return {label:'EMBER CHARGE',remaining:boss.bossFuryWindup,duration:.9,ward:false};
+  if(boss.bossBlinkWindup>0)return {label:'VOID STEP',remaining:boss.bossBlinkWindup,duration:1.05,ward:false};
+  if(boss.bossWardTimer>0)return {label:'IRON WARD',remaining:boss.bossWardTimer,duration:2.2,ward:true};
+ }
+ return null;
+}
 function refreshHUD(){
  let r=[['🟡','GOLD',p.gold],['🔷','ESSENCE',p.essence],['📖','KNOWLEDGE',p.knowledge],['💠','SIGILS',p.sigils],['✦','SKILL POINTS',p.points]];
  const resourceMarkup=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');
@@ -1002,6 +1013,17 @@ function refreshHUD(){
   const boss=run.phase==='fighting'&&['chapterBoss','commander'].includes(run.encounter?.kind)?
    run.enemies.find(e=>!e.dead&&isSiegeBoss(e)):null;
   bossHud.hidden=!boss;
+  const castTrack=$('bossCastTrack');
+  if(castTrack){
+   const cast=bossTelegraph(boss);
+   castTrack.hidden=!cast;
+   if(cast){
+    const value=clamp(cast.ward?100*cast.remaining/cast.duration:100*(1-cast.remaining/cast.duration),0,100);
+    $('bossCastFill').style.width=value+'%';
+    $('bossCastLabel').textContent=cast.label+' · '+cast.remaining.toFixed(1)+'s';
+    castTrack.dataset.ward=cast.ward?'true':'false';
+   }
+  }
   if(boss){
    const identity=boss.type==='warlord'?run.encounter.bossName:'SIEGE BEAST';
    $('bossName').textContent=identity;
@@ -1041,6 +1063,7 @@ function refreshHUD(){
  $('wallFill').style.width=(100*run.health/(run.maxHealth||1))+'%';
  $('heroTag').innerHTML='✦ LEVEL '+p.level+' <span>'+fmt(p.xp)+' / '+fmt(lvlNeed())+' XP</span>';
  const next=nextMilestone(run.tier,run.wave);$('milestoneHint').textContent=next?'✦ NEXT MILESTONE · WAVE '+formatWave(next)+' · '+tierMilestone(run.tier,next).name:'✦ ALL MILESTONES CLEARED · PUSH YOUR RECORD';
+ syncBattleControls();
 }
 // ALPHA 0.3 — hub navigation and progression chambers, completely rebuilt UI.
 const hubs={battle:['battle'],hero:['hero'],power:['training','research'],gear:['equipment','runes'],fortress:['stations','suppression']};
@@ -1582,7 +1605,7 @@ function renderPanel(){
    const obj=JSON.parse(await file.text());validateProgressBackup(obj);
    if(!confirm('Replace your current progress with this backup? A recovery copy will be saved on this device.'))return;
    restoreProgressBackup(obj,true);
-   initRun();run.speed=1;storedSpeed=1;$('speedButton').textContent='1×';$('pauseButton').textContent='Ⅱ';
+   initRun();run.speed=1;storedSpeed=1;syncBattleControls();
    showLobby();refreshHUD();renderPanel();notice('SAVE RESTORED · RECOVERY COPY STORED');
   }catch(error){notice('IMPORT FAILED · CURRENT SAVE PRESERVED');}
  };
@@ -1656,7 +1679,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
   if(!confirm('Restore the progress saved just before the last import? Your current progress will be replaced.'))return;
   try{
    if(!undoProgressImport()){notice('NO IMPORT RECOVERY COPY');return;}
-   initRun();run.speed=1;storedSpeed=1;$('speedButton').textContent='1×';$('pauseButton').textContent='Ⅱ';
+   initRun();run.speed=1;storedSpeed=1;syncBattleControls();
    showLobby();notice('PREVIOUS SAVE RESTORED');
   }catch(error){notice('RECOVERY FAILED · CURRENT SAVE PRESERVED');}
  }
@@ -1674,6 +1697,41 @@ function drawInterval(){
  if(document.hidden)return Infinity;
  if($('app').dataset.view==='menu')return 100;
  return reduceMotion?1000/30:1000/60;
+}
+// Battle controls do not alter earned progression or permanent save data.
+const siegeActive=()=>run.phase==='fighting'||run.phase==='intermission';
+function syncBattleControls(){
+ const paused=siegeActive()&&run.speed===0;
+ const selected=paused?storedSpeed:(run.speed===2?2:1);
+ const speed=$('speedButton'),button=$('pauseButton'),status=$('battlePauseStatus');
+ speed.textContent=selected+'×';
+ speed.title=paused?'Resume speed: '+selected+'×':'Battle speed: '+selected+'×';
+ button.textContent=paused?'▶':'Ⅱ';
+ button.title=paused?'Resume siege':'Pause siege';
+ button.ariaLabel=paused?'Resume battle':'Pause battle';
+ button.ariaPressed=paused?'true':'false';
+ if(status)status.hidden=!paused;
+}
+function cycleBattleSpeed(){
+ if(siegeActive()&&run.speed===0){
+  storedSpeed=storedSpeed===2?1:2;
+  notice('PAUSED · RESUME SPEED '+storedSpeed+'×');
+ }else{
+  run.speed=run.speed===2?1:2;storedSpeed=run.speed;
+  notice('BATTLE SPEED '+run.speed+'×');
+ }
+ syncBattleControls();
+}
+function toggleBattlePause(){
+ if(!siegeActive())return false;
+ if(run.speed){storedSpeed=run.speed;run.speed=0;notice('BATTLE PAUSED');}
+ else{run.speed=storedSpeed===2?2:1;notice('BATTLE RESUMED · '+run.speed+'×');}
+ syncBattleControls();
+ return run.speed===0;
+}
+function pauseBattleInBackground(){
+ save();
+ if(siegeActive()&&run.speed>0){storedSpeed=run.speed;run.speed=0;syncBattleControls();}
 }
 function loop(tm){
  const dt=clamp(((tm-(loop.last||tm))/1000),0,.05);
@@ -1709,8 +1767,9 @@ $('launchTierButton').onclick=enterSiege;
 $('exitRunButton').onclick=()=>{if(confirm('End this siege and return to the tier selection? Earned rewards and milestones are saved.'))retreatFromSiege()};
 $('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(!b||b.disabled)return;chosenTier=Number(b.dataset.tier);useWaystone=true;p.selectedTier=chosenTier;save();renderTierLobby();});
 $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-start-mode]');if(!b)return;useWaystone=b.dataset.startMode==='waystone';const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;});
-$('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
-$('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
-window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+$('speedButton').onclick=cycleBattleSpeed;
+$('pauseButton').onclick=toggleBattlePause;
+window.addEventListener('pagehide',pauseBattleInBackground);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
