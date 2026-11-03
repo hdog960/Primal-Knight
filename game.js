@@ -585,27 +585,43 @@ function renderTrainingLedger(){
  </div>`;
 }
 function renderResearchArchive(){
- const researchIcons={discount:'gear',fusion:'runes',interest:'power',excavation:'gear',bounties:'battle',studies:'research'};
- const groupings=[
-  ['CRAFT & DISCOVERY',['discount','fusion','excavation']],
-  ['ROYAL ECONOMY',['interest','bounties','studies']]
+ const branches=[
+  {id:'craft',glyph:'⚒',name:'CRAFT & DISCOVERY',label:'MASTERY OF THE WORKSHOP',ids:['discount','fusion','excavation']},
+  {id:'treasury',glyph:'♛',name:'THE ROYAL TREASURY',label:'PROSPERITY OF THE KINGDOM',ids:['interest','bounties','studies']},
+  {id:'bastion',glyph:'⚔',name:'BASTION SCIENCES',label:'DEFENSE & BATTLECRAFT',ids:['masonry','calibration','attunement']},
+  {id:'guild',glyph:'✦',name:'SCHOLARS & GUILDS',label:'WISDOM & WEALTH',ids:['almanac','distillation','appraisal']}
  ];
- const markup=groupings.map(([heading,ids])=>{
-  const entries=ids.map(id=>{
-   const row=research.find(x=>x[0]===id),[,,desc,,,max]=row,rank=res(id),cost=researchCost(row,p.research),full=rank>=max,ready=!full&&p.knowledge>=cost;
+ const wings=branches.map(branch=>{
+  const rows=branch.ids.map(id=>{
+   const row=research.find(x=>x[0]===id),
+    [,,desc,,,max]=row,
+    rank=res(id),
+    cost=researchCost(row,p.research),
+    completed=rank>=max,
+    ready=!completed&&p.knowledge>=cost;
    return `<article class="archive-entry" data-research-row="${id}">
-    <div class="archive-emblem">${forgePixelIcon(id)}</div>
-    <div class="archive-details"><div class="archive-entry-top"><strong>${row[1]}</strong><small>${rank} / ${max}</small></div><p>${desc}</p><div class="archive-progress"><i style="width:${meterPct(rank,max)}%"></i></div></div>
-    <div class="archive-action"><small>${full?'RESEARCH COMPLETE':`📖 ${fmt(cost)} KNOWLEDGE`}</small><button type="button" data-action="research:${id}" ${!ready?'disabled':''}>${full?'MAXED':'RESEARCH +1'}</button></div>
-   </article>`;
+     <div class="archive-emblem">${forgePixelIcon(id)}</div>
+     <div class="archive-details">
+      <div class="archive-entry-top"><strong>${row[1]}</strong><small>${rank} / ${max}</small></div>
+      <p>${desc}</p><div class="archive-progress" role="progressbar" aria-label="${row[1]} research progress" aria-valuemin="0" aria-valuenow="${rank}" aria-valuemax="${max}"><i style="width:${meterPct(rank,max)}%"></i></div>
+     </div>
+     <div class="archive-action"><small>${completed?'MASTERED':`📖 ${fmt(cost)}`}</small>
+      <button type="button" data-action="research:${id}" ${ready?'':'disabled'}>${completed?'✓ MAX':'+ RESEARCH'}</button>
+     </div>
+    </article>`;
   }).join('');
-  return `<section class="archive-school"><h3><span>✧ ${heading}</span><small>THREE PERMANENT PROJECTS</small></h3>${entries}</section>`;
+  const invested=branch.ids.reduce((sum,id)=>sum+res(id),0);
+  const total=branch.ids.reduce((sum,id)=>sum+research.find(x=>x[0]===id)[5],0);
+  return `<section class="archive-school archive-branch-${branch.id}" aria-label="${branch.name}">
+    <h3><span><em class="archive-branch-glyph" aria-hidden="true">${branch.glyph}</em> ${branch.name}</span><small>${branch.label} · ${invested} / ${total} RANKS</small></h3>
+    ${rows}
+   </section>`;
  }).join('');
  return `${renderPowerHeader('research')}
  <div class="archive-room">
-  <div class="archive-headline"><div><small>✧ THE GRAND RESEARCH LEDGER</small><h2>Six paths to prosperity</h2></div><p>Invest Knowledge from your sieges to reduce expenses, improve loot, and earn more for every wave you survive.</p></div>
-  <div class="archive-grid">${markup}</div>
-  <div class="archive-seal">✦ ROYAL EDICT · ALL RESEARCH IS PERMANENT ✦</div>
+  <div class="archive-headline"><div><small>✧ THE GRAND RESEARCH LEDGER</small><h2>Twelve royal discoveries</h2></div><p>Four research disciplines and twelve lasting discoveries. Spend Knowledge to fortify your kingdom, master combat, and accelerate each expedition.</p></div>
+  <div class="archive-grid">${wings}</div>
+  <div class="archive-seal">✦ ROYAL EDICT · ALL TWELVE RESEARCH PROJECTS ARE PERMANENT ✦</div>
  </div>`;
 }
 function renderPanel(){
