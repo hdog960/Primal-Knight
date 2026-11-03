@@ -46,3 +46,4 @@ jobs:
           node tests/deepwave.js
           node tests/mobile-render.js
           node tests/reward-integrity.js
+          node tests/first-watch-vault.js
