@@ -153,7 +153,7 @@ function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+sk
 function damage(){return (32+2*t('power')+p.level*.85)*(1+skill('aim')*.06)*(1+(gearStat('weapon')-1)*.22)*(1+Math.min(15,res('calibration'))*.01)}
 function attackInterval(){return Math.max(.22,.82/(1+Math.min(3,t('haste')*.025)+skill('quiver')*.05+(run.health<run.maxHealth*.3?skill('laststand')*.12:0)));}
 function trainCost(row){let [id,, ,base,mul]=row;let lv=t(id);return Math.floor(base*(1+lv*.075+lv*lv*.004)*Math.pow(1+(mul-1)*.07,Math.min(lv,120))*Math.pow(1.002,Math.max(0,lv-120))); }
-function stationCost(row){let[id,,,base,mul]=row;let lv=station(id);return Math.floor(base*(1+lv*.2+lv*lv*.04)*Math.pow(1.04,Math.min(lv,40))*Math.pow(1.015,Math.max(0,lv-40))*(1-Math.min(.42,res('discount')*.014))); }
+function stationCost(row){let[id,,,,base,mul]=row;let lv=station(id);return Math.floor(base*(1+lv*.2+lv*lv*.04)*Math.pow(1.04,Math.min(lv,40))*Math.pow(1.015,Math.max(0,lv-40))*(1-Math.min(.42,res('discount')*.014))); }
 function researchCost(row,obj){let[id,,,base,mul]=row;let lv=n(obj,id);return Math.floor(base*(1+lv*.5+lv*lv*.15)*Math.pow(1.06+(mul-1)*.04,lv)); }
 function gearCost(g){return Math.floor((70+g.plus*38)*(1+g.rarity*.8)*Math.pow(1.22,g.plus)*(1-Math.min(.42,res('discount')*.014+skill('salvage')*.02)));}
 function randomGear(forceRarity=null){let score=Math.random()+Math.min(.44,p.highestWave*.004)+res('excavation')*.007;let r=forceRarity??(score>.995?5:score>.95?4:score>.85?3:score>.68?2:score>.43?1:0);r=clamp(r,0,8);return {id:'item_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),slot:['helm','amulet','chest','legs','boots','gauntlets','charm','ring'][Math.floor(Math.random()*8)],rarity:r,plus:0};}
