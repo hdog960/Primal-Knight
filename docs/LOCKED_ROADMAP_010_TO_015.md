@@ -97,3 +97,8 @@ Delivered: actual visually distinct special-wave arrival formations on the battl
 Delivered: repair the legacy backup-import tier cap (12 → 30), preserve high-tier/late-wave milestones and all existing progress ledgers, run gear migration on old imported saves, reject malformed imports safely, add protected one-time pre-import recovery/undo in Settings, report storage failures accurately, and enforce seeded real-loop deep-wave / restore QA through GitHub Actions. See `docs/ALPHA_0107_SAVE_INTEGRITY.md`.
 
 **Alpha 0.10 remains open for physical iPhone acceptance and deep-wave combat feel review.** These tests are meaningful engineering coverage but do not constitute completed 1,250-hour player testing or device visual approval. Keep the locked Alpha 0.11–0.15 roadmap unchanged.
+
+### Alpha 0.10.8 — Living Onslaught, slice 9
+Delivered: refresh-rate independent visual effects, at-most-60Hz battlefield rendering while simulation remains responsive, cheaper menu/background redraws, reduced-motion support, resource-header DOM caching, and smaller-iPhone HUD and tap-size refinements. Required new frame-pacing / CSS regression suite `tests/mobile-render.js`. See `docs/ALPHA_0108_IPHONE_FRAME_PACING.md`.
+
+**Alpha 0.10 is not yet accepted.** Automated tests do not replace physical iPhone Safari/Home Screen QA. Validate the portrait/landscape combat view, warm boss telegraphs, early+deep wave readability and actual device performance before moving to the locked Alpha 0.11 Hero Combat Depth phase.
