@@ -1913,3 +1913,51 @@
  .relic-vault p{font-size:10px}
  .relic-vault button{min-height:42px}
 }
+
+
+/* Alpha 0.10.13 — the after-action Chronicle sits below painted lobby banner,
+   not over gameplay; collapsed by default on small phones. */
+.siege-report[hidden]{display:none!important}
+.siege-report{flex:none;min-width:0;margin:0;border-top:1px solid #c9a275;
+ border-bottom:2px solid #775d3a;background:linear-gradient(100deg,#1e333ce8,#243447f0 52%,#292c39e8);
+ box-shadow:inset 0 1px #e8c8953a}
+.siege-report summary{display:flex;align-items:center;gap:13px;min-height:46px;min-width:0;
+ padding:8px 16px;cursor:pointer;list-style:none}
+.siege-report summary::-webkit-details-marker{display:none}
+.siege-report summary:focus-visible{outline:2px solid #f1d18f;outline-offset:-3px}
+.siege-report summary span{flex:0 1 auto;min-width:0;color:#ffe2a9;font:800 12px Georgia,serif;
+ letter-spacing:.4px;text-shadow:1px 1px #091622}
+.siege-report summary strong{flex:1;color:#dce7e3;font:800 11px Arial,sans-serif;
+ text-align:right;letter-spacing:.3px;white-space:normal}
+.siege-report-toggle{flex:none;color:#bfcbbf;font:700 9px Arial,sans-serif;white-space:nowrap}
+.siege-report-toggle:before{content:'▸ ';color:#f4ce91}
+.siege-report[open] .siege-report-toggle:before{content:'▾ '}
+.siege-report-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;
+ padding:0 14px 8px}
+.siege-report-stat{min-width:0;padding:8px 6px;border:1px solid #7b684d;
+ background:linear-gradient(165deg,#2e4146,#172734);box-shadow:inset 0 1px #af98702b;
+ text-align:center}
+.siege-report-stat small{display:block;color:#c7cbcb;font:700 9px/1.3 Arial,sans-serif;letter-spacing:.4px}
+.siege-report-stat strong{display:block;color:#ffe2a7;font:800 18px Georgia,serif;margin-top:3px}
+.siege-report-range{font:700 9px/1.3 Arial,sans-serif;letter-spacing:.4px;color:#bdccc7;
+ margin:0;padding:0 14px 8px;text-align:center}
+@media(orientation:portrait) and (max-width:680px){
+ .siege-report summary{flex-wrap:wrap;gap:3px 7px;padding:7px 10px;min-height:43px}
+ .siege-report summary span{flex:1 1 65%;font-size:11px}
+ .siege-report summary strong{flex:1 1 64%;text-align:left;font-size:10px}
+ .siege-report-toggle{order:1;margin-left:auto;font-size:8px}
+ .siege-report-metrics{grid-template-columns:repeat(3,minmax(0,1fr));padding:0 8px 7px;gap:5px}
+ .siege-report-stat{padding:6px 3px}
+ .siege-report-stat small{font-size:8px;letter-spacing:0}
+ .siege-report-stat strong{font-size:15px}
+ .siege-report-range{padding:0 9px 7px;font-size:8px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .siege-report summary{min-height:36px;padding:4px 10px}
+ .siege-report summary span{font-size:10px}
+ .siege-report summary strong{font-size:10px}
+ .siege-report-metrics{padding:0 8px 5px;gap:4px}
+ .siege-report-stat{padding:5px 3px}
+ .siege-report-stat strong{font-size:13px}
+ .siege-report-range{font-size:8px;padding-bottom:5px}
+}
