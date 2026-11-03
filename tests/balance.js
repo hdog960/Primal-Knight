@@ -1,4 +1,4 @@
-// Alpha 0.8.0 deterministic endgame battle simulations.
+// Alpha 0.9.0 deterministic thirty-tier endgame battle simulations.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const code=fs.readFileSync('game.js','utf8');
 function createWorld(seedValue=117){
@@ -48,8 +48,9 @@ function buildProfile(hooks,peak=false){
  });
  return p;
 }
-function simulate({tier,wave,peak=false,maxSeconds=40,seed=117}){
+function simulate({tier,wave,peak=false,crest=false,maxSeconds=40,seed=117}){
  const {hooks}=createWorld(seed);buildProfile(hooks,peak);
+ if(crest)for(let t=17;t<=30;t++)hooks.p().dominionCrests[t]=4;
  const run=hooks.run();
  run.phase='ready';run.wave=wave;run.tier=tier;run.speed=1;
  run.maxHealth=hooks.maxWall();run.health=run.maxHealth;
@@ -73,8 +74,11 @@ const tier13Entry=simulate({tier:13,wave:20,peak:false,maxSeconds:45});
 const midOldTierEnd=simulate({tier:1,wave:10000,peak:false,maxSeconds:45});
 const endgameTierOne=simulate({tier:1,wave:10000,peak:true,maxSeconds:45});
 const endgameTierSixteen=simulate({tier:16,wave:10000,peak:true,maxSeconds:45});
+const midgameTierSeventeen=simulate({tier:17,wave:20,peak:false,maxSeconds:45});
+const endgameTierThirty=simulate({tier:30,wave:10000,peak:true,maxSeconds:45});
+const ascendantTierThirty=simulate({tier:30,wave:10000,peak:true,crest:true,maxSeconds:45});
 console.log('BALANCE TEST SCENARIOS');
-console.log(JSON.stringify([tier13Entry,midOldTierEnd,endgameTierOne,endgameTierSixteen],null,2));
+console.log(JSON.stringify([tier13Entry,midOldTierEnd,endgameTierOne,endgameTierSixteen,midgameTierSeventeen,endgameTierThirty,ascendantTierThirty],null,2));
 assert(tier13Entry.result==='intermission','Midgame build must clear Tier XIII entry at wave 20');
 assert(midOldTierEnd.result!=='completed'&&midOldTierEnd.result!=='intermission','Same midgame build cannot finish Tier I at wave 10000');
 assert(endgameTierOne.result==='completed','Fully developed build can conquer Tier I wave 10000');
