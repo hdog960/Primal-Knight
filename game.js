@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.3. Rebuilt fantasy progression chambers. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.4. Tiered endless siege and persistent milestones. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -19,10 +19,66 @@ const rarities=['Common','Uncommon','Rare','Epic','Legendary','Mythic','Ancient'
 const rColors=['#ddd','#66dc9e','#75bfff','#b990ff','#ffd070','#ff727f','#eee08a','#e8b6ff','#90f9ff'];
 const runeNames={ember:['🔥','Ember','Burn damage'],frost:['❄','Frost','Chance to slow enemies'],fortune:['✦','Fortune','Bonus gold on kills'],storm:['ϟ','Storm','Chain lightning chance']};
 const gearNames={weapon:['Recurve Bow','Ashwood Longbow','Moonthorn Bow','Royal Arbalest','Sunfire Repeater','Starfall Arc','Kingslayer','Astral Bow','Eternity’s Oath'],armor:['Scout Mantle','Warden Mail','Forest Cloak','Ember Hauberk','Royal Warplate','Phoenix Mantle','Titan Guard','Starforged Plate','Eternal Bastion'],charm:['Copper Locket','Hunter’s Sigil','Wolfsbane Amulet','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone']};
-function defaultState(){return {version:1,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterbow',slot:'weapon',rarity:0,plus:0},{id:'starterarmor',slot:'armor',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{weapon:'starterbow',armor:'starterarmor',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];
+function defaultState(){return {version:1,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterbow',slot:'weapon',rarity:0,plus:0},{id:'starterarmor',slot:'armor',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{weapon:'starterbow',armor:'starterarmor',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,12);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
 let ctx=$('game').getContext('2d'),c=$('game'),background=new Image();background.src='assets/battlefield.png';const foreground=new Image();foreground.src='assets/foreground.png';let sprites={};for(const type of ['hero','goblin','skeleton','warg','imp','ogre']){const i=new Image();i.src='assets/'+type+'.png';sprites[type]=i;}
-let run={wave:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,rewardTimer:0,shakes:0,flashes:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0;
+let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,rewardTimer:0,shakes:0,flashes:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0;
+// The Tower-inspired structure: difficulty is chosen once, then every wave
+// automatically follows the previous one until the fortress falls or player retreats.
+const tierNames=['Verdant March','Ashen Frontier','Frostbound Pass','Sunken Dominion','Stormscar Reach','Hollow Kingdom','Emberfall Vale','Eclipse Bastion','Ancient Wilds','Astral Descent','Shattered Crown','Primordial Siege'];
+const roman=x=>['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][x]||String(x);
+const milestonesAt=[5,10,15,20,35,50,75,100];
+const legacyPaths=[['siegebreaker','Siegebreaker','Deal +6% damage to siege bosses per rank.',2,30],['guardianOath','Guardian’s Oath','Increase permanent wall durability +3% per rank.',2,35],['goldenTouch','Golden Touch','Earn +4% gold from monster kills per rank.',3,40]];
+const lr=id=>n(p.legacy,id);
+function tierMilestone(tier,wave){
+ const scale=1+(tier-1)*.6;
+ if(wave===5)return {icon:'🟡',name:'Spoils of the Vanguard',detail:fmt(300*scale)+' Gold',kind:'gold',amount:Math.round(300*scale)};
+ if(wave===10)return {icon:'🔷',name:'Essence Cache',detail:fmt(120*scale)+' Hero Essence',kind:'essence',amount:Math.round(120*scale)};
+ if(wave===15)return tier===1?{icon:'✦',name:'Legacy Training Unsealed',detail:'Unlock permanent Sigil-powered upgrades + 5 Sigils',kind:'legacy',amount:5}:{icon:'💠',name:'Primal Sigil Cache',detail:(tier+3)+' Primal Sigils',kind:'sigils',amount:tier+3};
+ if(wave===20)return tier<12?{icon:'⚔',name:'The Next Frontier',detail:'Unlock Tier '+roman(tier+1)+' + '+(2+tier)+' Sigils',kind:'tier',amount:2+tier}:{icon:'💠',name:'Final Frontier',detail:'12 Primal Sigils',kind:'sigils',amount:12};
+ if(wave===35)return {icon:'◇',name:'Runic Expedition',detail:'A rare rune + '+fmt(350*scale)+' Gold',kind:'rune',amount:Math.round(350*scale)};
+ if(wave===50)return {icon:'♛',name:'Banner of the Conqueror',detail:'A unique collectible and equippable banner',kind:'banner',amount:0};
+ if(wave===75)return {icon:'💠',name:'Primal Treasury',detail:(6+tier*2)+' Sigils',kind:'sigils',amount:6+tier*2};
+ return {icon:'✦',name:'Century of Onslaught',detail:fmt(700*scale)+' Essence + '+(12+tier*3)+' Sigils',kind:'century',amount:Math.round(700*scale)};
+}
+function milestoneKey(tier,wave){return tier+':'+wave;}
+function nextMilestone(tier,wave){return milestonesAt.find(x=>x>=wave)||null;}
+function rewardMilestone(tier,wave){
+ const key=milestoneKey(tier,wave);if(p.milestones[key])return false;
+ const prize=tierMilestone(tier,wave);p.milestones[key]=true;
+ if(prize.kind==='gold')p.gold+=prize.amount;
+ if(prize.kind==='essence')p.essence+=prize.amount;
+ if(prize.kind==='sigils')p.sigils+=prize.amount;
+ if(prize.kind==='legacy'){p.sigils+=prize.amount;p.legacyUnlocked=true;}
+ if(prize.kind==='tier'){p.unlockedTier=Math.max(p.unlockedTier,Math.min(12,tier+1));p.sigils+=prize.amount;}
+ if(prize.kind==='rune'){p.gold+=prize.amount;p.runes.push({id:'milestone_'+key,type:['ember','storm','frost','fortune'][(tier-1)%4],tier:Math.min(12,2+Math.floor(tier/3))});}
+ if(prize.kind==='banner'){const banner='Banner of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
+ if(prize.kind==='century'){p.essence+=prize.amount;p.sigils+=12+tier*3;}
+ notice('MILESTONE '+wave+' • '+prize.name.toUpperCase());message('✦ WAVE '+wave+' MILESTONE UNLOCKED');
+ save();return true;
+}
+let chosenTier=p.selectedTier;
+function showLobby(summary=''){
+ $('tierLobby').hidden=false;$('lobbySummary').textContent=summary;
+ $('exitRunButton').hidden=true;$('startButton').hidden=true;renderTierLobby();
+}
+function renderTierLobby(){
+ chosenTier=clamp(chosenTier,1,12);
+ $('tierGrid').innerHTML=tierNames.map((name,i)=>{let tier=i+1,locked=tier>p.unlockedTier,best=p.bestByTier[tier]||0;
+  return `<button data-tier="${tier}" ${locked?'disabled':''} class="tier-choice ${chosenTier===tier?'selected':''} ${locked?'locked':''}" aria-pressed="${chosenTier===tier}"><span class="tier-choice-number">${locked?'🔒':'✦'} TIER ${roman(tier)}</span><strong>${name}</strong><small>${locked?'Clear wave 20 of Tier '+roman(tier-1):'BEST WAVE '+best}</small></button>`;
+ }).join('');
+ const tier=chosenTier,best=p.bestByTier[tier]||0;
+ $('tierHeading').textContent='TIER '+roman(tier)+' — '+tierNames[tier-1].toUpperCase();
+ $('tierDescription').textContent=`Enemy strength ×${(1+(tier-1)*.64).toFixed(2)} · Gold & XP ×${(1+(tier-1)*.32).toFixed(2)} · Best wave ${best}`;
+ $('milestoneList').innerHTML=milestonesAt.map(w=>{let prize=tierMilestone(tier,w),claimed=!!p.milestones[milestoneKey(tier,w)];return `<div class="milestone-entry ${claimed?'claimed':''}"><div class="milestone-medal">${claimed?'✓':prize.icon}</div><div class="milestone-copy"><strong>Wave ${w} · ${prize.name}</strong><small>${prize.detail}</small></div><span class="milestone-status">${claimed?'CLAIMED':best>=w?'AVAILABLE NEXT RUN':'TARGET'}</span></div>`}).join('');
+ $('launchTierButton').disabled=tier>p.unlockedTier;
+ $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' • ENDLESS SIEGE';
+ $('bannerBadge').textContent='♛ '+p.activeBanner;
+}
+function enterSiege(){if(chosenTier>p.unlockedTier)return;p.selectedTier=chosenTier;initRun();run.tier=chosenTier;$('tierLobby').hidden=true;$('exitRunButton').hidden=false;$('startButton').hidden=true;save();beginWave();}
+function retreatFromSiege(){const cleared=run.wave-(run.phase==='intermission'?1:run.phase==='fallen'?0:1);const summary=`Tier ${roman(run.tier)} · Reached wave ${run.wave} · Cleared ${Math.max(0,cleared)} this run`;
+ run.phase='ready';run.enemies=[];run.shots=[];save();showLobby(summary);refreshHUD();}
+function legacyCost(row){return Math.ceil(row[3]*(1+lr(row[0])*.35+Math.pow(lr(row[0]),1.35)*.26));}
 const lvlNeed=()=>Math.floor(65*Math.pow(p.level,1.34));const n=(obj,key)=>obj[key]||0;const skill=id=>n(p.skills,id);const station=id=>n(p.stations,id);const t=id=>n(p.training,id);const res=id=>n(p.research,id);const sup=id=>n(p.suppression,id);
 function xpAdd(amount){p.xp+=Math.floor(amount*(1+t('xp')*.025+skill('wisdom')*.07));while(p.xp>=lvlNeed()){p.xp-=lvlNeed();p.level++;p.points+=2;notice('LEVEL UP! +2 SKILL POINTS');}}
 function save(){try{localStorage.setItem(storageKey,JSON.stringify(p))}catch{}}
@@ -30,7 +86,7 @@ function notice(s){let el=$('toast');el.textContent=s;el.classList.add('visible'
 function message(s){$('combatMessage').textContent=s;$('combatMessage').classList.add('show');setTimeout(()=>$('combatMessage').classList.remove('show'),1600)}
 function gearStat(slot){const g=p.inventory.find(g=>g.id===p.equipped[slot]);return g?(1+g.rarity*.6)*(1+g.plus*.24):1}
 function socketValue(type){let total=0;for(let id of Object.values(p.socketed)){let x=p.runes.find(r=>r.id===id);if(x&&x.type===type)total+=Math.pow(1.38,x.tier-1)*.015;}return total;}
-function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+skill('bulwark')*.15)*(1+gearStat('armor')*.06));}
+function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+skill('bulwark')*.15)*(1+gearStat('armor')*.06)*(1+lr('guardianOath')*.03));}
 function damage(){return (32+2*t('power')+p.level*.85)*(1+skill('aim')*.06)*(1+(gearStat('weapon')-1)*.22)}
 function attackInterval(){return Math.max(.22,.82/(1+Math.min(3,t('haste')*.025)+skill('quiver')*.05+(run.health<run.maxHealth*.3?skill('laststand')*.12:0)));}
 function trainCost(row){let [id,, ,base,mul]=row;let lv=t(id);return Math.floor(base*(1+lv*.075+lv*lv*.004)*Math.pow(1+(mul-1)*.07,Math.min(lv,120))*Math.pow(1.002,Math.max(0,lv-120))); }
@@ -39,29 +95,44 @@ function researchCost(row,obj){let[id,,,base,mul]=row;let lv=n(obj,id);return Ma
 function gearCost(g){return Math.floor((70+g.plus*38)*(1+g.rarity*.8)*Math.pow(1.22,g.plus)*(1-Math.min(.42,res('discount')*.014+skill('salvage')*.02)));}
 function randomGear(forceRarity=null){let score=Math.random()+Math.min(.44,p.highestWave*.004)+res('excavation')*.007;let r=forceRarity??(score>.995?5:score>.95?4:score>.85?3:score>.68?2:score>.43?1:0);r=clamp(r,0,8);return {id:'item_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),slot:['weapon','armor','charm'][Math.floor(Math.random()*3)],rarity:r,plus:0};}
 function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015;if(Math.random()<prob&&p.inventory.length<100){let g=randomGear();p.inventory.push(g);notice('FOUND '+rarities[g.rarity].toUpperCase()+' EQUIPMENT');}if(Math.random()<.32+res('excavation')*.013){let types=Object.keys(runeNames),kind=types[Math.floor(Math.random()*types.length)];p.runes.push({type:kind,tier:1,id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)});}}
-function initRun(){run.wave=1;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;}
-function beginWave(){if(run.phase==='fighting')return;if(run.phase==='fallen')initRun();run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.enemies=[];run.shots=[];run.spawnClock=.6;run.total=8+run.wave*2+(run.wave%5===0?1:0);message(run.wave%5===0?'ELITE HORDE INCOMING':'WAVE '+run.wave+' BEGINS');$('startButton').textContent='⚔ FIGHTING';$('startButton').disabled=true;refreshHUD();}
-function spawnEnemy(){const isBoss=run.wave%5===0&&run.spawned===run.total-1;let type=isBoss?'ogre':(run.wave>=6?['goblin','skeleton','warg','warg']:run.wave>=3?['goblin','skeleton','warg']:['goblin','skeleton'])[Math.floor(Math.random()*(run.wave>=6?4:run.wave>=3?3:2))];let mul=1+run.wave*.19;let hp=(type==='ogre'?300:type==='warg'?58:type==='skeleton'?42:type==='imp'?28:36)*mul*(1-Math.min(.35,sup('health')*.005));const e={type,x:rnd(140,820),y:rnd(122,154),hp,max:hp,speed:(type==='ogre'?7:type==='warg'?25:type==='imp'?22:17)*(1+run.wave*.023)*(1-Math.min(.35,sup('speed')*.005)),armor:((type==='ogre'?7:type==='skeleton'?2:0)+run.wave*.21)*(1-Math.min(.5,sup('armor')*.01)),buildup:0,burn:0,slow:0,wobble:rnd(0,6.28),golden:Math.random()<.02+station('midas')*.012,dead:false,valued:isBoss?45:Math.round(type==='warg'?12:10)};run.enemies.push(e);}
+function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;}
+function beginWave(){if(run.phase==='fighting'||run.phase==='fallen')return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.total=8+run.wave*2+(run.wave%5===0?1:0);message(run.wave%5===0?'ELITE HORDE INCOMING':'WAVE '+run.wave+' BEGINS');refreshHUD();}
+function spawnEnemy(){const isBoss=run.wave%5===0&&run.spawned===run.total-1;let type=isBoss?'ogre':(run.wave>=6?['goblin','skeleton','warg','warg']:run.wave>=3?['goblin','skeleton','warg']:['goblin','skeleton'])[Math.floor(Math.random()*(run.wave>=6?4:run.wave>=3?3:2))];let mul=(1+run.wave*.19)*(1+(run.tier-1)*.64);let hp=(type==='ogre'?300:type==='warg'?58:type==='skeleton'?42:type==='imp'?28:36)*mul*(1-Math.min(.35,sup('health')*.005));const e={type,x:rnd(140,820),y:rnd(122,154),hp,max:hp,speed:(type==='ogre'?7:type==='warg'?25:type==='imp'?22:17)*(1+run.wave*.023)*(1+(run.tier-1)*.06)*(1-Math.min(.35,sup('speed')*.005)),armor:((type==='ogre'?7:type==='skeleton'?2:0)+run.wave*.21+(run.tier-1)*2)*(1-Math.min(.5,sup('armor')*.01)),buildup:0,burn:0,slow:0,wobble:rnd(0,6.28),golden:Math.random()<.02+station('midas')*.012,dead:false,valued:isBoss?45:Math.round(type==='warg'?12:10)};run.enemies.push(e);}
 function effect(x,y,color,count=8){for(let i=0;i<count;i++)run.particles.push({x,y,vx:rnd(-70,70),vy:rnd(-78,35),life:rnd(.25,.7),max:.7,color,size:rnd(2,5)});}
 function float(x,y,text,color='#ffe9b2'){run.floats.push({x,y,text,color,life:1.25});}
-function hurt(e,raw,kind='arrow'){if(e.dead)return;let dealt=Math.max(1,raw-e.armor);if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2);float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;effect(e.x,e.y,'#fbd47b',3);if(kind==='arrow'){
+function hurt(e,raw,kind='arrow'){if(e.dead)return;let dealt=Math.max(1,raw*(e.type==='ogre'?1+lr('siegebreaker')*.06:1)-e.armor);if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2);float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;effect(e.x,e.y,'#fbd47b',3);if(kind==='arrow'){
  if(Math.random()<skill('ember')*.06+socketValue('ember'))e.burn=Math.max(e.burn,3);
  if(Math.random()<skill('frost')*.055+socketValue('frost'))e.slow=Math.max(e.slow,2.7+skill('hail')*.5);
  if(Math.random()<skill('spark')*.04+socketValue('storm')+t('shock')*.001){const other=run.enemies.filter(o=>o!==e&&!o.dead).sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y))[0];if(other){effect(other.x,other.y,'#a5efff',8);hurt(other,raw*.45,'lightning');}}
  }
  if(e.hp<=0)kill(e);
 }
-function kill(e){e.dead=true;run.kills++;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03)*(1+run.wave*.09));if(e.golden||Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((e.type==='ogre'?70:8)*(1+run.wave*.055)));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
+function kill(e){e.dead=true;run.kills++;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(1+(run.tier-1)*.32));if(e.golden||Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((e.type==='ogre'?70:8)*(1+run.wave*.055)*(1+(run.tier-1)*.32)));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
 function shoot(target,power=damage(),kind='arrow',originX=496,originY=390){if(!target)return;run.shots.push({x:originX,y:originY,target,power,kind,life:1.8,trail:[]});run.flashes=.13;}
-function tick(dt){if(run.phase!=='fighting')return;dt*=run.speed;run.time+=dt;run.spawnClock-=dt;run.shotClock-=dt;run.stationClock-=dt;
+function tick(dt){if(run.phase==='intermission'){run.rewardTimer-=dt*run.speed;if(run.rewardTimer<=0)beginWave();return;}if(run.phase!=='fighting')return;dt*=run.speed;run.time+=dt;run.spawnClock-=dt;run.shotClock-=dt;run.stationClock-=dt;
  if(run.spawned<run.total&&run.spawnClock<=0){spawnEnemy();run.spawned++;run.spawnClock=Math.max(.26,1.05-run.wave*.018);}
  let gravity=1-Math.min(.4,station('gravity')*.018),cryo=1-Math.min(.4,station('cryo')*.018);
- for(const e of run.enemies){if(e.dead)continue;e.wobble+=dt*2;e.y+=e.speed*dt*(e.slow>0?.5:1)*gravity*cryo;e.x+=Math.sin(e.wobble)*dt*(e.type==='imp'?11:4);e.slow=Math.max(0,e.slow-dt);e.buildup=Math.max(0,e.buildup-dt);if(e.burn>0){e.burn-=dt;e.hp-=dt*(2+skill('ember')*1.3);if(e.hp<=0){kill(e);continue;}}if(e.y>430){e.dead=true;let attack=Math.ceil((e.type==='ogre'?36:13)*(1+run.wave*.055)*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04)));run.health-=attack;run.shakes=.18;float(750,450,'-'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);}}
- if(run.health<=0){run.health=0;run.phase='fallen';message('THE FORTRESS HAS FALLEN');$('startButton').disabled=false;$('startButton').textContent='↻ NEW SIEGE';notice('Wave '+run.wave+' reached • Permanent progress saved');save();refreshHUD();return;}
+ for(const e of run.enemies){if(e.dead)continue;e.wobble+=dt*2;e.y+=e.speed*dt*(e.slow>0?.5:1)*gravity*cryo;e.x+=Math.sin(e.wobble)*dt*(e.type==='imp'?11:4);e.slow=Math.max(0,e.slow-dt);e.buildup=Math.max(0,e.buildup-dt);if(e.burn>0){e.burn-=dt;e.hp-=dt*(2+skill('ember')*1.3);if(e.hp<=0){kill(e);continue;}}if(e.y>430){e.dead=true;let attack=Math.ceil((e.type==='ogre'?36:13)*(1+run.wave*.055)*(1+(run.tier-1)*.25)*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04)));run.health-=attack;run.shakes=.18;float(750,450,'-'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);}}
+ if(run.health<=0){run.health=0;run.phase='fallen';message('THE FORTRESS HAS FALLEN');notice('Tier '+roman(run.tier)+' · Wave '+run.wave+' • Permanent progress saved');save();showLobby('FORTRESS FALLEN · Tier '+roman(run.tier)+' · Reached Wave '+run.wave+' · Select a tier to fight again');refreshHUD();return;}
  if(run.shotClock<=0&&run.enemies.some(e=>!e.dead)){const targets=run.enemies.filter(e=>!e.dead).sort((a,b)=>b.y-a.y);let count=1+Math.floor(t('multishot')/8);for(let i=0;i<count;i++){const tar=targets[i%targets.length];shoot(tar);if(Math.random()<skill('double')*.08)shoot(tar,damage()*.65,'arrow',476,390);}run.shotClock=attackInterval();}
  if(run.stationClock<=0){let targets=run.enemies.filter(e=>!e.dead).sort((a,b)=>b.y-a.y);if(targets.length){if(station('ballista'))shoot(targets[0],damage()*(.6+station('ballista')*.22),'ballista',240,360);if(station('thunder'))shoot(targets[Math.min(1,targets.length-1)],damage()*(.4+station('thunder')*.15),'lightning',760,360);}run.stationClock=Math.max(.48,2.9/(1+station('ballista')*.06+station('thunder')*.05));}
  for(let i=run.shots.length-1;i>=0;i--){let s=run.shots[i];if(s.target.dead){run.shots.splice(i,1);continue}let dx=s.target.x-s.x,dy=s.target.y-s.y,dist=Math.hypot(dx,dy),speed=(s.kind==='lightning'?1100:820)*(1+t('range')*.017);s.trail.push([s.x,s.y]);if(s.trail.length>7)s.trail.shift();s.x+=dx/(dist||1)*dt*speed;s.y+=dy/(dist||1)*dt*speed;s.life-=dt;if(dist<dt*speed+8){hurt(s.target,s.power,s.kind);effect(s.x,s.y,s.kind==='lightning'?'#97f4ff':'#ffe07c',7);run.shots.splice(i,1);}else if(s.life<=0)run.shots.splice(i,1);}
- if(run.spawned===run.total&&run.enemies.every(e=>e.dead)){run.phase='cleared';const cleared=run.wave;let essence=Math.round((12+cleared*4)*(1+t('essence')*.028));let knowledge=Math.round((5+cleared*1.6)*(1+res('studies')*.045));let waveGold=Math.round((35+cleared*9)*(1+res('interest')*.07+skill('prosperity')*.12));p.essence+=essence;p.knowledge+=knowledge;p.gold+=waveGold;p.best=Math.max(p.best,cleared);p.highestWave=Math.max(p.highestWave,cleared+1);p.clears++;xpAdd(15+cleared*5);grantDrops();run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+run.maxHealth*(.08+t('regen')*.005+skill('mend')*.025));run.wave++;run.rewardTimer=2.2;message('WAVE CLEARED +'+fmt(essence)+' ESSENCE');$('startButton').textContent='⚔ NEXT WAVE';$('startButton').disabled=false;notice('+'+fmt(waveGold)+' Gold • +'+fmt(knowledge)+' Knowledge');save();refreshHUD();}
+ if(run.spawned===run.total&&run.enemies.every(e=>e.dead)){completeWave();}
+}
+function completeWave(){
+ if(run.phase!=='fighting')return;
+ const cleared=run.wave,tier=run.tier,multi=1+(tier-1)*.32;
+ let essence=Math.round((12+cleared*4)*(1+t('essence')*.028)*multi);
+ let knowledge=Math.round((5+cleared*1.6)*(1+res('studies')*.045)*multi);
+ let waveGold=Math.round((35+cleared*9)*(1+res('interest')*.07+skill('prosperity')*.12)*multi);
+ p.essence+=essence;p.knowledge+=knowledge;p.gold+=waveGold;
+ p.best=Math.max(p.best,cleared);p.bestByTier[tier]=Math.max(p.bestByTier[tier]||0,cleared);
+ p.highestWave=Math.max(p.highestWave,cleared+1);p.clears++;xpAdd(15+cleared*5);grantDrops();
+ run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+run.maxHealth*(.08+t('regen')*.005+skill('mend')*.025));
+ if(milestonesAt.includes(cleared))rewardMilestone(tier,cleared);
+ else message('WAVE '+cleared+' CLEARED · +'+fmt(essence)+' ESSENCE');
+ run.wave++;run.phase='intermission';run.rewardTimer=1.2;run.enemies=[];run.shots=[];
+ save();refreshHUD();
 }
 function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0){ctx.translate(rnd(-2,2),rnd(-2,2));run.shakes-=.016;}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}
  // Subtle animated fog and light make the illustrated environment breathe.
@@ -76,7 +147,17 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  for(let i=run.floats.length-1;i>=0;i--){let f=run.floats[i];f.life-=1/60;f.y-=.43;ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y);if(f.life<=0)run.floats.splice(i,1)}ctx.globalAlpha=1;
  // Animated bow glow and string release marks the single hero as the shooter.
  if(run.flashes>0){run.flashes-=1/60;ctx.fillStyle=`rgba(255,226,142,${clamp(run.flashes*3,0,.68)})`;ctx.beginPath();ctx.arc(540,360,20+run.flashes*70,0,Math.PI*2);ctx.fill();}ctx.restore();}
-function refreshHUD(){let r=[['🟡','GOLD',p.gold],['🔷','ESSENCE',p.essence],['📖','KNOWLEDGE',p.knowledge],['✦','SKILL POINTS',p.points]];$('resources').innerHTML=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');$('stageName').textContent='Forest Front • Stage '+(1+Math.floor((run.wave-1)/10));$('waveName').textContent='WAVE '+run.wave+' / '+(10*Math.ceil(run.wave/10));$('waveFill').style.width=(run.phase==='fighting'?100*run.kills/(run.total||1):run.phase==='cleared'?100:0)+'%';$('wallText').textContent=Math.ceil(run.health)+' / '+run.maxHealth;$('wallFill').style.width=(100*run.health/(run.maxHealth||1))+'%';$('heroTag').innerHTML='✦ LEVEL '+p.level+' <span>'+fmt(p.xp)+' / '+fmt(lvlNeed())+' XP</span>';}
+function refreshHUD(){
+ let r=[['🟡','GOLD',p.gold],['🔷','ESSENCE',p.essence],['📖','KNOWLEDGE',p.knowledge],['💠','SIGILS',p.sigils],['✦','SKILL POINTS',p.points]];
+ $('resources').innerHTML=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');
+ $('stageName').textContent='TIER '+roman(run.tier)+' · '+tierNames[run.tier-1];
+ $('waveName').textContent='WAVE '+run.wave+' · ENDLESS';
+ $('waveFill').style.width=(run.phase==='fighting'?100*run.kills/(run.total||1):run.phase==='intermission'?100:0)+'%';
+ $('wallText').textContent=Math.ceil(run.health)+' / '+run.maxHealth;
+ $('wallFill').style.width=(100*run.health/(run.maxHealth||1))+'%';
+ $('heroTag').innerHTML='✦ LEVEL '+p.level+' <span>'+fmt(p.xp)+' / '+fmt(lvlNeed())+' XP</span>';
+ const next=nextMilestone(run.tier,run.wave);$('milestoneHint').textContent=next?'✦ NEXT MILESTONE · WAVE '+next+' · '+tierMilestone(run.tier,next).name:'✦ ALL MILESTONES CLEARED · PUSH YOUR RECORD';
+}
 // ALPHA 0.3 — hub navigation and progression chambers, completely rebuilt UI.
 const hubs={battle:['battle'],hero:['hero','skills'],power:['training','research'],gear:['equipment','runes'],fortress:['stations','suppression']};
 const hubLabels={battle:'Battle',hero:'Hero',power:'Power',gear:'Gear',fortress:'Fortress'};
@@ -93,7 +174,7 @@ const tabInfo={
  settings:['SETTINGS & SAVES','The Chronicle','Keep your progress safe with local saves and downloadable backups.','Safeguard your journey']
 };
 let activeByHub={battle:'battle',hero:'hero',power:'training',gear:'equipment',fortress:'stations'}, selectedSchool='Marksman',trainFilter='All',gearFilter='All',runePickSlot=null;
-const currencyGlyph={gold:'🟡',essence:'🔷',knowledge:'📖',points:'✦'};
+const currencyGlyph={gold:'🟡',essence:'🔷',knowledge:'📖',sigils:'💠',points:'✦'};
 const currencyFor=action=>({train:'essence',skill:'points',station:'gold',research:'knowledge',suppress:'knowledge',enhance:'gold',fuse:'gold'}[String(action).split(':')[0]]||'gold');
 const cardArt={train:'power',skill:'skills',station:'stations',research:'research',suppress:'suppression',equip:'gear',enhance:'gear',fuse:'runes'};
 const meterPct=(n,max)=>max?Math.min(100,Math.max(0,100*n/max)):0;
@@ -119,6 +200,7 @@ function renderPanel(){
   html+=highlight('Level '+p.level+' · '+fmt(p.points)+' unspent skill points','Gain XP in combat, then visit Skill Trees to choose your path.','♜');
   html+=`<div class="hero-grid"><div class="hero-frame"><img src="assets/hero.png" alt="One red-cloaked defender facing the battlefield"></div><div><div class="stat-grid">
    ${[['ATTACK POWER',fmt(damage())],['ATTACK INTERVAL',attackInterval().toFixed(2)+' sec'],['FORTRESS HEALTH',fmt(maxWall())],['CRITICAL CHANCE',Math.round((.06+t('crit')*.002)*100)+'%'],['BEST WAVE',fmt(p.best)],['WAVES CLEARED',fmt(p.clears)]].map(([name,val])=>`<div class="stat-tile"><small>${name}</small><strong>${val}</strong></div>`).join('')}</div><p class="statline">Level ${p.level} progress · ${fmt(p.xp)} / ${fmt(lvlNeed())} XP</p><div class="meter"><div style="width:${percent}%"></div></div><button class="wide-btn" data-goto="skills">OPEN YOUR SKILL TREES →</button></div></div>`;
+  html+=section('BATTLE BANNERS · COSMETIC REWARDS',`<div class="banner-picks">${p.banners.map(name=>`<button class="banner-choice ${p.activeBanner===name?'selected':''}" data-banner="${name}">♛ ${name}${p.activeBanner===name?' ✓':''}</button>`).join('')}</div>`);
  }
  if(tab==='skills'){
   html+=highlight('Choose a discipline','Learn talents in order. Each rank costs 1 Skill Point; later ranks require higher hero levels.','✧');
@@ -135,6 +217,7 @@ function renderPanel(){
   let groups={All:training.map(x=>x[0]),Offense:['power','haste','crit','critDmg','pierce','range','multishot','boss','shock'],Defense:['fort','regen','resist'],Economy:['gold','xp','essence','loot']};
   html+=`<div class="filter-bar" role="group" aria-label="Training category">${Object.keys(groups).map(g=>`<button class="${g===trainFilter?'selected':''}" data-train-filter="${g}">${g}</button>`).join('')}</div>`;
   html+=cards(training.filter(row=>groups[trainFilter]?.includes(row[0])).map(row=>{const [id,name,desc,,,max]=row,rank=t(id),cost=trainCost(row);return card(name,desc,`RANK ${fmt(rank)} / ${fmt(max)}`,cost,rank>=max?'MAXED':p.essence<cost?'MORE ESSENCE NEEDED':'TRAIN +1','train:'+id,rank>=max||p.essence<cost)}));
+  html+=section('LEGACY MASTERIES · PRIMAL SIGILS',p.legacyUnlocked?cards(legacyPaths.map(row=>{const [id,name,desc,,max]=row,rank=lr(id),cost=legacyCost(row);return card(name,desc,`RANK ${rank} / ${max}`,cost,rank>=max?'MAXED':p.sigils<cost?'MORE SIGILS NEEDED':'MASTER +1','legacy:'+id,rank>=max||p.sigils<cost)})):'<div class="legacy-lock">🔒 Clear Wave 15 on Tier I to unlock your first three permanent Sigil-powered mastery paths.</div>');
  }
  if(tab==='research'){
   html+=highlight('Invest in your future','Knowledge earned from waves builds economic advantages. Discounts are capped for balance.','⚗');
@@ -176,10 +259,10 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div><div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.3 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div><div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.4 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  $('panelContent').innerHTML=html;
- const imp=$('importFile');if(imp)imp.onchange=async ev=>{let file=ev.target.files?.[0];if(!file)return;try{let obj=JSON.parse(await file.text());if(!obj.inventory||!obj.equipped||!obj.training)throw Error('Invalid save');if(!confirm('Replace your current progress with this backup?'))return;p={...defaultState(),...obj};save();initRun();refreshHUD();renderPanel();notice('SAVE RESTORED');}catch(e){notice('Invalid save file')}};
+ const imp=$('importFile');if(imp)imp.onchange=async ev=>{let file=ev.target.files?.[0];if(!file)return;try{let obj=JSON.parse(await file.text());if(!obj.inventory||!obj.equipped||!obj.training)throw Error('Invalid save');if(!confirm('Replace your current progress with this backup?'))return;p={...defaultState(),...obj};p.bestByTier??={};p.milestones??={};p.legacy??={};p.banners??=['Crimson Standard'];p.sigils??=0;p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,12);chosenTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);save();initRun();showLobby();refreshHUD();renderPanel();notice('SAVE RESTORED');}catch(e){notice('Invalid save file')}};
 }
 function openTab(next){
  if(next in hubs)next=activeByHub[next];
@@ -189,12 +272,13 @@ function openTab(next){
  for(let b of document.querySelectorAll('[data-hub]'))b.classList.toggle('selected',b.dataset.hub===hub);
  $('panel').hidden=next==='battle';
  if(next!=='battle'){
-   if(run.phase==='fighting'&&run.speed!==0){storedSpeed=run.speed;run.speed=0;pausedForPanel=true;}
+   // Continuous siege runs do not pause when a progression screen is opened.
    renderPanel();if(previous!==next)$('panelContent').scrollTop=0;
- }else if(pausedForPanel){run.speed=storedSpeed;pausedForPanel=false;}
+ }
  refreshHUD();
 }
 function action(text){let[type,id]=text.split(':');if(type==='train'){let row=training.find(x=>x[0]===id),cost=trainCost(row);if(p.essence>=cost&&t(id)<row[5]){p.essence-=cost;p.training[id]=t(id)+1;run.maxHealth=maxWall();run.health=Math.min(run.health+12,run.maxHealth);}}
+ else if(type==='legacy'){let row=legacyPaths.find(x=>x[0]===id);if(row&&p.legacyUnlocked&&lr(id)<row[4]&&p.sigils>=legacyCost(row)){p.sigils-=legacyCost(row);p.legacy[id]=lr(id)+1;run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+Math.round(run.maxHealth*.03));}}
  else if(type==='skill'){let found=Object.values(skills).flat().find(x=>x[0]===id);if(found&&p.points>0&&skill(id)<5){p.points--;p.skills[id]=skill(id)+1;run.maxHealth=maxWall();}}
  else if(type==='station'){let row=stationData.find(x=>x[0]===id),cost=stationCost(row);if(row&&p.gold>=cost&&station(id)<row[6]){p.gold-=cost;p.stations[id]=station(id)+1;}}
  else if(type==='research'){let row=research.find(x=>x[0]===id),cost=researchCost(row,p.research);if(row&&p.knowledge>=cost&&res(id)<row[5]){p.knowledge-=cost;p.research[id]=res(id)+1;}}
@@ -213,6 +297,7 @@ $('panelContent').addEventListener('click',e=>{
  let target=e.target.closest('button');if(!target||target.disabled)return;
  if(target.dataset.action){action(target.dataset.action);return;}
  if(target.dataset.goto){openTab(target.dataset.goto);return;}
+ if(target.dataset.banner){if(p.banners.includes(target.dataset.banner)){p.activeBanner=target.dataset.banner;save();renderPanel();notice('BANNER EQUIPPED');}return;}
  if(target.dataset.school){selectedSchool=target.dataset.school;renderPanel();return;}
  if(target.dataset.trainFilter){trainFilter=target.dataset.trainFilter;renderPanel();return;}
  if(target.dataset.gearFilter){gearFilter=target.dataset.gearFilter;renderPanel();return;}
@@ -220,9 +305,12 @@ $('panelContent').addEventListener('click',e=>{
  if(target.dataset.socketRune){let [slot,id]=target.dataset.socketRune.split(':');if(id==='none')delete p.socketed[slot];else if(p.runes.some(r=>r.id===id))p.socketed[slot]=id;runePickSlot=null;save();refreshHUD();renderPanel();notice(id==='none'?'RUNE REMOVED':'RUNE SOCKETED');return;}
 });
 $('settingsButton').onclick=()=>openTab('settings');$('closePanel').onclick=()=>openTab('battle');
-$('startButton').onclick=()=>{if(run.phase==='fallen')initRun();beginWave()};
+$('startButton').onclick=()=>{if(!$('tierLobby').hidden)enterSiege()};
+$('launchTierButton').onclick=enterSiege;
+$('exitRunButton').onclick=()=>{if(confirm('End this siege and return to the tier selection? Earned rewards and milestones are saved.'))retreatFromSiege()};
+$('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(!b||b.disabled)return;chosenTier=Number(b.dataset.tier);p.selectedTier=chosenTier;save();renderTierLobby();});
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby};requestAnimationFrame(loop);
 })();
