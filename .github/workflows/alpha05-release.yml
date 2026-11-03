@@ -1,0 +1,125 @@
+name: Publish Alpha 0.5 artistic chambers
+on:
+  push:
+    paths:
+      - 'tools/alpha05_art.zb64'
+      - 'tools/alpha05_css.br64'
+      - '.github/workflows/alpha05-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: primal-knight-alpha05-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out game source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Install build-time art tools
+        run: python3 -m pip install Pillow brotli
+
+      - name: Restore the tested illustrated menu implementation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from base64 import b64decode
+          import brotli,zlib
+
+          art=zlib.decompress(b64decode(Path('tools/alpha05_art.zb64').read_text().strip())).decode('utf-8')
+          assert 'Create original Primal KnIght progression-chamber illustrations' in art
+          Path('chamber_art.py').write_text(art,encoding='utf-8')
+
+          additions=brotli.decompress(b64decode(Path('tools/alpha05_css.br64').read_text().strip())).decode('utf-8')
+          assert additions.startswith('/* Alpha 0.5 — Artistic Menu Overhaul')
+          css=Path('style.css').read_text(encoding='utf-8')
+          if '/* Alpha 0.5 — Artistic Menu Overhaul' not in css:
+              Path('style.css').write_text(css+'\n'+additions,encoding='utf-8')
+
+          jsfile=Path('game.js');s=jsfile.read_text(encoding='utf-8')
+          def change(before,after):
+              global s
+              if before not in s:
+                  if after in s: return
+                  raise SystemExit('Unmatched code anchor: '+before[:90])
+              s=s.replace(before,after,1)
+          change(
+              'const meterPct=(n,max)=>max?Math.min(100,Math.max(0,100*n/max)):0;',
+              """const meterPct=(n,max)=>max?Math.min(100,Math.max(0,100*n/max)):0;
+          const upgradeArt={
+          power:'battle',haste:'power',fort:'hero',crit:'battle',critDmg:'skills',pierce:'battle',regen:'research',gold:'runes',xp:'skills',essence:'power',range:'battle',multishot:'battle',boss:'suppression',loot:'runes',resist:'hero',shock:'runes',
+          aim:'battle',quiver:'battle',penetrate:'battle',double:'battle',focus:'hero',storm:'runes',ember:'runes',frost:'runes',spark:'runes',inferno:'runes',hail:'runes',tempest:'runes',
+          stone:'fortress',mend:'research',thorns:'fortress',ward:'hero',bulwark:'fortress',laststand:'hero',fortune:'runes',scavenger:'gear',wisdom:'skills',midas:'runes',salvage:'gear',prosperity:'research',
+          ballista:'battle',cryo:'runes',thunder:'runes',gravity:'stations',discount:'gear',fusion:'runes',interest:'research',excavation:'gear',bounties:'battle',studies:'skills',health:'suppression',speed:'suppression',damage:'suppression',armor:'suppression'
+          };
+          const chamberArt=tabName=>'assets/chambers/'+(tabName in tabInfo?tabName:'hero')+'.webp';"""
+          )
+          change(
+              "art=(kind==='equip'||kind==='enhance')?(item?.slot==='weapon'?'battle':item?.slot==='armor'?'gear':'runes'):(cardArt[kind]||'hero'),info=level||''",
+              "art=(kind==='equip'||kind==='enhance')?(item?.slot==='weapon'?'battle':item?.slot==='armor'?'gear':'runes'):(upgradeArt[String(actionId).split(':')[1]]||cardArt[kind]||'hero'),info=level||''"
+          )
+          change(
+              """return `<article class="upgrade-card art-card kind-${String(actionId).split(':')[0]}">`""",
+              """return `<article class="upgrade-card art-card kind-${String(actionId).split(':')[0]} ${!disabled?'available-to-buy':''}">`"""
+          )
+          change(
+              "$('asideIcon').className='pixel-symbol pixel-symbol-'+(tabIcons[tab]||'hero');",
+              """$('asideIcon').className='pixel-symbol pixel-symbol-'+(tabIcons[tab]||'hero');
+           const asidePic=$('asideIllustration');
+           asidePic.innerHTML=`<img src="${chamberArt(tab)}" alt="Illustrated ${asideTitle} fantasy chamber" loading="eager" decoding="async">`;
+          """
+          )
+          change(
+              ' let html=`<div class="section-intro">',
+              ' let html=`<div class="chamber-mobile-art" aria-hidden="true"><img src="${chamberArt(tab)}" alt=""><div class="mobile-chamber-name"><small>✦ ${title}</small><b>${asideTitle}</b></div></div><div class="section-intro">'
+          )
+          jsfile.write_text(s,encoding='utf-8')
+
+          idx=Path('index.html');html=idx.read_text(encoding='utf-8')
+          html=html.replace('ALPHA 0.4.0','ALPHA 0.5.0')
+          html=html.replace('style.css?v=0.4.0','style.css?v=0.5.0')
+          html=html.replace('game.js?v=0.4.0','game.js?v=0.5.0')
+          assert 'ALPHA 0.5.0' in html
+          idx.write_text(html,encoding='utf-8')
+          PY
+
+      - name: Build nine original illustrated rooms
+        run: |
+          python3 chamber_art.py
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          directory=Path('assets/chambers')
+          required={'hero','skills','training','research','equipment','runes','stations','suppression','settings'}
+          assert {p.stem for p in directory.glob('*.webp')}==required
+          for file in directory.glob('*.webp'):
+              im=Image.open(file); im.load()
+              assert im.size==(640,880)
+              assert file.stat().st_size>30000
+          print('All nine painted chambers verified')
+          PY
+
+      - name: Verify gameplay, tiers and upgrades
+        run: |
+          node --check game.js
+          node tests/smoke.js
+
+      - name: Commit published game and art
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html style.css game.js chamber_art.py assets/chambers
+          if ! git diff --cached --quiet; then
+            git commit -m 'Alpha 0.5: illustrated fantasy chambers for every progression menu'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
