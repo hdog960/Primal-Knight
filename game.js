@@ -590,7 +590,7 @@ function specialEnemyMotion(e,dt){
     e.bossFuryWindup=Math.max(0,e.bossFuryWindup-dt);motion=.25;
     if(e.bossFuryWindup===0){e.bossFurySurge=1.0;e.bossFuryClock=6;effect(e.x,e.y,'#ffa46f',10);}
    }else if(e.bossFurySurge>0){e.bossFurySurge=Math.max(0,e.bossFurySurge-dt);motion=1.70;}
-   else{e.bossFuryClock=(e.bossFuryClock??3)-dt;if(e.bossFuryClock<=0){e.bossFuryWindup=.9;float(e.x,e.y-28,'EMBER CHARGE','#ffad7e');}}
+   else{e.bossFuryClock=(e.bossFuryClock??3)-dt;if(e.bossFuryClock<=0){e.bossFuryWindup=.9;motion=.25;float(e.x,e.y-28,'EMBER CHARGE','#ffad7e');}}
   }
   if(e.bossStyle==='rift'&&e.bossBlinkWindup>0){
    e.bossBlinkWindup=Math.max(0,e.bossBlinkWindup-dt);motion=.20;
