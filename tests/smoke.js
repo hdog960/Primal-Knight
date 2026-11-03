@@ -1,4 +1,4 @@
-// Alpha 0.6.7: Tier lobby, continuous waves, permanent training, bulk ranks, research,
+// Alpha 0.6.8: Tier lobby, all visible Forge categories, permanent training, bulk ranks, research,
 // skills, legacy purchases, save and menu navigation, with no browser dependencies.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 let nextFrame=null,storedSave=null;
@@ -77,17 +77,21 @@ const beforeSkill=hooks.p().skills.aim||0,beforePoints=hooks.p().points;
 clickButton({action:'skill:aim'});assert.equal(hooks.p().skills.aim,beforeSkill+1,'Skill chart upgrades a talent');
 assert.equal(hooks.p().points,beforePoints-1,'Skill chart consumes one point');
 clickHub('power');
-assert(el('panelContent').innerHTML.includes('ascension-shell'),'Power Training has its own illustrated chamber');
-assert(el('panelContent').innerHTML.includes('ascension-row-list'),'Training uses compact progression ledger');
-assert(el('panelContent').innerHTML.includes('Might'),'Offense training loads by default');
-assert(!el('panelContent').innerHTML.includes('upgrade-card'),'Oversized old training cards removed');
-clickButton({trainFilter:'Legacy'});
-assert(el('panelContent').innerHTML.includes('Siegebreaker'),'Legacy Masteries have a dedicated filter');
+const forge=el('panelContent').innerHTML;
+assert(forge.includes('ascension-shell'),'Power Training retains its illustrated chamber');
+assert(forge.includes('forge-ledger'),'Knight\'s Forge uses a single organized ledger');
+assert(forge.includes('forge-all-categories'),'All four Forge categories displayed together');
+for(const category of ['offense','techniques','defense','economy']){
+ assert(forge.includes('forge-category-'+category),'Category '+category+' always visible');
+}
+for(const row of ['power','haste','crit','critDmg','pierce','range','multishot','boss','shock','fort','regen','resist','gold','xp','essence','loot']){
+ assert(forge.includes('data-train-row="'+row+'"'),'Training '+row+' immediately visible');
+}
+assert.equal((forge.match(/data-train-row="/g)||[]).length,16,'All 16 training paths are present without switching');
+assert(!forge.includes('data-train-filter'),'No Forge category-switching controls remain');
+assert(forge.includes('Siegebreaker'),'Unlocked Legacy Masteries are present alongside all training');
+assert(!forge.includes('upgrade-card'),'Oversized old training cards removed');
 clickButton({action:'legacy:siegebreaker'});assert(hooks.p().legacy.siegebreaker===1);
-clickButton({trainFilter:'Defense'});assert(el('panelContent').innerHTML.includes('Fortitude'),'Defense category displays tank upgrades');
-clickButton({trainFilter:'Economy'});assert(el('panelContent').innerHTML.includes('Greed'),'Economy category displays gold upgrades');
-clickButton({trainFilter:'All'});
-assert(el('panelContent').innerHTML.includes('Treasure Sense'),'All category includes complete 16-upgrade system');
 clickButton({action:'train:power'});
 assert(storedSave&&JSON.parse(storedSave).training.power===1,'Essence purchases persist');
 hooks.p().essence=100000;
