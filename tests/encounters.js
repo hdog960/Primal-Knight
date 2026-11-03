@@ -107,6 +107,10 @@ assert.equal(hudWorld.sandbox.document.getElementById('encounterType').textConte
 assert.equal(hudWorld.sandbox.document.getElementById('encounterFaction').textContent,'Mirebound Swarm','Faction is visible on the battlefield');
 assert(!hr.enemies.length,'Beginning an encounter never fabricates enemies before spawn clock');
 // The original milestone ledger should remain intact.
+assert(real.renderEncounterIntel(2).includes('Ironbound Host'),'Faction briefing displays the actual region enemy roster');
+assert(real.renderEncounterIntel(1).includes('NEXT VANGUARD')||real.renderEncounterIntel(1).includes('NEXT ELITE'), 'Tier briefing announces the next named encounter');
+assert(real.renderEncounterIntel(1).includes('WAVE 5'),'First special encounter is forecast accurately');
+assert(world.sandbox.document.getElementById('milestoneList').innerHTML.includes('encounter-intel'),'Encounter intelligence is visible in the original Battle lobby');
 assert.equal(hudWorld.hooks.tierMilestone(1,100).kind,'century','Century boss does not replace milestone reward');
 assert(hudWorld.hooks.tierMilestones(30).includes(10000),'Final victory still exists in every tier');
 console.log('PASS: 5 factions, 7 encounter classes, original pixel-art sprites, protective guards, raider rushes, support rituals, boss phases, treasure wave and preserved tier milestones.');
