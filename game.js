@@ -83,6 +83,7 @@ let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],pa
 const tierNames=['Verdant March','Ashen Frontier','Frostbound Pass','Sunken Dominion','Stormscar Reach','Hollow Kingdom','Emberfall Vale','Eclipse Bastion','Ancient Wilds','Astral Descent','Shattered Crown','Primordial Siege','Cinder Throne','Obsidian Expanse','Eternal Rift','Last Kingdom'];
 const roman=x=>['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI'][x]||String(x);
 const MAX_WAVE=10000;
+const formatWave=value=>Math.round(Math.max(0,value)).toLocaleString('en-US');
 const MAX_TIER=tierNames.length;
 const milestonesAt=[5,10,15,20,35,50,75,100,150,250,400,500,750,1000,1500,2000,2500,3000,4000,5000,6000,7500,8000,9000,MAX_WAVE];
 const waystonesAt=[100,250,500,1000,1500,2500,4000,6000,8000];
@@ -171,17 +172,17 @@ function renderTierLobby(){
   const tier=i+1,locked=tier>p.unlockedTier,best=Math.min(MAX_WAVE,p.bestByTier[tier]||0),conquered=best>=MAX_WAVE;
   return `<button data-tier="${tier}" ${locked?'disabled':''} class="tier-choice ${chosenTier===tier?'selected':''} ${locked?'locked':''} ${conquered?'tier-conquered':''}" aria-pressed="${chosenTier===tier}">
    <span class="tier-choice-number">${locked?'🔒':conquered?'♛':'✦'} TIER ${roman(tier)}</span><strong>${name}</strong>
-   <small>${locked?'Clear wave 20 of Tier '+roman(tier-1):conquered?'ETERNALLY CONQUERED':`BEST ${fmt(best)} / ${fmt(MAX_WAVE)}`}</small>
+   <small>${locked?'Clear wave 20 of Tier '+roman(tier-1):conquered?'ETERNALLY CONQUERED':`BEST ${formatWave(best)} / ${formatWave(MAX_WAVE)}`}</small>
    <span class="tier-progress-track"><span style="width:${100*best/MAX_WAVE}%"></span></span>
   </button>`;
  }).join('');
  const tier=chosenTier,best=Math.min(MAX_WAVE,p.bestByTier[tier]||0),stone=waystoneForTier(tier);
  $('tierHeading').textContent='TIER '+roman(tier)+' — '+tierNames[tier-1].toUpperCase();
- $('tierDescription').textContent=`Enemy strength ×${(1+(tier-1)*.64).toFixed(2)} · Gold & XP ×${(1+(tier-1)*.32).toFixed(2)} · Record ${fmt(best)} / ${fmt(MAX_WAVE)} · ${best>=MAX_WAVE?'ETERNALLY CONQUERED':'Continue your legacy'}`;
- const waystone=stone>1?`<div class="milestone-waystone" role="group" aria-label="Siege starting checkpoint"><div><strong>✦ UNLOCKED WAYSTONE · WAVE ${fmt(stone)}</strong><small>Resume an earlier tier without replaying its first ${fmt(stone-1)} waves. Milestone rewards are earned once per tier.</small></div>
+ $('tierDescription').textContent=`Enemy strength ×${(1+(tier-1)*.64).toFixed(2)} · Gold & XP ×${(1+(tier-1)*.32).toFixed(2)} · Record ${formatWave(best)} / ${formatWave(MAX_WAVE)} · ${best>=MAX_WAVE?'ETERNALLY CONQUERED':'Continue your legacy'}`;
+ const waystone=stone>1?`<div class="milestone-waystone" role="group" aria-label="Siege starting checkpoint"><div><strong>✦ UNLOCKED WAYSTONE · WAVE ${formatWave(stone)}</strong><small>Resume an earlier tier without replaying its first ${formatWave(stone-1)} waves. Milestone rewards are earned once per tier.</small></div>
   <div class="milestone-waystone-choices">
    <button type="button" data-start-mode="fresh" ${useWaystone?'':'aria-pressed="true"'} class="${useWaystone?'':'selected'}">WAVE 1</button>
-   <button type="button" data-start-mode="waystone" ${useWaystone?'aria-pressed="true"':''} class="${useWaystone?'selected':''}">WAYSTONE ${fmt(stone)}</button>
+   <button type="button" data-start-mode="waystone" ${useWaystone?'aria-pressed="true"':''} class="${useWaystone?'selected':''}">WAYSTONE ${formatWave(stone)}</button>
   </div></div>`:`<div class="milestone-waystone milestone-waystone-empty"><strong>✧ YOUR FIRST WAYSTONE AWAITS AT WAVE 100</strong><small>Push deeper to permanently unlock restart checkpoints and more powerful Ascension routes.</small></div>`;
  let claimedCount=0;
  const rewards=milestonesAt.map(w=>{
@@ -190,13 +191,13 @@ function renderTierLobby(){
   const reached=best>=w;
   return `<div class="milestone-entry ${claimed?'claimed':''} ${w>100?'milestone-deep':''} ${prize.kind==='path'?'milestone-path':''} ${w===MAX_WAVE?'milestone-final':''}">
     <div class="milestone-medal">${claimed?'✓':prize.icon}</div>
-    <div class="milestone-copy"><strong>Wave ${fmt(w)} · ${prize.name}</strong><small>${prize.detail}</small></div>
+    <div class="milestone-copy"><strong>Wave ${formatWave(w)} · ${prize.name}</strong><small>${prize.detail}</small></div>
     <span class="milestone-status">${claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
    </div>`;
  }).join('');
  $('milestoneList').innerHTML=waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${milestonesAt.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
- $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+fmt(useWaystone?stone:1)+' / '+fmt(MAX_WAVE);
+ $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(useWaystone?stone:1)+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
 }
 function enterSiege(){if(chosenTier>p.unlockedTier)return;p.selectedTier=chosenTier;initRun();run.wave=useWaystone?waystoneForTier(chosenTier):1;run.tier=chosenTier;$('tierLobby').hidden=true;$('exitRunButton').hidden=false;$('startButton').hidden=true;save();beginWave();}
@@ -286,12 +287,12 @@ function refreshHUD(){
  let r=[['🟡','GOLD',p.gold],['🔷','ESSENCE',p.essence],['📖','KNOWLEDGE',p.knowledge],['💠','SIGILS',p.sigils],['✦','SKILL POINTS',p.points]];
  $('resources').innerHTML=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');
  $('stageName').textContent='TIER '+roman(run.tier)+' · '+tierNames[run.tier-1];
- $('waveName').textContent='WAVE '+fmt(run.wave)+' / '+fmt(MAX_WAVE);
+ $('waveName').textContent='WAVE '+formatWave(run.wave)+' / '+formatWave(MAX_WAVE);
  $('waveFill').style.width=(run.phase==='fighting'?100*run.kills/(run.total||1):run.phase==='intermission'?100:0)+'%';
  $('wallText').textContent=Math.ceil(run.health)+' / '+run.maxHealth;
  $('wallFill').style.width=(100*run.health/(run.maxHealth||1))+'%';
  $('heroTag').innerHTML='✦ LEVEL '+p.level+' <span>'+fmt(p.xp)+' / '+fmt(lvlNeed())+' XP</span>';
- const next=nextMilestone(run.tier,run.wave);$('milestoneHint').textContent=next?'✦ NEXT MILESTONE · WAVE '+next+' · '+tierMilestone(run.tier,next).name:'✦ ALL MILESTONES CLEARED · PUSH YOUR RECORD';
+ const next=nextMilestone(run.tier,run.wave);$('milestoneHint').textContent=next?'✦ NEXT MILESTONE · WAVE '+formatWave(next)+' · '+tierMilestone(run.tier,next).name:'✦ ALL MILESTONES CLEARED · PUSH YOUR RECORD';
 }
 // ALPHA 0.3 — hub navigation and progression chambers, completely rebuilt UI.
 const hubs={battle:['battle'],hero:['hero'],power:['training','research'],gear:['equipment','runes'],fortress:['stations','suppression']};
@@ -614,11 +615,11 @@ function renderAscensionChronicle(){
  return `<section class="forge-ascension-chamber" aria-label="Ascension Chronicle">
   <div class="forge-category-head">
    <span class="forge-category-crest">${forgePixelIcon('epoch' in forgePixelPatterns?'epoch':'attunement')}</span>
-   <div class="forge-category-heading"><small>✧ BEYOND THE FIRST CENTURY</small><h3>Ascension Chronicle</h3><p>Five new permanent routes. Revisit old tiers, break distant milestones and become worthy of wave ${fmt(MAX_WAVE)}.</p></div>
+   <div class="forge-category-heading"><small>✧ BEYOND THE FIRST CENTURY</small><h3>Ascension Chronicle</h3><p>Five new permanent routes. Revisit old tiers, break distant milestones and become worthy of wave ${formatWave(MAX_WAVE)}.</p></div>
    <div class="forge-category-total"><b>${fmt(owned)}</b><small>/ ${fmt(capacity)} ranks</small></div>
   </div>
   <div class="forge-ascension-rows">${markup}</div>
-  <div class="forge-ascension-footer"><span>Best milestone reached: <b>${fmt(highest)}</b> / ${fmt(MAX_WAVE)}</span><span>Unlock each mastery at its listed wave in <b>any tier</b>. Purchase with Primal Sigils.</span></div>
+  <div class="forge-ascension-footer"><span>Best milestone reached: <b>${fmt(highest)}</b> / ${formatWave(MAX_WAVE)}</span><span>Unlock each mastery at its listed wave in <b>any tier</b>. Purchase with Primal Sigils.</span></div>
  </section>`;
 }
 function renderTrainingLedger(){
