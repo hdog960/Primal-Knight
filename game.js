@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.6. Character armory, equipment wardrobe and safe gear selling. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.6.3. Character armory, equipment wardrobe and safe gear selling. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -18,9 +18,51 @@ const suppression=[['health','Weakening Sigils','Reduce enemy maximum health, ca
 const rarities=['Common','Uncommon','Rare','Epic','Legendary','Mythic','Ancient','Celestial','Eternal'];
 const rColors=['#ddd','#66dc9e','#75bfff','#b990ff','#ffd070','#ff727f','#eee08a','#e8b6ff','#90f9ff'];
 const runeNames={ember:['🔥','Ember','Burn damage'],frost:['❄','Frost','Chance to slow enemies'],fortune:['✦','Fortune','Bonus gold on kills'],storm:['ϟ','Storm','Chain lightning chance']};
-const gearNames={weapon:['Recurve Bow','Ashwood Longbow','Moonthorn Bow','Royal Arbalest','Sunfire Repeater','Starfall Arc','Kingslayer','Astral Bow','Eternity’s Oath'],armor:['Scout Mantle','Warden Mail','Forest Cloak','Ember Hauberk','Royal Warplate','Phoenix Mantle','Titan Guard','Starforged Plate','Eternal Bastion'],charm:['Copper Locket','Hunter’s Sigil','Wolfsbane Amulet','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone']};
-function defaultState(){return {version:1,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterbow',slot:'weapon',rarity:0,plus:0},{id:'starterarmor',slot:'armor',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{weapon:'starterbow',armor:'starterarmor',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+const inventoryCap=200;
+const gearSlots=['helm','amulet','chest','legs','boots','gauntlets','charm','ring1','ring2','ring3','ring4'];
+const ringSlots=['ring1','ring2','ring3','ring4'];
+const oldGearNames={weapon:['Recurve Bow','Ashwood Longbow','Moonthorn Bow','Royal Arbalest','Sunfire Repeater','Starfall Arc','Kingslayer','Astral Bow','Eternity’s Oath'],armor:['Scout Mantle','Warden Mail','Forest Cloak','Ember Hauberk','Royal Warplate','Phoenix Mantle','Titan Guard','Starforged Plate','Eternal Bastion']};
+const gearNames={
+ helm:['Leather Cowl','Tracker Hood','Moonveil Hood','Royal Sallet','Suncrest Helm','Phoenix Visor','Titan Crown','Astral Cowl','Eternal Halo'],
+ amulet:['Copper Pendant','Hunter Pendant','Wolfsbane Amulet','Goldheart Pendant','Solar Relic','Dragon Tear','Elder Star','Celestial Prism','Eon Heart'],
+ chest:['Warden Jerkin','Forest Mail','Royal Brigandine','Ember Hauberk','Lionguard Plate','Phoenix Mantle','Titan Guard','Starforged Cuirass','Eternal Bastion'],
+ legs:['Trail Leggings','Storm Trousers','Royal Greaves','Flamebound Cuisses','Lionguard Platelegs','Phoenix Striders','Titan Marchers','Astral Legplates','Eternal Vanguard'],
+ boots:['Scout Boots','Ridgewalk Boots','Ranger Treads','Royal Sabatons','Sunfire Greaves','Phoenix Boots','Titan Treads','Astral Walkers','Eternal March'],
+ gauntlets:['Leather Grips','Hunter Grips','Royal Vambraces','Warclaw Gauntlets','Sunfire Graspers','Phoenix Grips','Titan Fists','Astral Grip','Eternal Oathgrips'],
+ charm:['Copper Locket','Hunter Sigil','Wolfsbane Charm','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone'],
+ ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
+};
+function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
 const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,12);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
+// One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
+function migrateEquipmentSave(){
+ if(Number(p.version)>=3)return;
+ const oldEq={...(p.equipped||{})};
+ p.inventory=(p.inventory||[]).map((g,i)=>{
+   const upgraded={...g,id:g.id||'gear_'+i,plus:clamp(Number(g.plus)||0,0,50),rarity:clamp(Number(g.rarity)||0,0,8)};
+   if(g.slot==='weapon'){upgraded.slot='amulet';upgraded.legacyName=oldGearNames.weapon[upgraded.rarity]+' · Heirloom';}
+   else if(g.slot==='armor'){upgraded.slot='chest';upgraded.legacyName=oldGearNames.armor[upgraded.rarity]+' · Heirloom';}
+   else if(ringSlots.includes(g.slot))upgraded.slot='ring';
+   return upgraded;
+ });
+ p.equipped={...oldEq};
+ if(oldEq.weapon){p.equipped.amulet=oldEq.weapon;delete p.equipped.weapon;}
+ if(oldEq.armor){p.equipped.chest=oldEq.armor;delete p.equipped.armor;}
+ // The old charm remains in its own slot. Previously socketed runes follow their gear.
+ p.socketed={...p.socketed};
+ if(p.socketed.weapon){p.socketed.amulet=p.socketed.weapon;delete p.socketed.weapon;}
+ if(p.socketed.armor){p.socketed.chest=p.socketed.armor;delete p.socketed.armor;}
+ for(const slot of ['helm','legs','boots','gauntlets']){
+   if(!p.inventory.some(g=>g.slot===slot)){
+      const id='migration_'+slot;
+      p.inventory.push({id,slot,rarity:0,plus:0});p.equipped[slot]=id;
+   }
+ }
+ for(const [slot,id] of Object.entries(p.equipped))if(!p.inventory.some(g=>g.id===id))delete p.equipped[slot];
+ p.version=3;
+}
+migrateEquipmentSave();
+
 let ctx=$('game').getContext('2d'),c=$('game'),background=new Image();background.src='assets/battlefield.png';const foreground=new Image();foreground.src='assets/foreground.png';let sprites={};for(const type of ['hero','goblin','skeleton','warg','imp','ogre']){const i=new Image();i.src='assets/'+type+'.png';sprites[type]=i;}
 let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,rewardTimer:0,shakes:0,flashes:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0;
 // The Tower-inspired structure: difficulty is chosen once, then every wave
@@ -86,7 +128,13 @@ function xpAdd(amount){p.xp+=Math.floor(amount*(1+t('xp')*.025+skill('wisdom')*.
 function save(){try{localStorage.setItem(storageKey,JSON.stringify(p))}catch{}}
 function notice(s){let el=$('toast');el.textContent=s;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),2300)}
 function message(s){$('combatMessage').textContent=s;$('combatMessage').classList.add('show');setTimeout(()=>$('combatMessage').classList.remove('show'),1600)}
-function gearStat(slot){const g=p.inventory.find(g=>g.id===p.equipped[slot]);return g?(1+g.rarity*.6)*(1+g.plus*.24):1}
+function gearStat(slot){
+ const score=k=>{const g=p.inventory.find(g=>g.id===p.equipped[k]);return g?(1+g.rarity*.6)*(1+g.plus*.24)-1:0};
+ if(slot==='weapon')return 1+score('amulet')+.16*(score('gauntlets')+ringSlots.reduce((n,k)=>n+score(k),0));
+ if(slot==='armor')return 1+score('chest')+.14*(score('helm')+score('legs')+score('boots'));
+ if(slot==='charm')return 1+score('charm');
+ return 1+score(slot);
+}
 function socketValue(type){let total=0;for(let id of Object.values(p.socketed)){let x=p.runes.find(r=>r.id===id);if(x&&x.type===type)total+=Math.pow(1.38,x.tier-1)*.015;}return total;}
 function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+skill('bulwark')*.15)*(1+gearStat('armor')*.06)*(1+lr('guardianOath')*.03));}
 function damage(){return (32+2*t('power')+p.level*.85)*(1+skill('aim')*.06)*(1+(gearStat('weapon')-1)*.22)}
@@ -95,8 +143,8 @@ function trainCost(row){let [id,, ,base,mul]=row;let lv=t(id);return Math.floor(
 function stationCost(row){let[id,,,base,mul]=row;let lv=station(id);return Math.floor(base*(1+lv*.2+lv*lv*.04)*Math.pow(1.04,Math.min(lv,40))*Math.pow(1.015,Math.max(0,lv-40))*(1-Math.min(.42,res('discount')*.014))); }
 function researchCost(row,obj){let[id,,,base,mul]=row;let lv=n(obj,id);return Math.floor(base*(1+lv*.5+lv*lv*.15)*Math.pow(1.06+(mul-1)*.04,lv)); }
 function gearCost(g){return Math.floor((70+g.plus*38)*(1+g.rarity*.8)*Math.pow(1.22,g.plus)*(1-Math.min(.42,res('discount')*.014+skill('salvage')*.02)));}
-function randomGear(forceRarity=null){let score=Math.random()+Math.min(.44,p.highestWave*.004)+res('excavation')*.007;let r=forceRarity??(score>.995?5:score>.95?4:score>.85?3:score>.68?2:score>.43?1:0);r=clamp(r,0,8);return {id:'item_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),slot:['weapon','armor','charm'][Math.floor(Math.random()*3)],rarity:r,plus:0};}
-function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015;if(Math.random()<prob&&p.inventory.length<100){let g=randomGear();p.inventory.push(g);notice('FOUND '+rarities[g.rarity].toUpperCase()+' EQUIPMENT');}if(Math.random()<.32+res('excavation')*.013){let types=Object.keys(runeNames),kind=types[Math.floor(Math.random()*types.length)];p.runes.push({type:kind,tier:1,id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)});}}
+function randomGear(forceRarity=null){let score=Math.random()+Math.min(.44,p.highestWave*.004)+res('excavation')*.007;let r=forceRarity??(score>.995?5:score>.95?4:score>.85?3:score>.68?2:score>.43?1:0);r=clamp(r,0,8);return {id:'item_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),slot:['helm','amulet','chest','legs','boots','gauntlets','charm','ring'][Math.floor(Math.random()*8)],rarity:r,plus:0};}
+function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015;if(Math.random()<prob&&p.inventory.length<inventoryCap){let g=randomGear();p.inventory.push(g);notice('FOUND '+rarities[g.rarity].toUpperCase()+' EQUIPMENT');}if(Math.random()<.32+res('excavation')*.013){let types=Object.keys(runeNames),kind=types[Math.floor(Math.random()*types.length)];p.runes.push({type:kind,tier:1,id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)});}}
 function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;}
 function beginWave(){if(run.phase==='fighting'||run.phase==='fallen')return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.total=8+run.wave*2+(run.wave%5===0?1:0);message(run.wave%5===0?'ELITE HORDE INCOMING':'WAVE '+run.wave+' BEGINS');refreshHUD();}
 function spawnEnemy(){const isBoss=run.wave%5===0&&run.spawned===run.total-1;let type=isBoss?'ogre':(run.wave>=6?['goblin','skeleton','warg','warg']:run.wave>=3?['goblin','skeleton','warg']:['goblin','skeleton'])[Math.floor(Math.random()*(run.wave>=6?4:run.wave>=3?3:2))];let mul=(1+run.wave*.19)*(1+(run.tier-1)*.64);let hp=(type==='ogre'?300:type==='warg'?58:type==='skeleton'?42:type==='imp'?28:36)*mul*(1-Math.min(.35,sup('health')*.005));const e={type,x:rnd(140,820),y:rnd(122,154),hp,max:hp,speed:(type==='ogre'?7:type==='warg'?25:type==='imp'?22:17)*(1+run.wave*.023)*(1+(run.tier-1)*.06)*(1-Math.min(.35,sup('speed')*.005)),armor:((type==='ogre'?7:type==='skeleton'?2:0)+run.wave*.21+(run.tier-1)*2)*(1-Math.min(.5,sup('armor')*.01)),buildup:0,burn:0,slow:0,wobble:rnd(0,6.28),golden:Math.random()<.02+station('midas')*.012,dead:false,valued:isBoss?45:Math.round(type==='warg'?12:10)};run.enemies.push(e);}
@@ -177,11 +225,11 @@ const tabInfo={
 };
 let activeByHub={battle:'battle',hero:'hero',power:'training',gear:'equipment',fortress:'stations'}, selectedSchool='Marksman',trainFilter='All',gearFilter='All',runePickSlot=null;
 let armoryDrawerSlot=null,armorySellRarities=new Set(),lastGearSale=null;
-const gearSlotLabels={weapon:'WEAPON',armor:'ARMOR',charm:'CHARM'};
-const gearSlotDescriptions={weapon:'Damage and ranged attacks',armor:'Fortress vitality',charm:'Overall combat power'};
-const gearSlotArt={weapon:'battle',armor:'gear',charm:'runes'};
+const gearSlotLabels={helm:'HELM',amulet:'AMULET',chest:'CHEST PLATE',legs:'PLATE LEGS',boots:'BOOTS',gauntlets:'GAUNTLETS',charm:'CHARM',ring1:'RING I',ring2:'RING II',ring3:'RING III',ring4:'RING IV',ring:'RING'};
+const gearSlotDescriptions={helm:'Head protection',amulet:'Relic and offensive power',chest:'Main torso armor',legs:'Leg protection',boots:'Movement and footing',gauntlets:'Strength and strikes',charm:'Utility and enchantment',ring:'Ring power'};
+const gearSlotArt={helm:'hero',amulet:'runes',chest:'gear',legs:'gear',boots:'hero',gauntlets:'battle',charm:'runes',ring:'power',ring1:'power',ring2:'power',ring3:'power',ring4:'power'};
 function equippedGear(slot){return p.inventory.find(g=>g.id===p.equipped[slot])||null;}
-function gearTitle(g){return gearNames[g.slot][g.rarity]||'Unknown Equipment';}
+function gearTitle(g){return g.legacyName||(gearNames[g.slot]?.[g.rarity]||'Unknown Equipment');}
 function gearSellPrice(g){const base=Math.floor(24*Math.pow(2.1,g.rarity));let refund=0;for(let i=0;i<Math.min(50,g.plus);i++)refund+=gearCost({...g,plus:i})*.18;return Math.max(1,Math.floor(base+refund));}
 function canSellGear(g){return !!g&&!Object.values(p.equipped).includes(g.id);}
 
@@ -197,7 +245,7 @@ const upgradeArt={
 };
 const chamberArt=tabName=>'assets/chambers/'+(tabName in tabInfo?tabName:'hero')+'.webp';
 function card(title,description,level,cost,label,actionId,disabled=false,accent='',progress=null){
- const currency=currencyFor(actionId),kind=String(actionId).split(':')[0],item=p.inventory?.find(g=>g.id===String(actionId).split(':')[1]),art=(kind==='equip'||kind==='enhance')?(item?.slot==='weapon'?'battle':item?.slot==='armor'?'gear':'runes'):(upgradeArt[String(actionId).split(':')[1]]||cardArt[kind]||'hero'),info=level||'',max=info.match(/(?:RANK|RESEARCH|ENHANCEMENT\s*\+)?\s*([\d,]+)\s*\/\s*([\d,]+)/i);const pct=progress!=null?progress:max?meterPct(Number(max[1].replace(/,/g,'')),Number(max[2].replace(/,/g,''))):0;
+ const currency=currencyFor(actionId),kind=String(actionId).split(':')[0],item=p.inventory?.find(g=>g.id===String(actionId).split(':')[1]),art=(kind==='equip'||kind==='enhance')?(item?gearSlotArt[item.slot]:'gear'):(upgradeArt[String(actionId).split(':')[1]]||cardArt[kind]||'hero'),info=level||'',max=info.match(/(?:RANK|RESEARCH|ENHANCEMENT\s*\+)?\s*([\d,]+)\s*\/\s*([\d,]+)/i);const pct=progress!=null?progress:max?meterPct(Number(max[1].replace(/,/g,'')),Number(max[2].replace(/,/g,''))):0;
  return `<article class="upgrade-card art-card kind-${String(actionId).split(':')[0]} ${!disabled?'available-to-buy':''}"><div class="card-heading"><div class="card-art"><span class="pixel-symbol pixel-symbol-${art}" aria-hidden="true"></span></div><h3>${accent}${title}</h3></div><p>${description}</p><div class="level">${info}</div><div class="rank-track" aria-hidden="true"><span style="width:${pct}%"></span></div><div class="card-footer">${cost!==null?`<div class="card-cost ${currency}" title="Cost in ${currency}">${currencyGlyph[currency]} ${fmt(cost)}</div>`:''}<button data-action="${actionId}" ${disabled?'disabled':''}>${label}</button></div></article>`;
 }
 const section=(head,body)=>`<h2 class="section-title">${head}</h2>${body}`;
@@ -206,55 +254,53 @@ const highlight=(title,body,icon='✦')=>`<div class="highlight-banner"><div><b>
 
 function slotCard(slot){
  const g=equippedGear(slot),label=gearSlotLabels[slot],icon=gearSlotArt[slot],cost=g?gearCost(g):0;
- const name=g?gearTitle(g):'Empty '+slot.charAt(0).toUpperCase()+slot.slice(1)+' Slot';
- const rarity=g?rarities[g.rarity]:'EMPTY SLOT';
+ const name=g?gearTitle(g):'Empty slot',rarity=g?rarities[g.rarity]:'EMPTY';
  return `<section class="armory-slot armory-${slot}" aria-label="${label} equipment slot">
-  <div class="armory-slot-label"><span>${label}</span><span>${g?'✦ EQUIPPED':'◇ AVAILABLE'}</span></div>
-  <button class="armory-slot-select" type="button" data-gear-slot="${slot}" aria-label="Choose ${slot} equipment: ${name}">
+  <button class="armory-slot-select" type="button" data-gear-slot="${slot}" aria-label="${label}: ${name}. Tap to choose an item.">
+    <span class="armory-slot-label">${label}</span>
     <span class="armory-slot-gem ${g?'has-gear rarity-outline-'+g.rarity:'is-empty'}"><span class="pixel-symbol pixel-symbol-${icon}" aria-hidden="true"></span></span>
-    <span class="armory-slot-copy"><small class="${g?'rarity-'+g.rarity:'empty-rarity'}">${rarity}</small><strong>${name}</strong><em>${g?'Enhancement +'+g.plus+' / 50':'Tap to equip'}</em></span>
-    <span class="armory-slot-prompt">${g?'CHANGE ITEM':'EQUIP ITEM'} <span aria-hidden="true">›</span></span>
+    <span class="armory-slot-copy"><small class="${g?'rarity-'+g.rarity:'empty-rarity'}">${rarity}</small><strong>${name}</strong><em>${g?'+'+g.plus+' / 50':'Tap to equip'}</em></span>
   </button>
-  ${g?`<button type="button" class="armory-enhance" data-action="enhance:${g.id}" ${g.plus>=50||p.gold<cost?'disabled':''}>${g.plus>=50?'MAX ENHANCEMENT':`✦ ENHANCE +1 · 🟡 ${fmt(cost)}`}</button>`:''}
+  ${g?`<button class="armory-enhance" type="button" data-action="enhance:${g.id}" ${g.plus>=50||p.gold<cost?'disabled':''}>${g.plus>=50?'MAXED':`+1 · 🟡${fmt(cost)}`}</button>`:''}
  </section>`;
 }
 function renderArmoryShowcase(){
- const slots=['weapon','armor','charm'];
- return `<div class="armory-intro"><div><span>THE WARDEN'S ARMORY</span><h2>Equip your champion</h2><p>Every piece has its own place. Tap a slot to browse its equipment, compare rarity and enhancements, or sell unwanted loot.</p></div><div class="armory-wallet">🟡 <strong>${fmt(p.gold)}</strong><small>GOLD</small></div></div>
- <section class="armory-showcase" aria-label="Hero equipment screen">
-   <div class="armory-scene-heading">✦ THE LONE DEFENDER ✦</div>
-   <div class="armory-hero-plinth"><div class="armory-halo" aria-hidden="true"></div><img src="assets/hero.png" alt="Your red-cloaked Primal Knight seen from behind, ready to equip gear"><span class="armory-hero-level">LEVEL ${p.level} · PRIMAL KNIGHT</span></div>
-   ${slots.map(slotCard).join('')}
+ const left=['helm','chest','gauntlets','legs','boots','charm'],right=['amulet','ring1','ring2','ring3','ring4'];
+ return `<section class="armory-showcase" aria-label="Eleven equipment slots surrounding the front-facing hero">
+   <div class="armory-scene-heading">✦ THE LONE DEFENDER · THE ROYAL FORGE ✦</div>
+   <div class="armory-column armory-column-left">${left.map(slotCard).join('')}</div>
+   <div class="armory-hero-stage"><img src="assets/hero_front.png?v=063" alt="Primal Knight front-facing red-hooded armored champion"><span>LEVEL ${p.level} · PRIMAL KNIGHT</span></div>
+   <div class="armory-column armory-column-right">${right.map(slotCard).join('')}</div>
  </section>
- <div class="armory-wardrobe-bar"><div><strong>YOUR COLLECTION</strong><small>${p.inventory.length} / 100 items · Nine rarities · Equipped items protected</small></div><button type="button" data-gear-slot="all">OPEN FULL INVENTORY <span aria-hidden="true">›</span></button></div>
- <div class="armory-note">✦ <b>Tip:</b> Empty a slot from its inventory drawer, or equip a different item to replace what you're wearing. All selling uses Gold and updates your save immediately.</div>`;
+ <div class="armory-wardrobe-bar"><div><strong>YOUR COLLECTION</strong><small>${p.inventory.length} / ${inventoryCap} items · Nine rarities · Equipped items protected</small></div><button type="button" data-gear-slot="all">OPEN FULL INVENTORY <span aria-hidden="true">›</span></button></div>
+ <p class="armory-note">✦ Tap an equipment position to view only that category, including all four interchangeable ring positions. Enhance or sell unwanted equipment in your inventory.</p>`;
 }
 function renderArmoryDrawer(){
  const drawer=$('armoryDrawer');if(!drawer)return;
  if(tab!=='equipment'||!armoryDrawerSlot){drawer.hidden=true;drawer.innerHTML='';return;}
  drawer.hidden=false;
  const all=armoryDrawerSlot==='all',category=all?'ALL EQUIPMENT':gearSlotLabels[armoryDrawerSlot];
- const items=p.inventory.filter(g=>all||g.slot===armoryDrawerSlot).sort((a,b)=>b.rarity-a.rarity||b.plus-a.plus||gearTitle(a).localeCompare(gearTitle(b)));
+ const items=p.inventory.filter(g=>all||g.slot===(ringSlots.includes(armoryDrawerSlot)?'ring':armoryDrawerSlot)).sort((a,b)=>b.rarity-a.rarity||b.plus-a.plus||gearTitle(a).localeCompare(gearTitle(b)));
  const current=!all?equippedGear(armoryDrawerSlot):null;
  const groupMarkup=rarities.map((rarity,i)=>({rarity,i,items:items.filter(g=>g.rarity===i)})).filter(g=>g.items.length).reverse().map(group=>`
  <section class="armory-rarity-group rarity-group-${group.i}" aria-label="${group.rarity} equipment">
   <h3><span class="armory-rarity-sigil rarity-${group.i}">◆</span>${group.rarity.toUpperCase()} <small>${group.items.length} ${group.items.length===1?'ITEM':'ITEMS'}</small></h3>
   <div class="armory-inventory-grid">${group.items.map(g=>{
-   const active=p.equipped[g.slot]===g.id,price=gearSellPrice(g),cost=gearCost(g);
+   const inUse=Object.values(p.equipped).includes(g.id),active=ringSlots.includes(armoryDrawerSlot)?p.equipped[armoryDrawerSlot]===g.id:inUse,price=gearSellPrice(g),cost=gearCost(g);
    return `<article class="armory-inventory-item rarity-outline-${g.rarity}" data-item-id="${g.id}">
     <div class="armory-item-icon"><span class="pixel-symbol pixel-symbol-${gearSlotArt[g.slot]}" aria-hidden="true"></span></div>
-    <div class="armory-item-details"><small class="rarity-${g.rarity}">${rarities[g.rarity]} · ${gearSlotLabels[g.slot]}</small><strong>${gearTitle(g)}</strong><em>Enhancement +${g.plus} / 50 ${active?'· CURRENTLY EQUIPPED':''}</em></div>
-    <div class="armory-item-buttons"><button type="button" data-action="equip:${g.id}" ${active?'disabled':''}>${active?'✓ EQUIPPED':'EQUIP'}</button><button type="button" data-action="enhance:${g.id}" ${g.plus>=50||p.gold<cost?'disabled':''}>${g.plus>=50?'MAXED':`UPGRADE · 🟡${fmt(cost)}`}</button><button type="button" class="armory-sell-item" data-gear-sell="${g.id}" ${active?'disabled title="Unequip before selling"':''}>${active?'EQUIPPED · SAFE':`SELL · 🟡${fmt(price)}`}</button></div>
+    <div class="armory-item-details"><small class="rarity-${g.rarity}">${rarities[g.rarity]} · ${gearSlotLabels[g.slot]}</small><strong>${gearTitle(g)}</strong><em>Enhancement +${g.plus} / 50 ${inUse?'· CURRENTLY EQUIPPED':''}</em></div>
+    <div class="armory-item-buttons"><button type="button" data-action="equip:${g.id}" ${active?'disabled':''}>${active?'✓ EQUIPPED':'EQUIP'}</button><button type="button" data-action="enhance:${g.id}" ${g.plus>=50||p.gold<cost?'disabled':''}>${g.plus>=50?'MAXED':`UPGRADE · 🟡${fmt(cost)}`}</button><button type="button" class="armory-sell-item" data-gear-sell="${g.id}" ${inUse?'disabled title="Unequip before selling"':''}>${inUse?'EQUIPPED · SAFE':`SELL · 🟡${fmt(price)}`}</button></div>
    </article>`;}).join('')}</div>
  </section>`).join('');
  const rarityCounts=rarities.map((name,i)=>({name,i,count:p.inventory.filter(g=>g.rarity===i&&canSellGear(g)).length}));
  drawer.innerHTML=`<div class="armory-drawer-header"><button type="button" data-gear-back class="armory-drawer-back">‹ BACK TO HERO</button><div class="armory-drawer-title"><small>THE ROYAL ARMORY</small><h2>${category}</h2><span>${items.length} ITEMS · SORTED BY RARITY</span></div><div class="armory-drawer-gold">🟡 ${fmt(p.gold)}</div></div>
  <div class="armory-drawer-scroll" id="armoryDrawerScroll">
   ${!all?`<div class="armory-current"><span>YOUR CURRENT ${category}</span><strong>${current?gearTitle(current)+' · +'+current.plus:'EMPTY · READY TO EQUIP'}</strong>${current?`<button type="button" data-gear-unequip="${armoryDrawerSlot}">UNEQUIP ${category}</button>`:''}</div>`:''}
-  <div class="armory-salvage"><div class="armory-salvage-heading"><div><small>THE SALVAGE COUNTER</small><h3>Sell gear by rarity</h3><p>Select one or more rarities. Bulk selling applies to <b>all three equipment categories</b> and never sells equipped items.</p></div><span>🟡 GOLD RETURNS</span></div>
+  <div class="armory-salvage"><div class="armory-salvage-heading"><div><small>THE SALVAGE COUNTER</small><h3>Sell gear by rarity</h3><p>Select one or more rarities. Bulk selling applies to <b>all equipment categories and ring slots</b> and never sells equipped items.</p></div><span>🟡 GOLD RETURNS</span></div>
     <div class="armory-rarity-options" role="group" aria-label="Select equipment rarities to sell">${rarityCounts.map(r=>`<label class="armory-rarity-choice rarity-choice-${r.i} ${r.count===0?'no-items':''}"><input type="checkbox" data-sell-rarity="${r.i}" ${armorySellRarities.has(r.i)?'checked':''} ${r.count===0?'disabled':''}><span class="rarity-${r.i}">${r.name}</span><small>${r.count}</small></label>`).join('')}</div>
     <div class="armory-salvage-actions"><button type="button" data-gear-bulk-sell id="armoryBulkSell">CHOOSE RARITIES TO SELL</button><span id="armoryBulkSummary">Equipped gear is always protected.</span></div>
-    ${lastGearSale?`<div class="armory-undo"><span>Last sale: ${lastGearSale.items.length} item(s) for 🟡${fmt(lastGearSale.gold)}</span><button type="button" data-gear-undo ${p.gold<lastGearSale.gold||p.inventory.length+lastGearSale.items.length>100?'disabled':''}>UNDO LAST SALE</button></div>`:''}
+    ${lastGearSale?`<div class="armory-undo"><span>Last sale: ${lastGearSale.items.length} item(s) for 🟡${fmt(lastGearSale.gold)}</span><button type="button" data-gear-undo ${p.gold<lastGearSale.gold||p.inventory.length+lastGearSale.items.length>inventoryCap?'disabled':''}>UNDO LAST SALE</button></div>`:''}
   </div>
   <div class="armory-items-header"><h3>${all?'ALL STORED EQUIPMENT':category+' COLLECTION'}</h3><p>Highest rarity first · Tap Equip to change your hero's loadout.</p></div>
   ${groupMarkup||`<div class="armory-empty"><strong>No equipment in this category yet.</strong><p>Defend the wall to collect gear. Empty slots can remain unequipped.</p></div>`}
@@ -287,7 +333,7 @@ function handleArmoryClick(target){
    if(!confirm(`Sell ${items.length} unequipped item(s) for ${fmt(amount)} Gold? Equipped items will NOT be sold.`))return;
    completeGearSale(items);return;}
  if(target.dataset.gearUndo!==undefined){if(!lastGearSale)return;const {items,gold}=lastGearSale;
-   if(p.gold<gold||p.inventory.length+items.length>100){notice('NOT ENOUGH GOLD OR INVENTORY SPACE TO UNDO');return;}
+   if(p.gold<gold||p.inventory.length+items.length>inventoryCap){notice('NOT ENOUGH GOLD OR INVENTORY SPACE TO UNDO');return;}
    p.gold-=gold;p.inventory.push(...items);lastGearSale=null;save();refreshHUD();renderPanel();notice('LAST SALE REVERSED');return;}
  if(target.dataset.action){action(target.dataset.action);return;}
 }
@@ -337,7 +383,7 @@ function renderPanel(){
  }
  if(tab==='runes'){
   html+=highlight('Socket. Combine. Ascend.','Place a rune in each equipped item. To fuse, collect three of the same family and tier.','◇');
-  html+=section('EQUIPMENT SOCKETS',`<div class="cards">${['weapon','armor','charm'].map(slot=>{
+  html+=section('EQUIPMENT SOCKETS',`<div class="cards">${gearSlots.map(slot=>{
    const equippedId=p.socketed[slot],r=p.runes.find(x=>x.id===equippedId);
    return `<div class="rune-socket"><strong>◇ ${slot.toUpperCase()}</strong><p>${r?`${runeNames[r.type][1]} Rune · Tier ${r.tier}`:'No rune socketed'}</p><button data-socket-slot="${slot}">${r?'CHANGE / REMOVE RUNE':'CHOOSE A RUNE'}</button></div>`;
   }).join('')}</div>`);
@@ -396,7 +442,14 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  else if(type==='station'){let row=stationData.find(x=>x[0]===id),cost=stationCost(row);if(row&&p.gold>=cost&&station(id)<row[6]){p.gold-=cost;p.stations[id]=station(id)+1;}}
  else if(type==='research'){let row=research.find(x=>x[0]===id),cost=researchCost(row,p.research);if(row&&p.knowledge>=cost&&res(id)<row[5]){p.knowledge-=cost;p.research[id]=res(id)+1;}}
  else if(type==='suppress'){let row=suppression.find(x=>x[0]===id),cost=researchCost(row,p.suppression);if(row&&p.knowledge>=cost&&sup(id)<row[5]){p.knowledge-=cost;p.suppression[id]=sup(id)+1;}}
- else if(type==='equip'){let g=p.inventory.find(g=>g.id===id);if(g){p.equipped[g.slot]=g.id;notice(gearTitle(g)+' EQUIPPED');}}
+ else if(type==='equip'){
+  let g=p.inventory.find(g=>g.id===id);
+  if(g){
+    const target=g.slot==='ring'?(ringSlots.includes(armoryDrawerSlot)?armoryDrawerSlot:ringSlots.find(k=>!p.equipped[k])||'ring1'):g.slot;
+    for(const [slot,equippedId] of Object.entries(p.equipped))if(equippedId===g.id&&slot!==target)delete p.equipped[slot];
+    p.equipped[target]=g.id;notice(gearTitle(g)+' EQUIPPED · '+gearSlotLabels[target]);
+  }
+ }
  else if(type==='enhance'){let g=p.inventory.find(g=>g.id===id);if(g&&p.gold>=gearCost(g)&&g.plus<50){p.gold-=gearCost(g);g.plus++;}}
  else if(type==='fuse'){let r=p.runes.find(x=>x.id===id);if(!r)return;let same=p.runes.filter(x=>x.type===r.type&&x.tier===r.tier&&!Object.values(p.socketed).includes(x.id));let cost=Math.floor(85*r.tier*r.tier*(1-Math.min(.4,res('fusion')*.012)));if(same.length>=3&&p.gold>=cost&&r.tier<12){p.gold-=cost;let ids=same.slice(0,3).map(x=>x.id);p.runes=p.runes.filter(x=>!ids.includes(x.id));p.runes.push({id:'r'+Date.now()+Math.random(),type:r.type,tier:r.tier+1});notice('RUNE FUSED TO TIER '+(r.tier+1));}}
  else if(type==='socket'){runePickSlot=id;renderPanel();return;}

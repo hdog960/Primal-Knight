@@ -72,9 +72,9 @@ clickButton({trainFilter:'Economy'});assert(el('panelContent').innerHTML.include
 clickButton({trainFilter:'All'});clickButton({action:'train:power'});
 assert(storedSave&&JSON.parse(storedSave).training.power===1,'Essence purchases persist');
 clickSub('research');assert(el('panelContent').innerHTML.includes('Royal Treasury'));
-clickHub('gear');assert(el('panelContent').innerHTML.includes('Recurve Bow'));
-clickSub('runes');clickButton({socketSlot:'weapon'});assert(el('panelContent').innerHTML.includes('rune-picker'));
-clickButton({socketRune:'weapon:seedember'});assert(JSON.parse(storedSave).socketed.weapon==='seedember');
+clickHub('gear');assert(el('panelContent').innerHTML.includes('Leather Cowl'));
+clickSub('runes');clickButton({socketSlot:'helm'});assert(el('panelContent').innerHTML.includes('rune-picker'));
+clickButton({socketRune:'helm:seedember'});assert(JSON.parse(storedSave).socketed.helm==='seedember');
 clickHub('fortress');assert(el('panelContent').innerHTML.includes('Ironwood Ballista'));
 clickSub('suppression');assert(el('panelContent').innerHTML.includes('Weakening Sigils'));
 clickHub('battle');assert.equal(el('tierLobby').hidden,true,'Ongoing run continues when browsing menus');
@@ -85,30 +85,54 @@ el('launchTierButton').onclick();assert.equal(hooks.run().tier,2);
 assert.equal(hooks.run().wave,1);
 // Alpha 0.6 regression: Diablo-style body slots, inventory drawer and gear salvage.
 clickHub('gear');clickSub('equipment');
-assert(el('panelContent').innerHTML.includes('armory-hero-plinth'),'Armory shows the single hero');
-assert(el('panelContent').innerHTML.includes('data-gear-slot="weapon"'),'Body-positioned weapon slot');
-assert(el('panelContent').innerHTML.includes('data-gear-slot="armor"'),'Body-positioned armor slot');
-assert(el('panelContent').innerHTML.includes('data-gear-slot="charm"'),'Body-positioned charm slot');
-clickButton({gearSlot:'weapon'});
+assert(el('panelContent').innerHTML.includes('armory-hero-stage'),'Armory shows the front-facing hero');
+for(const slot of ['helm','amulet','chest','legs','boots','gauntlets','charm','ring1','ring2','ring3','ring4'])assert(el('panelContent').innerHTML.includes('data-gear-slot="'+slot+'"'),'Body-positioned '+slot+' slot');
+clickButton({gearSlot:'helm'});
 assert.equal(el('armoryDrawer').hidden,false,'Tapped slot opens inventory drawer');
 assert(el('armoryDrawer').innerHTML.includes('SORTED BY RARITY'));
 const armoryClick=ds=>el('armoryDrawer').listeners.click({target:{closest:()=>({dataset:ds,disabled:false})}});
 const armoryChange=(rank,checked)=>el('armoryDrawer').listeners.change({target:{closest:()=>({dataset:{sellRarity:String(rank)},checked})}});
-const testLoot={id:'qa06_loot',slot:'weapon',rarity:2,plus:0};
+const testLoot={id:'qa06_loot',slot:'helm',rarity:2,plus:0};
 hooks.p().inventory.push(testLoot);
 const sellPrice=hooks.gearSellPrice(testLoot),beforeSell=hooks.p().gold;
 hooks.completeGearSale([testLoot]);
 assert.equal(hooks.p().gold,beforeSell+sellPrice,'Selling awards the quoted Gold');
 assert(!hooks.p().inventory.some(g=>g.id==='qa06_loot'),'Sold gear leaves inventory');
-assert(hooks.p().inventory.some(g=>g.id==='starterbow'),'Equipped gear is never sold');
+assert(hooks.p().inventory.some(g=>g.id==='starterhelm'),'Equipped gear is never sold');
 armoryClick({gearUndo:''});
 assert(hooks.p().inventory.some(g=>g.id==='qa06_loot'),'Last sale can be reversed');
 assert.equal(hooks.p().gold,beforeSell,'Undo removes refunded Gold');
 // Attempt to sell equipped items must have no effect.
 const beforeProtected=hooks.p().gold;
-hooks.completeGearSale([hooks.p().inventory.find(g=>g.id===hooks.p().equipped.weapon)]);
-assert.equal(hooks.p().gold,beforeProtected,'Equipped weapon is unsellable');
+hooks.completeGearSale([hooks.p().inventory.find(g=>g.id===hooks.p().equipped.helm)]);
+assert.equal(hooks.p().gold,beforeProtected,'Equipped helm is unsellable');
+// Ring pieces may be equipped in any of the four positions without duplication.
+armoryClick({gearBack:''});
+clickButton({gearSlot:'ring3'});
+const testRing={id:'qa063_ring',slot:'ring',rarity:4,plus:3};hooks.p().inventory.push(testRing);
+armoryClick({action:'equip:qa063_ring'});
+assert.equal(hooks.p().equipped.ring3,'qa063_ring','Ring equips to the ring slot tapped');
+armoryClick({gearBack:''});
+clickButton({gearSlot:'ring4'});armoryClick({action:'equip:qa063_ring'});
+assert.equal(hooks.p().equipped.ring3,undefined,'Ring moved out of previous slot');
+assert.equal(hooks.p().equipped.ring4,'qa063_ring','Ring may be moved to a different position');
 armoryClick({gearBack:''});
 assert.equal(el('armoryDrawer').hidden,true,'Back to hero closes inventory');
 
+// Existing Alpha 0.6.1 saves retain their earned loot, enhancement levels and currencies.
+const legacySave={version:1,gold:13337,essence:881,knowledge:77,level:12,points:6,
+ inventory:[{id:'owned_bow',slot:'weapon',rarity:3,plus:7},{id:'owned_armor',slot:'armor',rarity:2,plus:5},{id:'owned_charm',slot:'charm',rarity:2,plus:2}],
+ equipped:{weapon:'owned_bow',armor:'owned_armor',charm:'owned_charm'},socketed:{weapon:'seedember'},runes:[{id:'seedember',type:'ember',tier:1}]};
+const oldElements=new Map(),oldEl=id=>oldElements.get(id)||(oldElements.set(id,new Element(id)),oldElements.get(id));
+const oldSandbox={Image:MockImage,document:{getElementById:oldEl,querySelectorAll:()=>[],addEventListener(){}},window:{__PK_TEST__:true,addEventListener(){}},localStorage:{getItem(){return JSON.stringify(legacySave)},setItem(){}},requestAnimationFrame(){},performance:{now:()=>1000},setTimeout:()=>0,clearTimeout(){},console,Math,Date,Blob,URL:{createObjectURL(){return'blob:old'},revokeObjectURL(){}},confirm(){return true}};
+vm.runInNewContext(fs.readFileSync('game.js','utf8'),oldSandbox,{filename:'game.js'});
+const restored=oldSandbox.window.__PK_TEST_TOOLS__.p();
+assert.equal(restored.gold,13337);assert.equal(restored.essence,881);assert.equal(restored.level,12);
+assert.equal(restored.inventory.find(g=>g.id==='owned_bow').plus,7,'Old enhancement preserved');
+assert.equal(restored.inventory.find(g=>g.id==='owned_armor').plus,5,'Old chest armor preserved');
+assert.equal(restored.equipped.amulet,'owned_bow','Old bow converted to an heirloom in amulet slot');
+assert.equal(restored.equipped.chest,'owned_armor','Old armor converted to chest plate');
+assert.equal(restored.socketed.amulet,'seedember','Old socketed rune follows old bow');
+assert.equal(new Set(restored.inventory.map(g=>g.id)).size,restored.inventory.length,'No duplicated item IDs');
+assert.equal(restored.version,3,'Save migration version updated');
 console.log('PASS: tier selection, endless battle, milestones, legacy, five hubs, armory slots, rarity selling, undo, protected equipped gear, runes and saves.');
