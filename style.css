@@ -936,3 +936,173 @@
  .hall-chart-node{min-height:47px}
  .hall-skill-name{font-size:9px;min-height:20px}
 }
+
+
+/* Alpha 0.6.7 — Power redesigned as two distinct illustrated progression chambers.
+   No old oversized upgrade card grid is used by Training or Research. */
+.panel[data-theme="training"] .chamber-mobile-art,.panel[data-theme="research"] .chamber-mobile-art,
+.panel[data-theme="training"] .section-intro,.panel[data-theme="research"] .section-intro{display:none!important}
+.panel[data-theme="training"] .panel-content-scroll,.panel[data-theme="research"] .panel-content-scroll{padding:10px 15px 28px}
+.panel[data-theme="training"] .chamber-tabs,.panel[data-theme="research"] .chamber-tabs{border-bottom:2px double #c59c5c;background:linear-gradient(180deg,#243347,#101e2d)}
+.panel[data-theme="training"] .chamber-tabs button,.panel[data-theme="research"] .chamber-tabs button{padding:9px 23px;border-radius:13px 13px 4px 4px;font:700 12px Georgia,serif;letter-spacing:.5px;min-height:36px}
+.ascension-shell{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,330px);grid-template-rows:auto auto;gap:5px 16px;min-height:132px;margin-bottom:11px;padding:17px 17px 10px;border:2px ridge #b78f54;overflow:hidden;background:linear-gradient(120deg,#382c2aee,#1e2c3bee 65%,#111e2af7);box-shadow:inset 0 0 0 2px #131b24,inset 0 2px 0 #eed2a54a,0 8px 17px #0006}
+.ascension-shell:before{content:'◆';position:absolute;top:7px;left:7px;color:#e4bd79;font:11px Georgia,serif}
+.ascension-shell:after{content:'✦';position:absolute;top:7px;right:7px;color:#e4bd79;font:11px Georgia,serif}
+.ascension-scene{z-index:-1;position:absolute;inset:0;opacity:.6;pointer-events:none;background:linear-gradient(90deg,#1e2836 0%,#1e2836ad 42%,#1e2836cc 100%),url('assets/chambers/training.webp') right 48%/cover}
+.ascension-research .ascension-scene{background:linear-gradient(90deg,#17293af0 0%,#17293acc 42%,#17293ae8 100%),url('assets/chambers/research.webp') right 38%/cover}
+.ascension-copy{min-width:0;padding-left:6px}
+.ascension-kicker{font:bold 10px Arial,sans-serif;letter-spacing:2.2px;color:#eac78e}
+.ascension-copy h2{font:700 clamp(23px,2.7vw,35px)/1.05 Georgia,serif;color:#ffe5b7;margin:6px 0;text-shadow:0 2px 0 #4c2f2a,0 4px 9px #0008}
+.ascension-copy p{font:12px/1.45 Arial,sans-serif;max-width:680px;margin:0;color:#ecdcc5;text-shadow:0 1px #0009}
+.ascension-treasury{display:flex;justify-content:flex-end;gap:5px;align-items:stretch}
+.ascension-money{flex:1;min-width:0;max-width:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid #b38f5b70;padding:7px 5px;background:linear-gradient(#243546ef,#121f2fee);box-shadow:inset 0 1px #ffe4b829}
+.ascension-money.primary{border-color:#f8c57d;box-shadow:inset 0 1px #ffe4b852,0 0 9px #b17f4130;background:linear-gradient(#5d4436ef,#1e3244ef)}
+.ascension-money small{font:700 8px Arial,sans-serif;letter-spacing:.35px;color:#d4be9c;text-align:center;white-space:nowrap}
+.ascension-money strong{font:700 21px Georgia,serif;color:#ffe4af}
+.ascension-money.primary strong{color:#fff1cd}
+.ascension-progress{grid-column:1/-1;display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:center;margin:3px 4px 0;border-top:1px solid #ffe7be34;padding-top:7px}
+.ascension-progress>span{font:bold 9px Arial,sans-serif;color:#dfc6a0;letter-spacing:.8px}
+.ascension-progress>b{font:bold 11px Georgia,serif;color:#ffe8b6;white-space:nowrap}
+.ascension-progress>b small{color:#b4bfc2}
+.ascension-progress-track{height:7px;border:1px solid #b28b4e;background:#0a1422;overflow:hidden}
+.ascension-progress-track i,.ascension-rank-track span,.archive-progress i{display:block;height:100%;background:linear-gradient(90deg,#886345,#eac178,#fff0b7);box-shadow:0 0 7px #ffce7d60}
+.ascension-ledger,.archive-room{border:2px ridge #a68358;padding:11px 12px 13px;background:linear-gradient(150deg,#202d3cfa,#111e2cf9 76%),url('assets/chambers/training.webp') center/cover;box-shadow:inset 0 0 0 2px #101923,0 8px 18px #0006}
+.ascension-ledger{position:relative}
+.ascension-ledger:before{content:'';position:absolute;inset:7px;pointer-events:none;border:1px solid #fff0c510}
+.ascension-ledger-heading{display:flex;justify-content:space-between;align-items:end;gap:8px;padding:2px 2px 9px}
+.ascension-ledger-heading>div{display:flex;flex-direction:column;gap:4px}
+.ascension-ledger-heading small,.archive-headline small{font:700 9px Arial,sans-serif;letter-spacing:2px;color:#eac18c}
+.ascension-ledger-heading strong{font:700 23px Georgia,serif;color:#ffe4ac;line-height:1.1}
+.ascension-ledger-heading>span{font:10px Arial,sans-serif;color:#cfc1a7;text-align:right}
+.ascension-filter-row{display:flex;gap:6px;overflow-x:auto;padding:3px 1px 9px;scrollbar-color:#b38b56 #152330;scrollbar-width:thin}
+.ascension-filter{flex:none;min-width:79px;min-height:36px;border:1px solid #997b55;padding:7px 11px;border-radius:10px 10px 3px 3px;background:linear-gradient(#2b4051,#1d2a39);color:#decba9;font:700 11px Arial,sans-serif;box-shadow:inset 0 1px #f8dfa32b;cursor:pointer}
+.ascension-filter:hover{filter:brightness(1.14)}
+.ascension-filter.selected{border-color:#ffdf9e;color:#ffe9c3;background:linear-gradient(#855b39,#4b332e);box-shadow:inset 0 1px #ffe3a65f,0 2px 9px #e5a45e30}
+.ascension-row-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start;position:relative}
+.ascension-upgrade{display:grid;grid-template-columns:47px minmax(0,1fr) minmax(101px,115px);gap:8px;align-items:center;min-width:0;min-height:91px;padding:8px;border:1px solid #ab8858;background:linear-gradient(120deg,#2f3e4af7,#1b2a39f6 68%,#182432);box-shadow:inset 0 1px 0 #ffe6b72a,0 3px 9px #0005;position:relative;clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}
+.ascension-upgrade:before{content:'✦';position:absolute;right:5px;top:3px;font:8px Georgia,serif;color:#fbd18d60}
+.ascension-upgrade:hover{border-color:#d9b475;background:linear-gradient(120deg,#384955,#223747 69%,#192738)}
+.ascension-emblem,.archive-emblem{display:grid;place-items:center;align-self:center;width:47px;height:57px;border:1px solid #c3a06b;background:radial-gradient(circle at 50% 38%,#c8a36955,#17283b 68%);clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),50% 100%,0 calc(100% - 10px),0 10px)}
+.ascension-emblem .pixel-symbol,.archive-emblem .pixel-symbol{width:41px;height:44px;transform:none!important;background-size:contain!important}
+.ascension-upgrade-copy{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ascension-upgrade-name{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.ascension-upgrade-name strong{font:700 15px Georgia,serif;color:#ffe5b5;overflow-wrap:anywhere}
+.ascension-upgrade-name small{font:700 9px Arial,sans-serif;color:#a6e5bf;white-space:nowrap}
+.ascension-upgrade-copy p{color:#d8d1be;font:10px/1.3 Arial,sans-serif;margin:0;min-height:23px}
+.ascension-rank-track,.archive-progress{height:5px;background:#0b1722;border:1px solid #99764b;overflow:hidden}
+.ascension-action-cell{display:flex;flex-direction:column;gap:5px;justify-content:center;min-width:0}
+.ascension-next-cost{font:700 10px Arial,sans-serif;color:#f7d594;white-space:nowrap;text-align:center}
+.ascension-action-buttons{display:flex;gap:3px;align-items:stretch}
+.ascension-action-buttons button,.archive-action button{flex:1;min-width:0;min-height:32px;background:linear-gradient(#825535,#4a302a);border:1px solid #dcb579;color:#ffe8bd;font:700 10px Arial,sans-serif;padding:5px 4px;cursor:pointer;box-shadow:inset 0 1px #ffedc93b,0 2px #12171b}
+.ascension-action-buttons button:not(:disabled):active,.archive-action button:not(:disabled):active{transform:translateY(1px)}
+.ascension-action-buttons button:not(:disabled):hover,.archive-action button:not(:disabled):hover{filter:brightness(1.15)}
+.ascension-action-buttons button:disabled,.archive-action button:disabled{cursor:default;opacity:.45;filter:saturate(.5)}
+.ascension-action-buttons .ascension-multi{background:linear-gradient(#394e60,#243344);border-color:#ab9a7c}
+.ascension-ledger-note{font:10px/1.4 Arial,sans-serif;color:#bfb69e;margin-top:11px;border-top:1px solid #d7b68242;padding:8px 4px 2px}
+.ascension-legacy-upgrade{border-color:#ad9b71;background:linear-gradient(130deg,#3c3347,#232c40 74%)}
+.ascension-legacy-gate{grid-column:1/-1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;text-align:center;padding:24px 15px;border:1px dashed #c8a36c;background:radial-gradient(ellipse at 50% 0,#735b6b5c,#192735 64%)}
+.ascension-legacy-gate>span{font-size:32px;color:#e2b8f5}
+.ascension-legacy-gate strong{font:700 17px Georgia,serif;color:#f5e0b7}
+.ascension-legacy-gate p{font:11px Arial,sans-serif;color:#cfc4b7;margin:0}
+.archive-room{background:linear-gradient(135deg,#1f2f3df7,#111c2bf6 76%),url('assets/chambers/research.webp') center/cover}
+.archive-headline{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:11px;padding:2px 5px 9px;border-bottom:1px solid #e7c78e64}
+.archive-headline h2{font:700 24px Georgia,serif;color:#ffe4b7;margin:5px 0 0}
+.archive-headline p{max-width:400px;font:12px/1.45 Arial,sans-serif;color:#d9cdb5;margin:0}
+.archive-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.archive-school{min-width:0;border:1px solid #a68558;padding:8px;background:linear-gradient(160deg,#35403de8,#182837ed 30%,#152434f2);box-shadow:inset 0 0 0 2px #10212a,inset 0 2px #ffdea32b;position:relative}
+.archive-school:before,.archive-school:after{content:'✦';position:absolute;top:7px;color:#f1c588;font-size:10px}.archive-school:before{left:8px}.archive-school:after{right:8px}
+.archive-school h3{display:flex;flex-direction:column;gap:3px;padding:5px 13px 9px;margin:0 0 5px;border-bottom:2px double #cba264;color:#ffdfad;font:700 16px Georgia,serif;text-align:center}
+.archive-school h3 small{font:700 8px Arial,sans-serif;letter-spacing:1.3px;color:#bea78d}
+.archive-entry{display:grid;grid-template-columns:47px minmax(0,1fr) 111px;align-items:center;gap:8px;padding:7px 3px;min-height:82px;border-bottom:1px solid #e2bd8342}
+.archive-entry:last-child{border-bottom:0}
+.archive-entry:hover{background:#e3bf7b0b}
+.archive-details{min-width:0;display:flex;flex-direction:column;gap:5px}
+.archive-entry-top{display:flex;justify-content:space-between;gap:5px;align-items:baseline}
+.archive-entry-top strong{font:700 14px Georgia,serif;color:#ffdfb4}
+.archive-entry-top small{font:700 9px Arial,sans-serif;color:#a9dbc2;white-space:nowrap}
+.archive-details p{font:10px/1.35 Arial,sans-serif;color:#d9cdbd;margin:0}
+.archive-action{display:flex;flex-direction:column;align-items:stretch;gap:5px}
+.archive-action small{text-align:center;font:700 9px Arial,sans-serif;color:#e6c789;white-space:nowrap}
+.archive-seal{font:700 10px Georgia,serif;letter-spacing:1.5px;text-align:center;color:#d9bd91;margin-top:10px;padding:10px 0 1px;border-top:1px solid #bd976b50}
+@media(max-width:1050px){
+ .panel[data-theme="training"] .panel-content-scroll,.panel[data-theme="research"] .panel-content-scroll{padding:7px 9px 14px}
+ .ascension-shell{min-height:106px;padding:11px 12px 7px;grid-template-columns:minmax(0,1fr) minmax(205px,260px)}
+ .ascension-copy h2{font-size:25px}
+ .ascension-copy p{font-size:10px}
+ .ascension-money{padding:4px 3px}
+ .ascension-money strong{font-size:17px}
+ .ascension-money small{font-size:7px}
+ .ascension-ledger-heading strong{font-size:20px}
+ .ascension-row-list{gap:5px}
+ .ascension-upgrade{grid-template-columns:38px minmax(0,1fr) minmax(95px,100px);gap:5px;padding:5px;min-height:76px}
+ .ascension-emblem,.archive-emblem{width:37px;height:43px}
+ .ascension-emblem .pixel-symbol,.archive-emblem .pixel-symbol{width:32px;height:35px}
+ .ascension-upgrade-name strong{font-size:13px}
+ .ascension-upgrade-name small{font-size:8px}
+ .ascension-upgrade-copy p{font-size:9px;min-height:0}
+ .archive-grid{gap:6px}
+ .archive-entry{grid-template-columns:36px minmax(0,1fr) 88px;gap:5px}
+ .archive-entry-top strong{font-size:12px}
+ .archive-action button{font-size:9px}
+}
+@media(max-width:780px){
+ .ascension-shell{grid-template-columns:1fr;grid-template-rows:auto auto auto;min-height:0;gap:8px}
+ .ascension-treasury{justify-content:flex-start}
+ .ascension-money{max-width:none}
+ .ascension-money strong{font-size:18px}
+ .ascension-progress{grid-column:1}
+ .ascension-row-list{grid-template-columns:1fr}
+ .archive-grid{grid-template-columns:1fr}
+}
+@media(orientation:portrait) and (max-width:680px){
+ .ascension-shell{padding:9px 10px 7px;margin-bottom:7px}
+ .ascension-copy h2{font-size:23px;margin:3px 0}
+ .ascension-copy p{font-size:10px;line-height:1.25}
+ .ascension-treasury{gap:3px}
+ .ascension-money small{font-size:7px}
+ .ascension-money strong{font-size:17px}
+ .ascension-progress{grid-template-columns:auto auto 1fr;gap:5px;padding-top:5px}
+ .ascension-progress>span{font-size:8px}
+ .ascension-ledger,.archive-room{padding:7px}
+ .ascension-ledger-heading{padding-bottom:5px}
+ .ascension-ledger-heading strong{font-size:19px}
+ .ascension-ledger-heading>span{display:none}
+ .ascension-filter-row{gap:4px;padding-bottom:7px}
+ .ascension-filter{min-width:69px;min-height:34px;padding:6px 8px;font-size:10px}
+ .ascension-upgrade{grid-template-columns:38px minmax(0,1fr) 96px;gap:5px;padding:5px;min-height:70px}
+ .ascension-emblem{width:36px;height:42px}
+ .ascension-upgrade-name{display:flex;flex-wrap:wrap;gap:2px}
+ .ascension-upgrade-name strong{font-size:12px}
+ .ascension-upgrade-name small{font-size:8px}
+ .ascension-upgrade-copy p{font-size:9px;line-height:1.2}
+ .ascension-next-cost{font-size:9px}
+ .ascension-action-buttons button{min-height:29px;font-size:9px}
+ .ascension-ledger-note{font-size:9px}
+ .archive-headline{align-items:flex-start;margin-bottom:8px}
+ .archive-headline h2{font-size:19px}
+ .archive-headline p{display:none}
+ .archive-school{padding:6px}
+ .archive-school h3{font-size:14px}
+ .archive-entry{grid-template-columns:36px minmax(0,1fr) 90px;min-height:71px}
+ .archive-details p{font-size:9px}
+ .archive-entry-top strong{font-size:12px}
+ .archive-action small{font-size:8px}
+ .archive-action button{min-height:31px}
+ .archive-seal{font-size:9px;margin-top:7px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .panel[data-theme="training"] .panel-content-scroll,.panel[data-theme="research"] .panel-content-scroll{padding:4px 6px 10px}
+ .ascension-shell{grid-template-columns:minmax(0,1fr) minmax(210px,265px);min-height:82px;padding:7px 10px 5px;gap:4px 8px}
+ .ascension-copy h2{font-size:20px;margin:2px 0}
+ .ascension-copy p{font-size:9px}
+ .ascension-treasury{gap:3px}
+ .ascension-money strong{font-size:14px}
+ .ascension-money small{font-size:7px}
+ .ascension-progress{padding-top:3px}
+ .ascension-ledger{padding:6px}
+ .ascension-ledger-heading strong{font-size:18px}
+ .ascension-filter{min-height:28px;padding:4px 8px}
+ .ascension-upgrade{min-height:65px}
+ .archive-entry{min-height:65px}
+}
+@media(prefers-reduced-motion:reduce){.ascension-upgrade,.ascension-filter,.archive-entry{transition:none!important}}
