@@ -364,7 +364,7 @@ function renderEncounterIntel(tier){
  let upcoming=null;
  for(let w=startWave;w<=Math.min(MAX_WAVE,startWave+100);w++){
   const event=encounterDirector(w,tier);
-  if(['chapterBoss','commander','treasure','ambush','elite'].includes(event.kind)){upcoming=event;break;}
+  if(['chapterBoss','commander','treasure','ambush','elite','vanguard'].includes(event.kind)){upcoming=event;break;}
  }
  const roleNames={goblin:'goblins',skeleton:'skeletons',warg:'wargs',raider:'rush raiders',guardian:'shield guards',shaman:'ritual shamans'};
  const roles=[...new Set(focus.units.map(n=>roleNames[n]||n))].join(' · ');
