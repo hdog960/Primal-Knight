@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.6.7. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.6.8. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -481,7 +481,7 @@ function renderPowerHeader(kind){
   <div class="ascension-scene" aria-hidden="true"></div>
   <div class="ascension-copy">
    <span class="ascension-kicker">${isTraining?'✦ THE ETERNAL ASCENT':'✧ THE ROYAL ARCHIVES'}</span>
-   <h2>${isTraining?'Forge Your Power':'Research the Kingdom'}</h2>
+   <h2>${isTraining?"The Knight's Forge":'Research the Kingdom'}</h2>
    <p>${isTraining?'Invest Hero Essence in the knight you command. Every rank endures.':'Spend Knowledge on permanent efficiencies, better rewards, and the art of advancement.'}</p>
   </div>
   <div class="ascension-treasury">
@@ -494,49 +494,68 @@ function renderPowerHeader(kind){
  </div>`;
 }
 function renderTrainingLedger(){
- const categories={
-  Offense:['power','haste','crit','critDmg','pierce'],
-  Techniques:['range','multishot','boss','shock'],
-  Defense:['fort','regen','resist'],
-  Economy:['gold','xp','essence','loot'],
-  Legacy:[],
-  All:training.map(row=>row[0])
- };
- const current=Object.prototype.hasOwnProperty.call(categories,trainFilter)?trainFilter:'Offense';
- const categoryNav=Object.keys(categories).map(name=>`<button type="button" class="ascension-filter${current===name?' selected':''}" data-train-filter="${name}" aria-pressed="${current===name}">${name==='Legacy'?'✦ ':''}${name}</button>`).join('');
+ const groups=[
+  {key:'Offense',icon:'battle',subtitle:'HIT HARDER',description:'Sharpen your attacks and critical strikes.',ids:['power','haste','crit','critDmg','pierce']},
+  {key:'Techniques',icon:'skills',subtitle:'CONTROL THE FIELD',description:'Develop specialized strikes and projectiles.',ids:['range','multishot','boss','shock']},
+  {key:'Defense',icon:'fortress',subtitle:'HOLD THE WALL',description:'Strengthen the fortress and withstand the horde.',ids:['fort','regen','resist']},
+  {key:'Economy',icon:'research',subtitle:'GROW EVERY RUN',description:'Earn more resources and better battle rewards.',ids:['gold','xp','essence','loot']}
+ ];
  const icons={
-  power:'battle',haste:'power',crit:'battle',critDmg:'skills',pierce:'battle',range:'battle',multishot:'battle',boss:'suppression',shock:'runes',
-  fort:'fortress',regen:'research',resist:'hero',gold:'runes',xp:'skills',essence:'power',loot:'gear'
+  power:'battle',haste:'power',crit:'battle',critDmg:'skills',pierce:'battle',
+  range:'battle',multishot:'battle',boss:'suppression',shock:'runes',
+  fort:'fortress',regen:'research',resist:'hero',
+  gold:'runes',xp:'skills',essence:'power',loot:'gear'
  };
- const rows=training.filter(row=>categories[current].includes(row[0])).map(row=>{
-  const [id,name,desc,,,max]=row,rank=t(id),cost=trainCost(row),full=rank>=max,afford=!full&&p.essence>=cost,bulk=full?{count:0,cost:0}:trainBatchQuote(row,10);
-  const buyCount=bulk.count;
-  return `<article class="ascension-upgrade" data-train-row="${id}">
+ function upgradeRow(row){
+  const [id,name,desc,,,max]=row,rank=t(id),cost=trainCost(row),
+  full=rank>=max,ready=!full&&p.essence>=cost,batch=full?{count:0,cost:0}:trainBatchQuote(row,10);
+  return `<article class="ascension-upgrade forge-upgrade-row" data-train-row="${id}">
    <div class="ascension-emblem"><span class="pixel-symbol pixel-symbol-${icons[id]||'power'}" aria-hidden="true"></span></div>
-   <div class="ascension-upgrade-copy"><div class="ascension-upgrade-name"><strong>${name}</strong><small>RANK ${fmt(rank)} / ${fmt(max)}</small></div>
-    <p>${desc}</p>
-    <div class="ascension-rank-track" role="progressbar" aria-label="${name} rank" aria-valuenow="${rank}" aria-valuemin="0" aria-valuemax="${max}"><span style="width:${meterPct(rank,max)}%"></span></div></div>
-   <div class="ascension-action-cell"><div class="ascension-next-cost">${full?'FULLY MASTERED':`NEXT 🔷 ${fmt(cost)}`}</div><div class="ascension-action-buttons">
-    <button type="button" data-action="train:${id}" ${!afford?'disabled':''}>${full?'MAX':'UP +1'}</button>
-    <button type="button" class="ascension-multi" data-action="trainBatch:${id}" ${buyCount<2?'disabled':''}>${buyCount>=2?'UP +'+buyCount:'×10'}</button>
-   </div></div>
+   <div class="ascension-upgrade-copy"><div class="ascension-upgrade-name"><strong>${name}</strong><small>${fmt(rank)} / ${fmt(max)}</small></div>
+    <p>${desc}</p><div class="ascension-rank-track" role="progressbar" aria-label="${name} rank" aria-valuenow="${rank}" aria-valuemin="0" aria-valuemax="${max}"><span style="width:${meterPct(rank,max)}%"></span></div>
+   </div>
+   <div class="ascension-action-cell"><div class="ascension-next-cost">${full?'MASTERED':`🔷 ${fmt(cost)}`}</div>
+    <div class="ascension-action-buttons">
+     <button type="button" data-action="train:${id}" ${!ready?'disabled':''}>${full?'MAX':'+1'}</button>
+     <button type="button" class="ascension-multi" data-action="trainBatch:${id}" ${batch.count<2?'disabled':''} aria-label="Train ${name} up to ten ranks">${batch.count>=2?'+'+batch.count:'×10'}</button>
+    </div>
+   </div>
   </article>`;
+ }
+ const groupMarkup=groups.map(group=>{
+  const rows=training.filter(row=>group.ids.includes(row[0]));
+  const invested=rows.reduce((sum,row)=>sum+t(row[0]),0);
+  const capacity=rows.reduce((sum,row)=>sum+row[5],0);
+  return `<section class="forge-category forge-category-${group.key.toLowerCase()}" aria-label="${group.key} training">
+    <div class="forge-category-head"><span class="forge-category-crest"><span class="pixel-symbol pixel-symbol-${group.icon}" aria-hidden="true"></span></span>
+      <div class="forge-category-heading"><small>${group.subtitle}</small><h3>${group.key}</h3><p>${group.description}</p></div>
+      <div class="forge-category-total"><b>${fmt(invested)}</b><small>/ ${fmt(capacity)} ranks</small></div></div>
+    <div class="forge-category-rows">${rows.map(upgradeRow).join('')}</div>
+   </section>`;
  }).join('');
- const legacyRows=legacyPaths.map(row=>{
-  const [id,name,desc,,max]=row,rank=lr(id),cost=legacyCost(row),full=rank>=max,ready=p.sigils>=cost&&!full;
-  return `<article class="ascension-upgrade ascension-legacy-upgrade">
-    <div class="ascension-emblem"><span class="pixel-symbol pixel-symbol-${id==='goldenTouch'?'runes':id==='guardianOath'?'fortress':'battle'}" aria-hidden="true"></span></div>
-    <div class="ascension-upgrade-copy"><div class="ascension-upgrade-name"><strong>${name}</strong><small>RANK ${rank} / ${max}</small></div><p>${desc}</p><div class="ascension-rank-track"><span style="width:${meterPct(rank,max)}%"></span></div></div>
-    <div class="ascension-action-cell"><div class="ascension-next-cost">${full?'MASTERED':`NEXT 💠 ${fmt(cost)}`}</div><div class="ascension-action-buttons"><button type="button" data-action="legacy:${id}" ${!ready?'disabled':''}>${full?'MAX':'UP +1'}</button></div></div>
-   </article>`;
- }).join('');
+ const legacyMarkup=p.legacyUnlocked?legacyPaths.map(row=>{
+  const [id,name,desc,,max]=row,rank=lr(id),cost=legacyCost(row),full=rank>=max,ready=!full&&p.sigils>=cost;
+  return `<article class="ascension-upgrade forge-upgrade-row forge-legacy-row" data-legacy-row="${id}">
+   <div class="ascension-emblem"><span class="pixel-symbol pixel-symbol-${id==='goldenTouch'?'runes':id==='guardianOath'?'fortress':'battle'}" aria-hidden="true"></span></div>
+   <div class="ascension-upgrade-copy"><div class="ascension-upgrade-name"><strong>${name}</strong><small>${rank} / ${max}</small></div><p>${desc}</p>
+    <div class="ascension-rank-track"><span style="width:${meterPct(rank,max)}%"></span></div></div>
+   <div class="ascension-action-cell"><div class="ascension-next-cost">${full?'MASTERED':`💠 ${fmt(cost)}`}</div>
+    <div class="ascension-action-buttons"><button type="button" data-action="legacy:${id}" ${!ready?'disabled':''}>${full?'MAX':'+1'}</button></div>
+   </div></article>`;
+ }).join(''):`<div class="ascension-legacy-gate"><span>✦</span><strong>Masteries are sealed</strong><p>Survive Tier I, Wave 15 to unlock three permanent Sigil-powered disciplines.</p></div>`;
  return `${renderPowerHeader('training')}
-  <div class="ascension-ledger">
-   <div class="ascension-ledger-heading"><div><small>✦ THE KNIGHT'S FORGE</small><strong>${current==='Legacy'?'Legacy Masteries':current==='All'?'All Training Paths':current+' Training'}</strong></div><span>One rank or many · Purchases are permanent</span></div>
-   <div class="ascension-filter-row" role="group" aria-label="Training specialization">${categoryNav}</div>
-   <div class="ascension-row-list">${current==='Legacy'?(p.legacyUnlocked?legacyRows:`<div class="ascension-legacy-gate"><span>✦</span><strong>Legacy Masteries are sealed</strong><p>Clear Tier I, Wave 15 to unlock these permanent Sigil-powered disciplines.</p></div>`):rows}</div>
-   <div class="ascension-ledger-note">The +10 button purchases up to 10 ranks that you can afford; the displayed +number tells you exactly how many will be purchased. No additional currencies or purchases are required.</div>
-  </div>`;
+ <div class="forge-ledger">
+  <div class="forge-ledger-head"><div><small>✦ THE KNIGHT'S FORGE</small><h2>All your training, one place</h2></div>
+   <span>16 permanent upgrades · Four disciplines · No category switching</span></div>
+  <div class="forge-all-categories">${groupMarkup}</div>
+  <section class="forge-legacy-chamber" aria-label="Legacy Masteries">
+   <div class="forge-category-head"><span class="forge-category-crest"><span class="pixel-symbol pixel-symbol-power" aria-hidden="true"></span></span>
+    <div class="forge-category-heading"><small>✦ PRIMAL SIGIL INVESTMENTS</small><h3>Legacy Masteries</h3><p>Permanent powers earned through milestone progression.</p></div>
+    <div class="forge-category-total"><b>${fmt(p.sigils)}</b><small>Sigils held</small></div>
+   </div><div class="forge-legacy-rows">${legacyMarkup}</div>
+  </section>
+  <div class="forge-ledger-note">🔷 Use +1 or purchase up to ten affordable ranks with the second button. 💠 Legacy uses Primal Sigils. All purchases are permanent.</div>
+ </div>`;
 }
 function renderResearchArchive(){
  const researchIcons={discount:'gear',fusion:'runes',interest:'power',excavation:'gear',bounties:'battle',studies:'research'};
