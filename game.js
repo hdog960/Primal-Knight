@@ -388,7 +388,7 @@ function renderEncounterIntel(tier){
  const roles=[...new Set(focus.units.map(n=>roleNames[n]||n))].join(' · ');
  return `<section class="encounter-intel" aria-label="Upcoming enemy intelligence">
   <div><small>⚔ SIEGE INTELLIGENCE · CHAPTER ${roman(focus.chapter)}</small>
-   <strong>${focus.faction}</strong><p>${roles}</p>
+   <strong>${focus.faction}</strong><p>${roles}</p><p class="encounter-intel-objective">${upcoming&&upcoming.kind==='chapterBoss'?'✦ FLAWLESS CHAPTER BONUS · ZERO BREACHES':'Shield guards, casters and siege weapons have counterplay.'}</p>
   </div><span>${upcoming?'NEXT '+upcoming.label+'<b>WAVE '+formatWave(upcoming.wave)+'</b>':'FINAL CHAPTER'} </span>
  </section>`;
 }
@@ -587,6 +587,18 @@ function tick(dt){
  for(let i=run.shots.length-1;i>=0;i--){let s=run.shots[i];if(s.target.dead){run.shots.splice(i,1);continue}let dx=s.target.x-s.x,dy=s.target.y-s.y,dist=Math.hypot(dx,dy),speed=(s.kind==='lightning'?1100:820)*(1+t('range')*.017);s.trail.push([s.x,s.y]);if(s.trail.length>7)s.trail.shift();s.x+=dx/(dist||1)*dt*speed;s.y+=dy/(dist||1)*dt*speed;s.life-=dt;if(dist<dt*speed+8){hurt(s.target,s.power,s.kind);effect(s.x,s.y,s.kind==='lightning'?'#97f4ff':'#ffe07c',7);run.shots.splice(i,1);}else if(s.life<=0)run.shots.splice(i,1);}
  if(run.spawned===run.total&&run.enemies.every(e=>e.dead)){completeWave();}
 }
+function awardChapterChallenge(tier,wave,essence,knowledge){
+ const encounter=run.encounter;
+ const challenge=encounter&&encounter.wave===wave?chapterChallenge(encounter):null;
+ if(!challenge||run.breaches>0||p.chapterChallenges[challenge.key])return false;
+ p.chapterChallenges[challenge.key]=true;
+ const bonusEssence=Math.max(1,Math.ceil(essence*.12));
+ const bonusKnowledge=Math.max(1,Math.ceil(knowledge*.12));
+ p.essence+=bonusEssence;p.knowledge+=bonusKnowledge;
+ notice('✦ FLAWLESS CHAPTER '+roman(encounter.chapter));
+ message('FLAWLESS DEFENSE · +'+fmt(bonusEssence)+' ESSENCE · +'+fmt(bonusKnowledge)+' KNOWLEDGE');
+ return true;
+}
 function completeWave(){
  if(run.phase!=='fighting')return;
  const cleared=run.wave,tier=run.tier,multi=tierReward(tier);
@@ -603,6 +615,7 @@ function completeWave(){
  if(tierMilestones(tier).includes(cleared))rewardMilestone(tier,cleared);
  else message('WAVE '+fmt(cleared)+' CLEARED · +'+fmt(essence)+' ESSENCE');
  awardFirstWatch();
+ awardChapterChallenge(tier,cleared,essence,knowledge);
  if(cleared>=MAX_WAVE){
   run.phase='completed';run.wave=MAX_WAVE;run.enemies=[];run.shots=[];
   save();showLobby('ETERNAL VICTORY · Tier '+roman(tier)+' completed at wave '+fmt(MAX_WAVE));refreshHUD();return;
@@ -652,6 +665,7 @@ function refreshHUD(){
    $('encounterType').textContent=encounter.label;
    $('encounterFaction').textContent=encounter.faction;
    $('encounterChapter').textContent='CHAPTER '+roman(encounter.chapter);
+   const goal=$('encounterGoal');if(goal){const challenge=chapterChallenge(encounter);goal.hidden=!challenge;goal.textContent=challenge?'✦ '+challenge.desc+(run.breaches?' · FAILED':' · UNBROKEN'):'';goal.dataset.failed=run.breaches?'true':'false';}
   }
  }
  $('waveFill').style.width=(run.phase==='fighting'?100*run.kills/(run.total||1):run.phase==='intermission'?100:0)+'%';
@@ -1292,5 +1306,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,shieldAuraReduction,rallyAuraFactor,threatPriority,chapterChallenge,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,shieldAuraReduction,rallyAuraFactor,threatPriority,chapterChallenge,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
