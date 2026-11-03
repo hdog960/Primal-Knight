@@ -67,3 +67,8 @@ Delivered: deterministic 100-wave encounter director, five faction rosters, seve
 Delivered: three additional factions (**eight total**), frost casters, interruptible sappers, rallying bannerets, siegebeast charge telegraphs, priority-aware automated targeting, original consistent pixel-art sprites, one-time flawless chapter objectives, mobile HUD indicator, extended combat and save-regression QA. See `docs/ALPHA_0101_LIVING_ONSLAUGHT.md`.
 
 **Alpha 0.10.0 is still in progress.** Next: two more factions, higher-identity chapter boss variants, optional non-chapter events, improved telegraphs and iPhone hardware playtesting. Do not move to 0.11.0 until the broader Living Onslaught criteria are assessed.
+
+### Alpha 0.10.2 — Living Onslaught, slice 3
+Delivered: Thornwake Circle and Riftborne Court (ten total factions); interruptible short-lived thorn wards and bounded rift blinks; three century boss styles with original-palette sprite variants, visible phase II mechanics, and reinforcements inside the 24-enemy cap; rare zero-breach Relic Hunts with finite first-clear rune/Knowledge rewards; persistent non-farmable ledger and expanded regression QA. See `docs/ALPHA_0102_LIVING_ONSLAUGHT.md`.
+
+**The broader Alpha 0.10 Living Onslaught phase still requires hardware approval** and further boss/event variety evaluation before 0.11 begins. Preserve all decisions and progression goals.
