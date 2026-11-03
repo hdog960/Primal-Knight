@@ -121,4 +121,39 @@ const eternalLoot=lootRarities(6000);
 assert(eternalLoot.has(8),'Eternal rarity becomes obtainable at wave 6000');
 console.log('ECONOMY CHECK',JSON.stringify({oneTimeSigils:allSigilRewards,fullAscensionCosts:ascFullCosts,fullLegacyCosts:legacyFullCosts,rarityGates:[0,1000,2500,6000]}));
 
-console.log('PASS: Tier XIII access does not imply Tier I 10000 mastery; advanced progression makes deep waves achievable; object pools bounded.');
+
+// Thirty-tier finite mastery economy: one-time milestones must fund every capped Sigil rank.
+let thirtyTierSigils=0,outerTierSigils=0,allMilestoneAchievements=0;
+for(let tier=1;tier<=30;tier++){
+ const ladder=economyHooks.tierMilestones(tier);
+ allMilestoneAchievements+=ladder.length;
+ for(const wave of ladder){
+  const prize=economyHooks.tierMilestone(tier,wave);
+  let payout=0;
+  if(['sigils','deepSigils','path','eternal','tier','legacy','frontier','dominion'].includes(prize.kind))payout=prize.amount;
+  if(prize.kind==='century')payout=12+tier*3;
+  thirtyTierSigils+=payout;
+  if(tier>=17)outerTierSigils+=payout;
+ }
+}
+const oathFullCosts=[[30,58],[35,58],[40,58],[45,58]].reduce((total,[base,max])=>
+ total+Array.from({length:max},(_,rank)=>Math.ceil(base*(1+rank*.08+rank*rank*.012))).reduce((sum,cost)=>sum+cost,0),0);
+const fullMasteryCosts=ascFullCosts+legacyFullCosts+oathFullCosts;
+assert.equal(allMilestoneAchievements,16*33+14*44,'Every tier has 33 or 44 one-time achievements');
+assert(thirtyTierSigils>=fullMasteryCosts,'Complete 30-tier Sigil income can fund all capped Oath, Ascension and Legacy ranks');
+assert(thirtyTierSigils<fullMasteryCosts*1.1,'The finite 30-tier Sigil economy has less than ten percent excess after maxing every rank');
+assert(allSigilRewards<fullMasteryCosts*.3,'The old first sixteen tiers alone cannot max new sovereign upgrades');
+assert(outerTierSigils>allSigilRewards,'The new outer tiers remain the primary late-game Sigil source');
+const perTierSpawnSeconds=Array.from({length:10000},(_,i)=>{
+ const wave=i+1,n=economyHooks.waveEnemyCount(wave),interval=Math.max(.26,1.05-wave*.018);
+ return .35+(n-1)*interval+1.2;
+}).reduce((a,b)=>a+b,0);
+const minimalHoursAt2x=perTierSpawnSeconds*30/7200;
+assert(minimalHoursAt2x>300&&minimalHoursAt2x<340,'Thirty complete 10,000-wave tiers require over 300 theoretical hours at 2x');
+const planningFactor=1250/minimalHoursAt2x;
+assert(planningFactor>3.5&&planningFactor<4.5,'The 1,250h design target needs substantial nontrivial combat, retry and mastery time');
+console.log('LONG-CONQUEST ECONOMY/PACING',JSON.stringify({tiers:30,wavesPerTier:10000,uniqueMilestones:allMilestoneAchievements,oneTimeSigils:thirtyTierSigils,
+ oathFullCosts,ascFullCosts,legacyFullCosts,fullMasteryCosts,theoretical2xMinimumHours:Number(minimalHoursAt2x.toFixed(1)),
+ designTargetHours:1250,neededPlaytimeMultiplier:Number(planningFactor.toFixed(2))}));
+
+console.log('PASS: 30-tier progression and Tier XIII access does not imply Tier I 10000 mastery; advanced progression makes deep waves achievable; object pools bounded.');
