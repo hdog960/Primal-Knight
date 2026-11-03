@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.6.3. Character armory, equipment wardrobe and safe gear selling. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.6.5. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -213,7 +213,7 @@ const hubs={battle:['battle'],hero:['hero','skills'],power:['training','research
 const hubLabels={battle:'Battle',hero:'Hero',power:'Power',gear:'Gear',fortress:'Fortress'};
 const tabIcons={hero:'hero',skills:'skills',training:'training',research:'research',equipment:'gear',runes:'runes',stations:'stations',suppression:'suppression',settings:'power'};
 const tabInfo={
- hero:['THE WARDEN','The Defender','Your hero, your legend. Every upgrade serves this one warrior.','The heart of the fortress'],
+ hero:['HERO HALL','The Defender','Your hero, your legend. Every upgrade serves this one warrior.','The heart of the fortress'],
  skills:['PATHS OF POWER','The Hall of Talents','Spend level points on lasting specialties. Learn talents in order, or explore other schools.','Learn and specialize'],
  training:['HERO TRAINING','The Eternal Ascent','Thousands of ranks, each making your hero stronger. Spend Essence to grow for the long haul.','Your strength never rests'],
  research:['ROYAL RESEARCH','The Royal Archive','Make every reward go further. Invest Knowledge to reduce costs and boost future income.','Wisdom builds kingdoms'],
@@ -251,6 +251,98 @@ function card(title,description,level,cost,label,actionId,disabled=false,accent=
 const section=(head,body)=>`<h2 class="section-title">${head}</h2>${body}`;
 const cards=arr=>`<div class="cards">${arr.join('')}</div>`;
 const highlight=(title,body,icon='✦')=>`<div class="highlight-banner"><div><b>${title}</b><small>${body}</small></div><div class="banner-emblem" aria-hidden="true">${icon}</div></div>`;
+
+const schoolIcons={Marksman:'🏹',Arcanist:'✧',Guardian:'♜',Prospector:'✦'};
+const heroCritChance=()=>Math.round((.06+t('crit')*.002)*1000)/10;
+const heroCritDamage=()=>Math.round((1.7+t('critDmg')*.025+skill('focus')*.2)*100);
+const goldBonusPct=()=>Math.round((t('gold')*.028+skill('fortune')*.08+res('bounties')*.03+lr('goldenTouch')*.04)*100);
+const xpBonusPct=()=>Math.round((t('xp')*.025+skill('wisdom')*.07)*100);
+const dropBonusPct=()=>Math.round((t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015)*1000)/10;
+const discountPct=()=>Math.round(Math.min(.42,res('discount')*.014+skill('salvage')*.02)*100);
+const suppressionPct=()=>Math.round(Math.min(.35,sup('health')*.005)*100);
+const schoolInvested=school=>skills[school].reduce((sum,[id])=>sum+skill(id),0);
+const totalInvestedSkills=()=>Object.keys(skills).reduce((sum,school)=>sum+schoolInvested(school),0);
+const heroPowerScore=()=>Math.floor(damage()*4 + maxWall()*1.35 + p.level*55 + totalInvestedSkills()*18 + stationData.reduce((sum,row)=>sum+station(row[0])*20,0));
+function renderSkillTreeBlock(school,compact=false){
+ const invested=schoolInvested(school), schoolArt={Marksman:'battle',Arcanist:'runes',Guardian:'fortress',Prospector:'research'};
+ const nodes=skills[school].map(([id,name,desc],i)=>{
+  const rank=skill(id),need=1+i*3,prior=i===0||skill(skills[school][i-1][0])>0;
+  const locked=!prior||p.level<need,full=rank>=5,afford=p.points>=1;
+  const state=full?'mastered':locked?'locked':rank?'learned':afford?'available':'waiting';
+  const label=full?'MASTERED':locked?(!prior?'LEARN PREVIOUS NODE':'UNLOCKS AT LEVEL '+need):!afford?'NEED 1 SKILL POINT':rank?'UPGRADE TALENT':'UNLOCK TALENT';
+  const pips=Array.from({length:5},(_,j)=>`<i class="${j<rank?'filled':''}" aria-hidden="true"></i>`).join('');
+  return `<article class="talent-node ${state}" data-node="${id}" aria-label="${name}, rank ${rank} of 5">
+    <div class="talent-node-connector" aria-hidden="true"></div>
+    <div class="talent-node-head"><span class="talent-node-seal"><span class="pixel-symbol pixel-symbol-${schoolArt[school]}" aria-hidden="true"></span></span>
+      <div><small>PATH ${String(i+1).padStart(2,'0')} · ${i===0?'FOUNDATION':'LEVEL '+need}</small><h3>${name}</h3></div><span class="talent-node-state" aria-hidden="true">${full?'✦':locked?'🔒':rank?'✧':'◇'}</span></div>
+    <p>${desc}</p><div class="talent-node-rank"><div class="talent-gems">${pips}</div><strong>${rank} / 5</strong></div>
+    <button type="button" data-action="skill:${id}" ${locked||full||!afford?'disabled':''}>${label} ${(!locked&&!full&&afford)?'· 1 POINT':''}</button>
+  </article>`;
+ }).join('');
+ return section(`${school.toUpperCase()} · ${invested} INVESTED POINTS`,`<div class="talent-board" data-school="${school}">
+   <div class="talent-board-banner"><span>${schoolIcons[school]} ${school} Ascendancy</span><small>FOLLOW THE CONNECTED TALENT PATH</small></div>
+   <div class="talent-tree ${compact?'compact-tree':''}">${nodes}</div>
+   <div class="talent-board-footer">✦ Each node has five ranks · New talents require their preceding node and hero level ✦</div>
+ </div>`);
+}
+function renderHeroHall(){
+ const percent=meterPct(p.xp,lvlNeed());
+ const majorStats=[
+  ['POWER RATING',fmt(heroPowerScore())],
+  ['ATTACK POWER',fmt(damage())],
+  ['ATTACK INTERVAL',attackInterval().toFixed(2)+' sec'],
+  ['FORTRESS HEALTH',fmt(maxWall())],
+  ['CRIT CHANCE',heroCritChance()+'%'],
+  ['CRIT DAMAGE',heroCritDamage()+'%'],
+  ['BEST WAVE',fmt(p.best)],
+  ['WAVES CLEARED',fmt(p.clears)]
+ ];
+ const bonusStats=[
+  ['GOLD BONUS','+'+goldBonusPct()+'%'],
+  ['XP BONUS','+'+xpBonusPct()+'%'],
+  ['DROP BONUS','+'+dropBonusPct()+'%'],
+  ['UPGRADE DISCOUNT','-'+discountPct()+'%'],
+  ['ENEMY HEALTH WEAKENING','-'+suppressionPct()+'%'],
+  ['UNSPENT POINTS',fmt(p.points)]
+ ];
+ const schoolPills=Object.keys(skills).map(school=>`<button class="hall-school-pill ${selectedSchool===school?'selected':''}" data-school="${school}">${schoolIcons[school]} <span>${school}</span><small>${schoolInvested(school)} pts</small></button>`).join('');
+ const buildSources=[['Gear','Your equipment, enhancement levels, and socketed runes feed your combat strength.'],['Training','Long-term permanent growth funded by Hero Essence.'],['Stations','Support structures expand your battlefield control and utility.'],['Masteries','Sigil-powered bonuses and research deepen your scaling ceiling.']].map(([title,copy])=>`<article class="build-source"><strong>${title}</strong><p>${copy}</p></article>`).join('');
+ return `${highlight('Hero Hall · Level '+p.level,'Your knight, your power, your legacy. Review your build and follow connected talent paths without leaving Hero Hall.','♜')}
+ <section class="hero-hall">
+  <div class="hero-profile-card">
+   <div class="hero-profile-art"><img src="assets/hero_front.png?v=064" alt="Front-facing Primal Knight portrait"></div>
+   <div class="hero-profile-meta"><small>THE LONE DEFENDER</small><h3>Primal Knight</h3><p>Crimson-cloaked guardian of the wall. One hero, endless growth, relentless onslaught.</p></div>
+   <div class="hero-xp-row"><span>LEVEL ${p.level}</span><strong>${fmt(p.xp)} / ${fmt(lvlNeed())} XP</strong></div>
+   <div class="meter hero-xp-meter"><div style="width:${percent}%"></div></div>
+   <div class="hero-banner-box"><small>ACTIVE BANNER</small><strong>♛ ${p.activeBanner}</strong></div>
+   <button class="wide-btn" data-goto="skills">OPEN TREE FOCUS →</button>
+  </div>
+  <div class="hero-overview-card">
+   <div class="hero-overview-head"><small>OVERVIEW</small><h3>Current combat state</h3><p>These are the stats that define your knight right now, after gear, talents, and permanent upgrades.</p></div>
+   <div class="stat-grid hero-hall-stats">${majorStats.map(([name,val])=>`<div class="stat-tile"><small>${name}</small><strong>${val}</strong></div>`).join('')}</div>
+  </div>
+  <div class="hero-bonuses-card">
+   <div class="hero-overview-head"><small>BONUSES</small><h3>Economy & progression</h3><p>A quick snapshot of the systems that help your grind snowball over time.</p></div>
+   <div class="hero-bonus-grid">${bonusStats.map(([name,val])=>`<div class="bonus-tile"><small>${name}</small><strong>${val}</strong></div>`).join('')}</div>
+  </div>
+  <div class="hero-build-card">
+   <div class="hero-overview-head"><small>POWER SOURCES</small><h3>What makes you stronger</h3><p>The Hero Hall should explain your whole build at a glance.</p></div>
+   <div class="build-source-grid">${buildSources}</div>
+  </div>
+ </section>
+ ${section('BATTLE BANNERS · COSMETIC REWARDS',`<div class="banner-picks">${p.banners.map(name=>`<button class="banner-choice ${p.activeBanner===name?'selected':''}" data-banner="${name}">♛ ${name}${p.activeBanner===name?' ✓':''}</button>`).join('')}</div>`)}
+ ${section('HERO PATHS · CHOOSE A DISCIPLINE',`<div class="hero-hall-paths"><div class="filter-bar hero-hall-filter" role="group" aria-label="Skill discipline">${schoolPills}</div><div class="hero-path-summary">${Object.keys(skills).map(school=>`<article class="path-summary-card ${selectedSchool===school?'selected':''}"><small>${schoolIcons[school]} ${school}</small><strong>${schoolInvested(school)} / 30</strong><p>${({Marksman:'Pure offense, projectile mastery, critical scaling.',Arcanist:'Elemental effects, burning, slow, and lightning control.',Guardian:'Wall durability, survival, and last-stand defense.',Prospector:'Gold, drops, XP, and long-term efficiency.'})[school]}</p></article>`).join('')}</div>${renderSkillTreeBlock(selectedSchool in skills?selectedSchool:'Marksman', true)}</div>`)}
+ `;
+}
+function renderTreeFocus(){
+ const school=selectedSchool in skills?selectedSchool:'Marksman';
+ return `${highlight('Tree Focus · '+school,'Spend points in a dedicated full-width talent view. Switch disciplines any time.','✧')}
+ <div class="filter-bar hero-hall-filter" role="group" aria-label="Skill discipline">${Object.keys(skills).map(s=>`<button class="hall-school-pill ${selectedSchool===s?'selected':''}" data-school="${s}">${schoolIcons[s]} <span>${s}</span><small>${schoolInvested(s)} pts</small></button>`).join('')}</div>
+ <div class="tree-focus-head"><div><small>HERO PATHS</small><h3>${school} Discipline</h3><p>Each rank costs 1 Skill Point. Unlock later nodes by leveling up and learning at least one rank of the preceding node.</p></div><div class="tree-focus-points">${currencyGlyph.points} <strong>${fmt(p.points)}</strong><span>UNSPENT POINTS</span></div></div>
+ ${renderSkillTreeBlock(school,false)}
+ ${section('BUILD DIRECTION',`<div class="tree-focus-notes"><div class="bonus-tile"><small>OFFENSE</small><strong>${fmt(damage())}</strong><p>Marksman and Arcanist increase pressure and crowd control.</p></div><div class="bonus-tile"><small>SURVIVAL</small><strong>${fmt(maxWall())}</strong><p>Guardian improves wall integrity and stabilizes runs.</p></div><div class="bonus-tile"><small>ECONOMY</small><strong>+${goldBonusPct()}%</strong><p>Prospector improves the pace of your overall account progression.</p></div></div>`)}
+ `;
+}
 
 function slotCard(slot){
  const g=equippedGear(slot),label=gearSlotLabels[slot],icon=gearSlotArt[slot],cost=g?gearCost(g):0;
@@ -348,24 +440,13 @@ function renderPanel(){
  asidePic.innerHTML=`<img src="${chamberArt(tab)}" alt="Illustrated ${asideTitle} fantasy chamber" loading="eager" decoding="async">`;
 
  const hub=Object.keys(hubs).find(key=>hubs[key].includes(tab));
- $('subnav').innerHTML=tab==='settings'?`<span class="tag">YOUR SAVED JOURNEY</span>`:hubs[hub].map(page=>`<button data-subtab="${page}" class="${tab===page?'selected':''}" aria-current="${tab===page?'page':'false'}">${page==='hero'?'♜':page==='skills'?'✧':page==='training'?'↟':page==='research'?'⚗':page==='equipment'?'⚒':page==='runes'?'◇':page==='stations'?'♜':'☠'} ${ {hero:'Overview',skills:'Skill Trees',training:'Training',research:'Research',equipment:'Equipment',runes:'Rune Workshop',stations:'Stations',suppression:'Enemy Suppression'}[page]}</button>`).join('')+`<span class="chamber-help">Switch sections here · Back to battle ✕</span>`;
+ $('subnav').innerHTML=tab==='settings'?`<span class="tag">YOUR SAVED JOURNEY</span>`:hubs[hub].map(page=>`<button data-subtab="${page}" class="${tab===page?'selected':''}" aria-current="${tab===page?'page':'false'}">${page==='hero'?'♜':page==='skills'?'✧':page==='training'?'↟':page==='research'?'⚗':page==='equipment'?'⚒':page==='runes'?'◇':page==='stations'?'♜':'☠'} ${ {hero:'Hero Hall',skills:'Tree Focus',training:'Training',research:'Research',equipment:'Equipment',runes:'Rune Workshop',stations:'Stations',suppression:'Enemy Suppression'}[page]}</button>`).join('')+`<span class="chamber-help">Switch sections here · Back to battle ✕</span>`;
  let html=`<div class="chamber-mobile-art" aria-hidden="true"><img src="${chamberArt(tab)}" alt=""><div class="mobile-chamber-name"><small>✦ ${title}</small><b>${asideTitle}</b></div></div><div class="section-intro"><p class="lead">${description}</p><strong>${{skills:currencyGlyph.points+' '+fmt(p.points)+' POINTS',training:currencyGlyph.essence+' '+fmt(p.essence)+' ESSENCE',research:currencyGlyph.knowledge+' '+fmt(p.knowledge)+' KNOWLEDGE',equipment:currencyGlyph.gold+' '+fmt(p.gold)+' GOLD',runes:currencyGlyph.gold+' '+fmt(p.gold)+' GOLD',stations:currencyGlyph.gold+' '+fmt(p.gold)+' GOLD',suppression:currencyGlyph.knowledge+' '+fmt(p.knowledge)+' KNOWLEDGE'}[tab]||''}</strong></div>`;
  if(tab==='hero'){
-  let percent=meterPct(p.xp,lvlNeed());
-  html+=highlight('Level '+p.level+' · '+fmt(p.points)+' unspent skill points','Gain XP in combat, then visit Skill Trees to choose your path.','♜');
-  html+=`<div class="hero-grid"><div class="hero-frame"><img src="assets/hero.png" alt="One red-cloaked defender facing the battlefield"></div><div><div class="stat-grid">
-   ${[['ATTACK POWER',fmt(damage())],['ATTACK INTERVAL',attackInterval().toFixed(2)+' sec'],['FORTRESS HEALTH',fmt(maxWall())],['CRITICAL CHANCE',Math.round((.06+t('crit')*.002)*100)+'%'],['BEST WAVE',fmt(p.best)],['WAVES CLEARED',fmt(p.clears)]].map(([name,val])=>`<div class="stat-tile"><small>${name}</small><strong>${val}</strong></div>`).join('')}</div><p class="statline">Level ${p.level} progress · ${fmt(p.xp)} / ${fmt(lvlNeed())} XP</p><div class="meter"><div style="width:${percent}%"></div></div><button class="wide-btn" data-goto="skills">OPEN YOUR SKILL TREES →</button></div></div>`;
-  html+=section('BATTLE BANNERS · COSMETIC REWARDS',`<div class="banner-picks">${p.banners.map(name=>`<button class="banner-choice ${p.activeBanner===name?'selected':''}" data-banner="${name}">♛ ${name}${p.activeBanner===name?' ✓':''}</button>`).join('')}</div>`);
+  html+=renderHeroHall();
  }
  if(tab==='skills'){
-  html+=highlight('Choose a discipline','Learn talents in order. Each rank costs 1 Skill Point; later ranks require higher hero levels.','✧');
-  html+=`<div class="filter-bar" role="group" aria-label="Skill discipline">${Object.keys(skills).map(s=>`<button class="${selectedSchool===s?'selected':''}" data-school="${s}">${({Marksman:'🏹',Arcanist:'✧',Guardian:'♜',Prospector:'✦'})[s]} ${s}</button>`).join('')}</div>`;
-  const school=selectedSchool in skills?selectedSchool:'Marksman';
-  html+=section(`${school.toUpperCase()} · ${skills[school].reduce((sum,n)=>sum+skill(n[0]),0)} INVESTED POINTS`,`<div class="school-path">${skills[school].map(([id,name,desc],i)=>{
-   const rank=skill(id),need=1+i*3,prior=i===0||skill(skills[school][i-1][0])>0,locked=!prior||p.level<need,full=rank>=5,afford=p.points>=1;
-   const label=full?'MASTERED':locked?(!prior?'PREVIOUS TALENT FIRST':'UNLOCKS AT LV '+need):!afford?'NEED A SKILL POINT':'LEARN TALENT';
-   return card(`${i+1}. ${name}`,desc,`RANK ${rank} / 5 • ${i===0?'STARTER':'LEVEL '+need}`,1,label,'skill:'+id,locked||full||!afford,'',20*rank);
-  }).join('')}</div>`);
+  html+=renderTreeFocus();
  }
  if(tab==='training'){
   html+=highlight('The long road to mastery','Hero Essence is separate from Gold. These upgrades are permanent and many have hundreds of levels.','↟');

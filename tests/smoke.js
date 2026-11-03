@@ -62,8 +62,12 @@ const sigils=hooks.p().sigils;hooks.renderTierLobby();assert(el('tierGrid').inne
 // Replaying never duplicates a previously claimed tier milestone.
 hooks.retreatFromSiege();hooks.enterSiege();for(let w=1;w<=20;w++){hooks.completeWave();hooks.beginWave();}
 assert.equal(hooks.p().sigils,sigils,'Milestone currencies only pay once');
-clickHub('hero');assert(el('panelTitle').textContent==='THE WARDEN');
+clickHub('hero');assert(el('panelTitle').textContent==='HERO HALL');
+assert(el('panelContent').innerHTML.includes('hero-profile-art'),'Hero Hall contains champion portrait');
+assert(el('panelContent').innerHTML.includes('talent-board'),'Hero Hall integrates the graphical talent board');
+assert(el('panelContent').innerHTML.includes('data-node="aim"'),'First Marksman talent visible in Hero Hall');
 clickSub('skills');assert(el('panelContent').innerHTML.includes('PATHS')||el('panelContent').innerHTML.includes('Hunter'));
+assert(el('panelContent').innerHTML.includes('talent-node'),'Tree Focus uses connected talent nodes');
 clickButton({school:'Arcanist'});assert(el('panelContent').innerHTML.includes('Winter Touch'));
 clickHub('power');assert(el('panelContent').innerHTML.includes('Might'));
 assert(el('panelContent').innerHTML.includes('Siegebreaker'),'Legacy mastery is displayed');
