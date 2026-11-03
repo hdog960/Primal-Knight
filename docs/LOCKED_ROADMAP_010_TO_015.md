@@ -112,3 +112,8 @@ Delivered: real attack-countdown progress inside the boss HP HUD (Cinder, Void, 
 Delivered: damage-based counterplay against actual active Sapper fuse, Frostbinder frost ritual, Thornweaver ward and Riftstalker blink windups; safe specialist recovery cooldowns, no phantom explosive/chill/ward/warp outcomes after interruption, gold damage-progress strips and distinct break feedback, and actual-hit regressions proving cast windows and original noninterrupted dangers. See `docs/ALPHA_01010_SPECIALIST_COUNTERPLAY.md`.
 
 **Alpha 0.10 remains open for user/device acceptance and subjective combat fairness review.** Preserve all locked Alpha 0.11–0.15 objectives and do not treat the estimated 1,250-hour pacing as measured.
+
+### Alpha 0.10.11 — Living Onslaught, slice 12
+Fixed the wave-35 milestone rune loss when the 240-rune pouch was already full. All one-time milestone and Relic Hunt runes now use one persistent, duplicate-safe Rune Vault; queued milestone rewards are signposted in the Battle tier lobby and Gear → Rune Workshop, with a full-capsule / portrait-friendly presentation. Added a seventh required CI script covering all 30 tier rewards, original payout invariants, first-in claim order, duplicate protection and exported/restored full-pouch saves. See `docs/ALPHA_01011_RUNE_REWARD_INTEGRITY.md`.
+
+**Alpha 0.10 remains open for device acceptance.** The locked Alpha 0.11–0.15 objectives and the as-yet-unverified ~1,250-hour completion target are unchanged.

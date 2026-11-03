@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.10. Living Onslaught phase 11: fair specialist cast interrupts and visible disruption feedback and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.11. Living Onslaught phase 12: protected milestone runes and unified earned-rune vault and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -429,10 +429,22 @@ function tierMilestone(tier,wave){
 }
 function milestoneKey(tier,wave){return tier+':'+wave;}
 function nextMilestone(tier,wave){const list=tierMilestones(tier);return list.find(w=>w>=wave&&!p.milestones[milestoneKey(tier,w)])||list.find(w=>w>=wave)||null;}
+// Never destroy an earned, one-time rune at the 240-rune pouch limit.
+// Both milestone rewards and flawless Relic Hunts use this shared saved queue.
+function storeEarnedRune(rune){
+ if(!rune||typeof rune.id!=='string'||!rune.id||!runeNames[rune.type]||
+  !Number.isInteger(Number(rune.tier))||Number(rune.tier)<1||Number(rune.tier)>12)return 'invalid';
+ if(p.runes.some(existing=>existing&&existing.id===rune.id))return 'owned';
+ if(p.pendingRelics.some(existing=>existing&&existing.id===rune.id))return 'reserved';
+ if(p.runes.length>=240){p.pendingRelics.push(rune);return 'reserved';}
+ p.runes.push(rune);
+ return 'claimed';
+}
 function rewardMilestone(tier,wave){
  const key=milestoneKey(tier,wave);
  if(p.milestones[key]||!tierMilestones(tier).includes(wave))return false;
  const prize=tierMilestone(tier,wave);
+ let runeReserved=false;
  p.milestones[key]=true;
  if(prize.kind==='starter'){p.gold+=prize.gold;p.essence+=prize.essence;p.knowledge+=prize.knowledge;p.points+=prize.points;}
  if(prize.kind==='gold')p.gold+=prize.amount;
@@ -441,7 +453,11 @@ function rewardMilestone(tier,wave){
  if(prize.kind==='legacy'){p.sigils+=prize.amount;p.legacyUnlocked=true;}
  if(prize.kind==='tier'){p.unlockedTier=Math.max(p.unlockedTier,Math.min(MAX_TIER,tier+1));p.sigils+=prize.amount;}
  if(prize.unlockNext)p.unlockedTier=Math.max(p.unlockedTier,Math.min(MAX_TIER,prize.unlockNext));
- if(prize.kind==='rune'){p.gold+=prize.amount;if(p.runes.length<240)p.runes.push({id:'milestone_'+key,type:['ember','storm','frost','fortune'][(tier-1)%4],tier:Math.min(12,2+Math.floor(tier/3))});}
+ if(prize.kind==='rune'){
+  p.gold+=prize.amount;
+  const rune={id:'milestone_'+key,type:['ember','storm','frost','fortune'][(tier-1)%4],tier:Math.min(12,2+Math.floor(tier/3))};
+  runeReserved=storeEarnedRune(rune)==='reserved';
+ }
  if(prize.kind==='banner'){const banner='Banner of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
  if(prize.kind==='eternal'){const banner='Eternal Victor of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
  if(prize.kind==='century'){p.essence+=prize.amount;p.sigils+=12+tier*3;}
@@ -451,7 +467,7 @@ function rewardMilestone(tier,wave){
   notice(tierNames[tier-1].toUpperCase()+' · CREST RANK '+prize.crestRank);
  }
  notice('MILESTONE '+formatWave(wave)+' • '+prize.name.toUpperCase());
- message('✦ WAVE '+formatWave(wave)+' MILESTONE UNLOCKED');
+ message(runeReserved?'✦ WAVE '+formatWave(wave)+' · RUNE SAFELY RESERVED IN VAULT':'✦ WAVE '+formatWave(wave)+' MILESTONE UNLOCKED');
  save();return true;
 }
 let chosenTier=p.selectedTier;
@@ -572,15 +588,17 @@ function renderTierLobby(){
  const tierLadder=tierMilestones(tier);
  const rewards=tierLadder.map(w=>{
   const prize=tierMilestone(tier,w),claimed=!!p.milestones[milestoneKey(tier,w)];
+  const reservedRune=claimed&&prize.kind==='rune'&&p.pendingRelics.some(r=>r&&r.id==='milestone_'+milestoneKey(tier,w));
   if(claimed)claimedCount++;
   const reached=best>=w;
   return `<div class="milestone-entry ${claimed?'claimed':''} ${w>100?'milestone-deep':''} ${prize.kind==='path'?'milestone-path':''} ${prize.unlockNext?'milestone-gate':''} ${prize.kind==='dominion'?'milestone-dominion':''} ${outerMilestones.has(w)?'milestone-new':''} ${newBeginningMilestones.has(w)?'milestone-first':''} ${w===MAX_WAVE?'milestone-final':''}">
     <div class="milestone-medal">${claimed?'✓':prize.icon}</div>
     <div class="milestone-copy"><strong>Wave ${formatWave(w)} · ${prize.name}</strong><small>${prize.detail}</small></div>
-    <span class="milestone-status">${claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
+    <span class="milestone-status">${reservedRune?'IN RUNE VAULT':claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
    </div>`;
  }).join('');
- $('milestoneList').innerHTML=renderFirstWatch()+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
+ const vaultNotice=p.pendingRelics.length?`<div class="rune-vault-notice" role="status"><strong>✦ ${p.pendingRelics.length} EARNED RUNE${p.pendingRelics.length===1?'':'S'} RESERVED</strong><small>Your rune pouch was full. Nothing was lost. Go to <b>Gear → Rune Workshop</b>, free a rune slot, then claim your reward.</small></div>`:'';
+ $('milestoneList').innerHTML=vaultNotice+renderFirstWatch()+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
  $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(useWaystone?stone:1)+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
@@ -896,8 +914,9 @@ function awardRelicChallenge(tier,wave,knowledge){
  let item='+'+fmt(bonus)+' KNOWLEDGE';
  const types=Object.keys(runeNames),type=types[(tier+wave)%types.length],rank=Math.min(12,1+Math.floor(wave/1500));
  const rune={type,tier:rank,id:'relic'+tier+'_'+wave};
- if(p.runes.length<240){p.runes.push(rune);item='TIER '+rank+' '+type.toUpperCase()+' RUNE · '+item;}
- else{p.pendingRelics.push(rune);item='RUNE RESERVED IN WORKSHOP · '+item;}
+ const placement=storeEarnedRune(rune);
+ if(placement==='claimed')item='TIER '+rank+' '+type.toUpperCase()+' RUNE · '+item;
+ else if(placement==='reserved')item='RUNE RESERVED IN WORKSHOP · '+item;
  notice('✦ RELIC RECOVERED');message('RELIC HUNT COMPLETE · '+item);return true;
 }
 function completeWave(){
@@ -1604,7 +1623,7 @@ function renderPanel(){
  }
  if(tab==='runes'){
   html+=highlight('Socket. Combine. Ascend.','Place a rune in each equipped item. To fuse, collect three of the same family and tier.','◇');
-  if(p.pendingRelics.length)html+=`<div class="relic-vault"><div><strong>✦ RELIC VAULT · ${p.pendingRelics.length} EARNED RUNES</strong><p>Your rune pouch was full during a Relic Hunt. Those earned runes are safely reserved in this save.</p></div><button class="wide-btn" data-action="claimRelics" ${p.runes.length>=240?'disabled':''}>${p.runes.length>=240?'FREE RUNE SPACE TO CLAIM':'CLAIM RESERVED RUNES'}</button></div>`;
+  if(p.pendingRelics.length)html+=`<div class="relic-vault"><div><strong>✦ EARNED RUNE VAULT · ${p.pendingRelics.length} RESERVED RUNES</strong><p>Your rune pouch was full when you earned a Relic Hunt or milestone rune. Free a rune slot, then claim these protected, one-time rewards.</p></div><button class="wide-btn" data-action="claimRelics" ${p.runes.length>=240?'disabled':''}>${p.runes.length>=240?'FREE RUNE SPACE TO CLAIM':'CLAIM RESERVED RUNES'}</button></div>`;
   html+=section('EQUIPMENT SOCKETS',`<div class="cards">${gearSlots.map(slot=>{
    const equippedId=p.socketed[slot],r=p.runes.find(x=>x.id===equippedId);
    return `<div class="rune-socket"><strong><span class="rune-socket-emblem">${forgePixelIcon(r?"rune_"+r.type:"gear_"+slot)}</span>${gearSlotLabels[slot]}</strong><p>${r?`${runeNames[r.type][1]} Rune · Tier ${r.tier}`:'No rune socketed'}</p><button data-socket-slot="${slot}">${r?'CHANGE / REMOVE RUNE':'CHOOSE A RUNE'}</button></div>`;
@@ -1805,5 +1824,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,storeEarnedRune,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();

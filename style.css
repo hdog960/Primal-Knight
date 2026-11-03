@@ -1880,3 +1880,24 @@
  .battle-paused small{font-size:9px;margin-top:3px}
 }
 @media(prefers-reduced-motion:reduce){.boss-cast-bar i{transition:none!important}}
+
+
+/* Alpha 0.10.11 — earned one-time rune rewards must never disappear silently. */
+.rune-vault-notice{
+ position:relative;overflow:hidden;display:flex;flex-direction:column;gap:5px;
+ margin:2px 0 12px;padding:12px 15px 12px 17px;
+ border:2px double #eac188;background:
+ radial-gradient(ellipse at 96% 20%,#87683e51,transparent 45%),
+ linear-gradient(110deg,#323a3b,#222f3a 60%,#172939);
+ box-shadow:inset 0 1px #fbe4b53d,inset 0 0 0 3px #172632,0 3px 10px #0008;
+}
+.rune-vault-notice:before{content:'✧';position:absolute;right:12px;top:3px;color:#dfbd81;font-size:29px;opacity:.55}
+.rune-vault-notice strong{font:800 13px Georgia,serif;color:#ffdfad;letter-spacing:.35px;padding-right:34px}
+.rune-vault-notice small{display:block;max-width:760px;font:11px/1.5 Arial,sans-serif;color:#d5ddcf}
+.rune-vault-notice small b{color:#ffe4a6}
+.milestone-entry.claimed:has(.milestone-status) .milestone-status{max-width:130px;text-align:right;white-space:normal;line-height:1.3}
+@media (orientation:portrait) and (max-width:540px){
+ .rune-vault-notice{padding:9px 12px 10px;gap:4px}
+ .rune-vault-notice strong{font-size:12px}
+ .rune-vault-notice small{font-size:10px}
+}
