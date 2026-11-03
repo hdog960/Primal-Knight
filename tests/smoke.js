@@ -268,4 +268,123 @@ assert.equal(restored.equipped.chest,'owned_armor','Old armor converted to chest
 assert.equal(restored.socketed.amulet,'seedember','Old socketed rune follows old bow');
 assert.equal(new Set(restored.inventory.map(g=>g.id)).size,restored.inventory.length,'No duplicated item IDs');
 assert.equal(restored.version,3,'Save migration version updated');
+
+// Alpha 0.8.0 — long-range combat, 10,000-wave milestones, return waystones and permanent Ascension.
+assert.equal(hooks.waveEnemyCount(1),9,'First wave stays small');
+for(const wave of [5,20,100,400,1000,2500,5000,8000,10000]){
+ const threat=hooks.waveThreat(wave);
+ assert(Number.isFinite(threat)&&threat>0&&threat<100000,'Threat curve finite at wave '+wave);
+ assert(hooks.waveEnemyCount(wave)<=24&&hooks.waveEnemyCount(wave)>=9,'Wave '+wave+' uses bounded enemy count');
+ assert(hooks.enemySpeedFactor(wave)<=4&&hooks.enemySpeedFactor(wave)>=1,'Enemy speed does not explode at wave '+wave);
+ assert(hooks.waveArmor(wave,16)>hooks.waveArmor(wave,1),'Higher tiers retain a defensive challenge');
+}
+assert(hooks.waveThreat(20)<hooks.waveThreat(100),'First century difficulty grows');
+assert(hooks.waveThreat(100)<hooks.waveThreat(1000)&&hooks.waveThreat(1000)<hooks.waveThreat(10000),'Late-wave threats keep increasing');
+const tier13Wave20NormalHp=36*hooks.waveThreat(20)*(1+12*.64);
+const tier1Wave10000NormalHp=36*hooks.waveThreat(10000);
+assert(tier1Wave10000NormalHp>tier13Wave20NormalHp*100,'Tier XIII can unlock while Tier I wave 10000 remains far harder');
+const deepBossAt16=300*hooks.waveThreat(10000)*(1+15*.64);
+assert(deepBossAt16>tier1Wave10000NormalHp*50,'Tier XVI final boss stays a serious challenge');
+clickHub('power');clickSub('training');
+const ascBefore=el('panelContent').innerHTML;
+for(const id of ['vanguard','bastion','sunder','epoch','volley']){
+ assert(ascBefore.includes('data-ascension-row="'+id+'"'),'Ascension route '+id+' shown in Forge');
+}
+assert(!hooks.ascUnlocked(['vanguard','', '',8,40,150]),'Deep path initially locked before wave 150');
+hooks.p().sigils+=50000;
+const lockedBefore=hooks.p().ascension.vanguard||0;
+clickButton({action:'ascension:vanguard'});
+assert.equal(hooks.p().ascension.vanguard||0,lockedBefore,'Locked Ascension cannot be purchased for Sigils');
+const deepRun=hooks.run();
+deepRun.phase='fighting';deepRun.wave=100;deepRun.tier=1;
+hooks.completeWave();
+assert.equal(hooks.waystoneForTier(1),100,'Completing wave 100 unlocks first return waystone');
+assert(hooks.p().milestones['1:100'],'Tier I original century reward still works');
+const originalTier1Sigils=hooks.p().sigils;
+deepRun.phase='fighting';deepRun.wave=150;deepRun.tier=1;
+hooks.completeWave();
+assert(hooks.p().milestones['1:150'],'Wave 150 milestone persisted');
+assert(hooks.ascUnlocked(['vanguard','', '',8,40,150]),'Wave 150 unlocks Vanguard Doctrine in any tier');
+const afterWave150Sigils=hooks.p().sigils;
+deepRun.phase='fighting';deepRun.wave=150;deepRun.tier=1;
+hooks.completeWave();
+assert.equal(hooks.p().sigils,afterWave150Sigils,'Tier milestone Sigils never pay twice');
+clickHub('power');clickSub('training');
+const oldDamage=hooks.damage(),sigilsBeforeAsc=hooks.p().sigils;
+clickButton({action:'ascension:vanguard'});
+assert.equal(hooks.p().ascension.vanguard,1,'Ascension Vanguard purchase persists');
+assert(hooks.p().sigils<sigilsBeforeAsc,'Ascension costs real Sigils');
+assert(hooks.damage()>oldDamage,'Vanguard Doctrine permanently raises hero damage');
+for(const wave of [400,1000,2500,5000]){
+ deepRun.phase='fighting';deepRun.wave=wave;deepRun.tier=1;
+ hooks.completeWave();
+ assert(hooks.p().milestones['1:'+wave],'Deep-wave achievement '+wave+' earned');
+}
+for(const [id,wave] of [['bastion',400],['sunder',1000],['epoch',2500],['volley',5000]]){
+ assert(hooks.ascUnlocked([id,'','',8,40,wave]),'Wave '+wave+' unlocks '+id);
+}
+clickHub('power');clickSub('training');
+const oldMaxWall=hooks.maxWall();
+clickButton({action:'ascension:bastion'});
+assert.equal(hooks.p().ascension.bastion,1,'Bastion Covenant purchased');
+assert(hooks.maxWall()>oldMaxWall&&deepRun.maxHealth===hooks.maxWall(),'Bastion Covenant immediately reinforces the fortress');
+const hurtTarget=()=>({type:'goblin',hp:1000,max:1000,armor:100,dead:false,x:250,y:200,buildup:0,burn:0,slow:0});
+const firstTarget=hurtTarget();hooks.hurt(firstTarget,200,'ballista');
+clickButton({action:'ascension:sunder'});
+const secondTarget=hurtTarget();hooks.hurt(secondTarget,200,'ballista');
+assert(secondTarget.hp<firstTarget.hp,'Armor Unbinding pierces more armor');
+deepRun.wave=2500;const epochBefore=hooks.damage();
+clickButton({action:'ascension:epoch'});
+const epochDeep=hooks.damage();
+deepRun.wave=100;const epochShallow=hooks.damage();
+assert(epochDeep>epochBefore&&epochDeep>epochShallow,'Epoch Resonance amplifies damage more at later waves');
+const volleyBefore=hooks.projectileCount();
+for(let i=0;i<6;i++)clickButton({action:'ascension:volley'});
+assert.equal(hooks.p().ascension.volley,6,'Six Eternal Volley ranks purchased');
+assert.equal(hooks.projectileCount(),Math.min(12,volleyBefore+1),'Eternal Volley grants one extra projectile every six ranks');
+hooks.renderTierLobby();
+assert(el('tierGrid').innerHTML.includes('TIER XVI'),'Late-game lobby offers Tier XVI');
+assert(el('milestoneList').innerHTML.includes('Wave 10,000'),'Tier milestone ledger shows final wave');
+assert(el('milestoneList').innerHTML.includes('data-start-mode="waystone"'),'Return waystone restart button present');
+assert(el('milestoneList').innerHTML.includes('Ascension')||el('milestoneList').innerHTML.includes('Doctrine'),'Long-wave rewards show mastery routes');
+hooks.retreatFromSiege(); // inspect the lobby after a deep run
+const waystone=hooks.waystoneForTier(1);
+assert(waystone>=100&&waystone<=5000,'Cleared milestones unlock legal tier return checkpoints');
+el('milestoneList').listeners.click({target:{closest:()=>({dataset:{startMode:'waystone'}})}});
+hooks.enterSiege();
+assert.equal(hooks.run().wave,waystone,'Return siege starts at last earned waystone');
+hooks.retreatFromSiege();
+el('milestoneList').listeners.click({target:{closest:()=>({dataset:{startMode:'fresh'}})}});
+hooks.enterSiege();
+assert.equal(hooks.run().wave,1,'Players can always choose a fresh wave-1 run');
+hooks.retreatFromSiege();
+hooks.p().unlockedTier=13;
+hooks.renderTierLobby();
+el('tierGrid').listeners.click({target:{closest:()=>({dataset:{tier:'13'},disabled:false})}});
+assert(el('tierHeading').textContent.includes('TIER XIII'),'Thirteenth tier is a real selectable challenge');
+hooks.enterSiege();
+assert.equal(hooks.run().tier,13,'Tier XIII launches');
+assert(hooks.run().total<=24,'Enemy cap applies in high tiers');
+hooks.retreatFromSiege();
+el('tierGrid').listeners.click({target:{closest:()=>({dataset:{tier:'1'},disabled:false})}});
+hooks.enterSiege();
+const finalRun=hooks.run();finalRun.phase='fighting';finalRun.wave=10000;finalRun.tier=1;
+finalRun.maxHealth=hooks.maxWall();finalRun.health=finalRun.maxHealth;
+hooks.completeWave();
+assert.equal(finalRun.phase,'completed','Wave 10000 finishes the tier, not wave 10001');
+assert.equal(finalRun.wave,10000,'Completed tier stays at wave 10000');
+assert.equal(hooks.p().bestByTier[1],10000,'Wave 10000 permanently recorded');
+assert(hooks.p().milestones['1:10000'],'Final tier milestone persists');
+assert(hooks.p().banners.includes('Eternal Victor of Verdant March'),'Eternal victory unlocks its cosmetic banner');
+hooks.beginWave();
+assert.equal(finalRun.phase,'completed','Completed tier cannot accidentally advance');
+clickHub('battle');
+assert.equal(el('tierLobby').hidden,false,'Returning to Battle after final victory shows the tier lobby');
+assert(el('tierGrid').innerHTML.includes('ETERNALLY CONQUERED'),'Victory clearly marked in the tier selector');
+const runeMax=240;
+hooks.p().runes=Array.from({length:runeMax},(_,i)=>({id:'test_max_rune_'+i,type:'frost',tier:1}));
+finalRun.phase='fighting';finalRun.wave=75;finalRun.tier=1;hooks.completeWave();
+assert.equal(hooks.p().runes.length,runeMax,'Long runs never grow rune inventories beyond safe mobile cap');
+assert(restored.ascension&&typeof restored.ascension==='object','Older saves receive an empty Ascension investment map without resetting progress');
+
 console.log('PASS: 10,000-wave chronicle, 16 tiers, waystones, Ascension routes, balance limits, original research, Forge, Gear, legacy and save migration.');
