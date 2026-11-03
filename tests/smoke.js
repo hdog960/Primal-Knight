@@ -1,4 +1,4 @@
-// Alpha 0.8.0: 10000-wave progression, 16 tiers, five Ascension routes, waystones, Gear and Rune regression,
+// Alpha 0.9.0: 30-tier 10000-wave progression, First Watch 12.5h rewards, Dominion Crests and saved progression,
 // skills, legacy purchases, save and menu navigation, with no browser dependencies.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 let nextFrame=null,storedSave=null;
@@ -17,6 +17,8 @@ const hooks=sandbox.window.__PK_TEST_TOOLS__,clickHub=hub=>el('nav').listeners.c
 assert(hooks&&nextFrame,'Game initialized with test hooks and game loop');
 assert.equal(el('tierLobby').hidden,false,'Pregame tier selection shown');
 assert(el('tierGrid').innerHTML.includes('TIER XVI'),'Sixteen difficulty tiers available');
+assert(el('tierGrid').innerHTML.includes('TIER XXX'),'All 30 difficulty tiers available');
+assert(el('milestoneList').innerHTML.includes('THE FIRST WATCH'),'Gradually spaced early player rewards are shown on the Battle lobby');
 assert(el('tierGrid').innerHTML.includes('disabled'),'Higher tiers initially locked');
 assert(el('milestoneList').innerHTML.includes('Wave 20'),'Milestones are visible');
 assert(el('milestoneList').innerHTML.includes('Legacy Training'),'Gameplay unlocks are visible');
@@ -388,4 +390,79 @@ finalRun.phase='fighting';finalRun.wave=75;finalRun.tier=1;hooks.completeWave();
 assert.equal(hooks.p().runes.length,runeMax,'Long runs never grow rune inventories beyond safe mobile cap');
 assert(restored.ascension&&typeof restored.ascension==='object','Older saves receive an empty Ascension investment map without resetting progress');
 
-console.log('PASS: 10,000-wave chronicle, 16 tiers, waystones, Ascension routes, balance limits, original research, Forge, Gear, legacy and save migration.');
+
+// Alpha 0.9.0 — thirty-tier progression, First Watch opening cadence and Dominion seals.
+const chapters=hooks.earlyWatchChapters;
+assert.equal(chapters.length,16,'Opening First Watch contains 16 reward chapters');
+assert.equal(chapters[chapters.length-1][0],750,'First Watch concludes after 12.5 active combat hours');
+let lastSpacing=0,lastMinute=0;
+for(let i=0;i<chapters.length;i++){
+ const minute=chapters[i][0],spacing=minute-lastMinute;
+ assert(spacing>=lastSpacing,'First Watch reward intervals never become shorter: chapter '+(i+1));
+ lastMinute=minute;lastSpacing=spacing;
+}
+assert.equal(hooks.tierMilestones(16).length,33,'Old tiers get eight new first-victory achievements without outer-specific trials');
+assert.equal(hooks.tierMilestones(17).length,44,'Outer tiers get an expanded 44-milestone conquest ladder');
+assert(!hooks.tierMilestones(16).includes(125),'Outer-only milestones do not appear in earlier territories');
+assert(hooks.tierMilestones(30).includes(9500),'Final tier has a penultimate Trial at wave 9500');
+assert.equal(hooks.tierThreat(16),1+15*.64,'Original Tier XVI strength preserved');
+assert(hooks.tierThreat(30)>hooks.tierThreat(16)*2,'Tier XXX adds meaningful endgame difficulty');
+assert(hooks.tierReward(30)>hooks.tierReward(16),'Higher-tier wave resources appropriately reward the additional risk');
+const startWatch=hooks.renderFirstWatch();
+assert(startWatch.includes('THE FIRST WATCH'),'First Watch UI renders in Battle');
+assert(startWatch.includes('3 /')||startWatch.includes('/ 3'),'First reward starts at three minutes of active siege');
+const p09=hooks.p();
+const previousGold=p09.gold;
+p09.battleSeconds=chapters[0][0]*60-1;p09.uniqueClears=1000;
+const watchRun=hooks.run();watchRun.tier=1;watchRun.wave=26;watchRun.phase='fighting';
+hooks.completeWave();
+assert.equal(p09.firstWatchClaimed.length,0,'First Watch cannot be earned from victories alone without active battle time');
+p09.battleSeconds=chapters[0][0]*60;p09.uniqueClears=1000;watchRun.phase='fighting';watchRun.wave=27;
+hooks.completeWave();
+assert.equal(p09.firstWatchClaimed.length,1,'First chapter unlocked by both real battle time and unique victories');
+assert(p09.gold>previousGold,'First Watch grants permanent earned currency');
+watchRun.phase='fighting';watchRun.wave=28;hooks.completeWave();
+assert.equal(p09.firstWatchClaimed.length,1,'First Watch rewards are not farmable');
+p09.battleSeconds=750*60;p09.uniqueClears=15000;watchRun.phase='fighting';watchRun.wave=29;hooks.completeWave();
+assert.equal(p09.firstWatchClaimed.length,16,'All opening chapters gradually become eligible through the first 12.5 hours');
+assert(p09.banners.includes('Standard of the First Watch'),'Completion grants a permanent decorative banner');
+assert.equal(new Set(p09.firstWatchClaimed).size,16,'First Watch chapters cannot duplicate');
+assert(hooks.renderFirstWatch().includes('FIRST WATCH COMPLETE'),'First Watch completion state has a celebratory view');
+p09.unlockedTier=30;
+assert.equal(hooks.tierMilestone(30,20).kind,'sigils','Final-tier wave-20 milestone never unlocks Tier XXXI');
+assert.equal(hooks.tierMilestone(17,125).kind,'frontier','Outer tier creates named exclusive conquest trial');
+assert.equal(hooks.tierMilestone(17,250).kind,'dominion','Outer tier wave 250 grants a real crest seal');
+assert(hooks.tierMilestone(17,250).name.includes('Glassheart Crest'),'Each new tier has its own named crest');
+assert(hooks.tierMilestone(30,10000).name.includes('The First and Last Gate'),'Tier XXX ends in a unique final challenge');
+const crestRun=hooks.run();const crestDamageBefore=hooks.damage(),crestMaxBefore=hooks.maxWall();
+for(const [tier,wave] of [[17,250],[17,1000],[17,5000],[17,10000]]){
+ crestRun.tier=tier;crestRun.wave=wave;crestRun.phase='fighting';crestRun.maxHealth=hooks.maxWall();crestRun.health=crestRun.maxHealth;
+ hooks.completeWave();
+ assert.equal(p09.dominionCrests[17],([250,1000,5000,10000].indexOf(wave)+1),'Crest increases exactly once at milestone '+wave);
+ assert(p09.milestones[tier+':'+wave],'Crest milestone '+wave+' persisted');
+}
+assert(hooks.damage()>crestDamageBefore,'Glassheart Crest permanently raises hero damage');
+assert.equal(p09.dominionCrests[17],4,'Dominion Crest capped at rank IV');
+assert(p09.banners.includes('Eternal Victor of Bloodglass Frontier'),'Outer territory wave 10000 awards its unique eternal banner');
+crestRun.phase='fighting';crestRun.tier=17;crestRun.wave=10000;crestRun.maxHealth=hooks.maxWall();crestRun.health=crestRun.maxHealth;hooks.completeWave();
+assert.equal(p09.dominionCrests[17],4,'Repeating wave 10000 does not grant extra crest rank');
+assert(hooks.dominionTrial(30).crest==='Origin Crest','Final tier has an Origin Crest of its own');
+for(const tier of [18,19,20,21,22,23,24,25,26,27,28,29,30]){
+ const row=hooks.dominionTrial(tier);
+ assert(row&&row.crest&&row.trial,'Tier '+tier+' has distinct trial lore and reward');
+ p09.dominionCrests[tier]=2;
+ assert(hooks.dominionBonus(row.stat)>0,'Tier '+tier+' crest changes an actual gameplay bonus');
+}
+assert(hooks.maxWall()>crestMaxBefore,'Dominion wall crest reinforces fortress across all territories');
+clickHub('power');clickSub('training');
+const newTraining=el('panelContent').innerHTML;
+assert(newTraining.includes('dominion-codex'),'All Dominion Crests have a visible permanent progression archive');
+for(let tier=17;tier<=30;tier++)assert(newTraining.includes('data-crest-tier="'+tier+'"'),'Archive lists Tier '+tier+' crest');
+clickHub('battle');
+el('tierGrid').listeners.click({target:{closest:()=>({dataset:{tier:'30'},disabled:false})}});
+assert(el('tierHeading').textContent.includes('TIER XXX'),'Tier XXX selectable with proper Roman numeral');
+assert(el('milestoneList').innerHTML.includes('data-start-mode="waystone"')===false,'New Tier XXX has no falsely granted Waystone');
+assert(el('milestoneList').innerHTML.includes('The First and Last Gate'),'Origin Gate narrative is visible in the final tier');
+assert(el('milestoneList').innerHTML.includes('THE FIRST WATCH'),'First Watch remains accessible on the new tier selection screen');
+
+console.log('PASS: 10,000-wave chronicle, 30 tiers, waystones, Ascension routes, balance limits, original research, Forge, Gear, legacy and save migration.');
