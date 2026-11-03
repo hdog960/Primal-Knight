@@ -1901,3 +1901,15 @@
  .rune-vault-notice strong{font-size:12px}
  .rune-vault-notice small{font-size:10px}
 }
+
+
+/* Alpha 0.10.12 — accessible First Watch equipment recovery on small iPhones. */
+@media (orientation:portrait) and (max-width:680px){
+ .relic-vault{flex-direction:column;align-items:stretch;gap:9px}
+ .relic-vault button{flex:0 0 auto;max-width:none;min-height:44px;width:100%}
+}
+@media (orientation:landscape) and (max-height:460px){
+ .relic-vault strong{font-size:11px}
+ .relic-vault p{font-size:10px}
+ .relic-vault button{min-height:42px}
+}

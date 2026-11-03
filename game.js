@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.11. Living Onslaught phase 12: protected milestone runes and unified earned-rune vault and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.12. Living Onslaught phase 13: protected First Watch gear and runes, safely claimable after full pouches and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -45,8 +45,8 @@ const gearNames={
  charm:['Copper Locket','Hunter Sigil','Wolfsbane Charm','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone'],
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
-function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},pendingRelics:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
+function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -87,7 +87,7 @@ function validateProgressBackup(data){
  for(const key of ['equipped','training','skills','stations','research','suppression','socketed','bestByTier','milestones','chapterChallenges','relicHunts','ascension','dominionCrests','sovereignOaths','legacy']){
   if(data[key]!==undefined&&!validSaveObject(data[key]))throw Error('Invalid '+key);
  }
- for(const key of ['runes','pendingRelics','firstWatchClaimed','banners']){
+ for(const key of ['runes','pendingRelics','pendingGear','firstWatchClaimed','banners']){
   if(data[key]!==undefined&&!Array.isArray(data[key]))throw Error('Invalid '+key);
  }
  if(data.unlockedTier!==undefined&&!Number.isFinite(Number(data.unlockedTier)))throw Error('Invalid tier');
@@ -98,7 +98,7 @@ function normalizeRestoredProgress(){
  for(const key of ['training','skills','stations','research','suppression','socketed','equipped','bestByTier','milestones','chapterChallenges','relicHunts','ascension','dominionCrests','sovereignOaths','legacy']){
   if(!validSaveObject(p[key]))p[key]=saved[key];
  }
- for(const key of ['runes','pendingRelics','firstWatchClaimed','banners']){
+ for(const key of ['runes','pendingRelics','pendingGear','firstWatchClaimed','banners']){
   if(!Array.isArray(p[key]))p[key]=saved[key];
  }
  p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);
@@ -477,6 +477,25 @@ function showLobby(summary=''){
  $('tierLobby').hidden=tab!=='battle';$('lobbySummary').textContent=summary;
  $('exitRunButton').hidden=true;$('startButton').hidden=true;renderTierLobby();
 }
+// One-time First Watch equipment must not be discarded when the 200-item bag is full.
+function storeEarnedGear(item){
+ if(!item||typeof item.id!=='string'||!item.id||!gearNames[item.slot==='ring'?'ring':item.slot]||
+  !Number.isInteger(Number(item.rarity))||Number(item.rarity)<0||Number(item.rarity)>8)return 'invalid';
+ if(p.inventory.some(g=>g&&g.id===item.id))return 'owned';
+ if(p.pendingGear.some(g=>g&&g.id===item.id))return 'reserved';
+ if(p.inventory.length>=inventoryCap){p.pendingGear.push(item);return 'reserved';}
+ p.inventory.push(item);return 'claimed';
+}
+function claimPendingGear(){
+ let claimed=0;
+ while(p.pendingGear.length&&p.inventory.length<inventoryCap){
+  const item=p.pendingGear.shift();
+  if(item&&gearNames[item.slot==='ring'?'ring':item.slot]&&Number.isInteger(Number(item.rarity))&&
+     Number(item.rarity)>=0&&Number(item.rarity)<=8&&typeof item.id==='string'&&
+     !p.inventory.some(g=>g&&g.id===item.id)){p.inventory.push(item);claimed++;}
+ }
+ return claimed;
+}
 function awardFirstWatch(){
  if(!Array.isArray(p.firstWatchClaimed))p.firstWatchClaimed=[];
  for(let i=0;i<earlyWatchChapters.length;i++){
@@ -486,10 +505,12 @@ function awardFirstWatch(){
   p.firstWatchClaimed.push(i);
   p.gold+=gold;p.essence+=essence;p.points+=points;p.sigils+=sigils;
   if(i===2||i===6||i===10||i===15){
-   if(p.inventory.length<inventoryCap)p.inventory.push(randomGear(i===15?4:i>=6?3:2));
+   const reward=randomGear(i===15?4:i>=6?3:2);
+    reward.id='first_watch_gear_'+i;
+    storeEarnedGear(reward);
   }
   if(i===4||i===9){
-   if(p.runes.length<240)p.runes.push({type:i===4?'frost':'storm',tier:i===4?2:3,id:'first_watch_'+i});
+   storeEarnedRune({type:i===4?'frost':'storm',tier:i===4?2:3,id:'first_watch_'+i});
   }
   if(i===1||i===7||i===15){
    const banner=i===1?'Dawn Scout Standard':i===7?'Banner of the Vanguard':'Standard of the First Watch';
@@ -597,8 +618,9 @@ function renderTierLobby(){
     <span class="milestone-status">${reservedRune?'IN RUNE VAULT':claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
    </div>`;
  }).join('');
+ const gearNotice=p.pendingGear.length?`<div class="rune-vault-notice" role="status"><strong>⚒ ${p.pendingGear.length} EARNED EQUIPMENT REWARD${p.pendingGear.length===1?'':'S'} RESERVED</strong><small>Your equipment bag was full when First Watch granted gear. Go to <b>Gear → Equipment</b>, free a slot, and claim the saved items.</small></div>`:'';
  const vaultNotice=p.pendingRelics.length?`<div class="rune-vault-notice" role="status"><strong>✦ ${p.pendingRelics.length} EARNED RUNE${p.pendingRelics.length===1?'':'S'} RESERVED</strong><small>Your rune pouch was full. Nothing was lost. Go to <b>Gear → Rune Workshop</b>, free a rune slot, then claim your reward.</small></div>`:'';
- $('milestoneList').innerHTML=vaultNotice+renderFirstWatch()+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
+ $('milestoneList').innerHTML=gearNotice+vaultNotice+renderFirstWatch()+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
  $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(useWaystone?stone:1)+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
@@ -1619,6 +1641,7 @@ function renderPanel(){
  if(tab==='training'){ html=renderTrainingLedger(); }
  if(tab==='research'){ html=renderResearchArchive(); }
  if(tab==='equipment'){
+  if(p.pendingGear.length)html+=`<div class="relic-vault" role="status"><div><strong>⚒ FIRST WATCH ARMORY · ${p.pendingGear.length} EARNED ITEMS</strong><p>Your equipment bag was full when First Watch granted these one-time rewards. Free room among the 200 pieces you own, then claim the protected equipment. Nothing is replaced automatically.</p></div><button class="wide-btn" data-action="claimGear" ${p.inventory.length>=inventoryCap?'disabled':''}>${p.inventory.length>=inventoryCap?'FREE EQUIPMENT SPACE TO CLAIM':'CLAIM EARNED EQUIPMENT'}</button></div>`;
   html+=renderArmoryShowcase();
  }
  if(tab==='runes'){
@@ -1647,7 +1670,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.10.7 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.10.12 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  $('panelContent').innerHTML=html;
  if(tab==='equipment')renderArmoryDrawer();else{const drawer=$('armoryDrawer');if(drawer){drawer.hidden=true;drawer.innerHTML='';}}
@@ -1725,6 +1748,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
   }
  }
  else if(type==='enhance'){let g=p.inventory.find(g=>g.id===id);if(g&&p.gold>=gearCost(g)&&g.plus<50){p.gold-=gearCost(g);g.plus++;}}
+ else if(type==='claimGear'){const amount=claimPendingGear();notice(amount?'RETRIEVED '+amount+' FIRST WATCH GEAR':'EQUIPMENT BAG FULL');}
  else if(type==='claimRelics'){const amount=claimPendingRelics();notice(amount?'RETRIEVED '+amount+' RESERVED RUNES':'RUNE POUCH FULL');}
  else if(type==='fuse'){let r=p.runes.find(x=>x.id===id);if(!r)return;let same=p.runes.filter(x=>x.type===r.type&&x.tier===r.tier&&!Object.values(p.socketed).includes(x.id));let cost=Math.floor(85*r.tier*r.tier*(1-Math.min(.4,res('fusion')*.012)));if(same.length>=3&&p.gold>=cost&&r.tier<12){p.gold-=cost;let ids=same.slice(0,3).map(x=>x.id);p.runes=p.runes.filter(x=>!ids.includes(x.id));p.runes.push({id:'r'+Date.now()+Math.random(),type:r.type,tier:r.tier+1});notice('RUNE FUSED TO TIER '+(r.tier+1));}}
  else if(type==='socket'){runePickSlot=id;renderPanel();return;}
@@ -1824,5 +1848,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,storeEarnedRune,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();

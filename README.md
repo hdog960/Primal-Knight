@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.10.11 (Living Onslaught, Slice 12)
+## Current release — Alpha 0.10.12 (Living Onslaught, Slice 13)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -24,9 +24,11 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 
 **New in 0.10.11:** A full 240-rune pouch no longer destroys one-time wave-35 milestone runes. All 30 tiers now store reserved milestone rewards safely in the same persistent Rune Vault as Relic Hunts, without duplication or changing any earned currency. The Battle lobby and Rune Workshop now show what is reserved and how to reclaim it after freeing a slot. A new seven-part CI quality gate tests milestone delivery, duplicate protection, and exact save-restore behavior.
 
+**New in 0.10.12:** Fixed another one-time reward loss bug: all four First Watch special gear pieces and both one-time runes now remain claimable if your 200-piece equipment bag or 240-rune pouch is full. New **First Watch Armory** section in Gear → Equipment, a Battle lobby reminder, and shared Rune Workshop recovery preserve original reward identities and caps. A new eighth CI check tests all sixteen reward chapters, the real claim button and save restoration. No existing player progress is reset.
+
 **Play:** https://hdog960.github.io/Primal-Knight/
 
-Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_01011_RUNE_REWARD_INTEGRITY.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js` for the automated suite.
+Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_01012_FIRST_WATCH_RECOVERY.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js && node tests/first-watch-vault.js` for the automated suite.
 
 ---
 
