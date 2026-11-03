@@ -117,3 +117,8 @@ Delivered: damage-based counterplay against actual active Sapper fuse, Frostbind
 Fixed the wave-35 milestone rune loss when the 240-rune pouch was already full. All one-time milestone and Relic Hunt runes now use one persistent, duplicate-safe Rune Vault; queued milestone rewards are signposted in the Battle tier lobby and Gear → Rune Workshop, with a full-capsule / portrait-friendly presentation. Added a seventh required CI script covering all 30 tier rewards, original payout invariants, first-in claim order, duplicate protection and exported/restored full-pouch saves. See `docs/ALPHA_01011_RUNE_REWARD_INTEGRITY.md`.
 
 **Alpha 0.10 remains open for device acceptance.** The locked Alpha 0.11–0.15 objectives and the as-yet-unverified ~1,250-hour completion target are unchanged.
+
+### Alpha 0.10.12 — Living Onslaught, slice 13
+Delivered: corrected one-time First Watch rewards being silently lost at full capacity. All four gear rewards now have stable unique IDs and a protected additive `pendingGear` queue; both runes use the existing one-time Rune Vault. Battle lobby and Equipment panel show pending rewards and offer real FIFO reclaim once space is available. Original currencies, rarities, First Watch progression gates, item limits, save keys and non-repeatable ledgers are unchanged. Eighth required CI test covers all sixteen chapters, real UI recovery, and save/export/import safety. See `docs/ALPHA_01012_FIRST_WATCH_RECOVERY.md`.
+
+**Alpha 0.10 remains pending physical iPhone and subjective combat acceptance.** Locked phases Alpha 0.11–0.15 remain the next objectives; 1,250-hour completion target is not measured.
