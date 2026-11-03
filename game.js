@@ -899,7 +899,7 @@ function completeWave(){
  run.wave++;run.phase='intermission';run.rewardTimer=1.2;run.enemies=[];run.shots=[];
  save();refreshHUD();
 }
-function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0){ctx.translate(rnd(-2,2),rnd(-2,2));}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}
+function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0&&!reduceMotion){ctx.translate(rnd(-2,2),rnd(-2,2));}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}
  // Subtle animated fog and light make the illustrated environment breathe.
  const time=performance.now()/1000;let gd=ctx.createLinearGradient(0,96,0,415);gd.addColorStop(0,'rgba(5,25,39,.08)');gd.addColorStop(1,'rgba(18,10,21,.13)');ctx.fillStyle=gd;ctx.fillRect(0,90,960,350);
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
@@ -970,7 +970,7 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  for(const t of run.particles){ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.fillRect(t.x,t.y,t.size,t.size)}ctx.globalAlpha=1;
  for(const f of run.floats){ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y)}ctx.globalAlpha=1;
  // Animated bow glow and string release marks the single hero as the shooter.
- if(run.flashes>0){ctx.fillStyle=`rgba(255,226,142,${clamp(run.flashes*3,0,.68)})`;ctx.beginPath();ctx.arc(540,360,20+run.flashes*70,0,Math.PI*2);ctx.fill();}ctx.restore();}
+ if(run.flashes>0&&!reduceMotion){ctx.fillStyle=`rgba(255,226,142,${clamp(run.flashes*3,0,.68)})`;ctx.beginPath();ctx.arc(540,360,20+run.flashes*70,0,Math.PI*2);ctx.fill();}ctx.restore();}
 // Actual active windups temporarily replace the static encounter advice; no timer spam.
 function activeEncounterThreat(){
  if(run.phase!=='fighting')return null;
