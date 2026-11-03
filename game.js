@@ -171,41 +171,73 @@ function waystoneForTier(tier){
 let useWaystone=true;
 const legacyPaths=[['siegebreaker','Siegebreaker','Deal +6% damage to siege bosses per rank.',2,30],['guardianOath','Guardian’s Oath','Increase permanent wall durability +3% per rank.',2,35],['goldenTouch','Golden Touch','Earn +4% gold from monster kills per rank.',3,40]];
 const lr=id=>n(p.legacy,id);
+function tierMilestones(tier){return milestonesAt.filter(w=>tier>=17||!outerMilestones.has(w));}
 function tierMilestone(tier,wave){
+ const trial=dominionTrial(tier);
  const scale=1+(tier-1)*.6;
+ const sigils=Math.ceil(1.4*(tier+3)*(2+Math.log2(1+wave/100))*(1+wave/MAX_WAVE));
+ const early={
+  1:['The First Victory',160,25,0,0],
+  2:['First Spoils',190,0,22,0],
+  3:['Threefold Courage',250,60,20,0],
+  8:['Steady Hands',360,80,0,tier<=4?1:0],
+  12:['The Rising Standard',440,100,35,0],
+  25:['Fortress Sentinel',520,160,45,0],
+  40:['Unbroken Resolve',650,190,55,0],
+  60:['Veteran’s First Oath',820,220,70,tier<=4?1:0]
+ };
+ if(newBeginningMilestones.has(wave)){
+  const [name,gold,essence,knowledge,points]=early[wave];
+  return {icon:'✧',name,detail:fmt(Math.ceil(gold*scale))+' Gold'+(essence?' · '+fmt(Math.ceil(essence*scale))+' Essence':'')+(knowledge?' · '+fmt(Math.ceil(knowledge*scale))+' Knowledge':'')+(points?' · +'+points+' Skill Point':''),kind:'starter',gold:Math.ceil(gold*scale),essence:Math.ceil(essence*scale),knowledge:Math.ceil(knowledge*scale),points};
+ }
  if(wave===5)return {icon:'🟡',name:'Spoils of the Vanguard',detail:fmt(300*scale)+' Gold',kind:'gold',amount:Math.round(300*scale)};
  if(wave===10)return {icon:'🔷',name:'Essence Cache',detail:fmt(120*scale)+' Hero Essence',kind:'essence',amount:Math.round(120*scale)};
  if(wave===15)return tier===1?{icon:'✦',name:'Legacy Training Unsealed',detail:'Unlock permanent Sigil-powered upgrades + 5 Sigils',kind:'legacy',amount:5}:{icon:'💠',name:'Primal Sigil Cache',detail:(tier+3)+' Primal Sigils',kind:'sigils',amount:tier+3};
- if(wave===20)return tier<MAX_TIER?{icon:'⚔',name:'The Next Frontier',detail:'Unlock Tier '+roman(tier+1)+' + '+(2+tier)+' Sigils',kind:'tier',amount:2+tier}:{icon:'💠',name:'The Final Frontier',detail:'17 Primal Sigils',kind:'sigils',amount:17};
+ if(wave===20)return tier<MAX_TIER?{icon:'⚔',name:'The Next Frontier',detail:'Unlock Tier '+roman(tier+1)+' + '+(2+tier)+' Sigils',kind:'tier',amount:2+tier}:{icon:'♛',name:'The Last Gate Opens',detail:(2+tier)+' Sigils · The final tier awaits its conqueror',kind:'sigils',amount:2+tier};
  if(wave===35)return {icon:'◇',name:'Runic Expedition',detail:'A rare rune + '+fmt(350*scale)+' Gold',kind:'rune',amount:Math.round(350*scale)};
- if(wave===50)return {icon:'♛',name:'Banner of the Conqueror',detail:'Unique collectible and equippable banner',kind:'banner',amount:0};
+ if(wave===50)return {icon:'♛',name:'Banner of the Conqueror',detail:'A unique collectible and equippable banner',kind:'banner',amount:0};
  if(wave===75)return {icon:'💠',name:'Primal Treasury',detail:(6+tier*2)+' Sigils',kind:'sigils',amount:6+tier*2};
  if(wave===100)return {icon:'✦',name:'Century of Onslaught',detail:fmt(700*scale)+' Essence + '+(12+tier*3)+' Sigils',kind:'century',amount:Math.round(700*scale)};
- const sigils=Math.ceil(1.4*(tier+3)*(2+Math.log2(1+wave/100))*(1+wave/MAX_WAVE));
- const unlock=ascensionPaths.find(row=>row[5]===wave);
+ if(trial&&dominionCrestWaves.includes(wave)){
+  const crestRank=dominionCrestWaves.indexOf(wave)+1;
+  if(wave===MAX_WAVE)return {icon:'♛',name:trial.trial+' · Eternal Conquest',detail:fmt(sigils)+' Sigils · '+trial.crest+' Rank IV · Eternal Victory banner',kind:'eternal',amount:sigils,crestRank};
+  return {icon:'♛',name:trial.crest+' · Seal '+crestRank,detail:fmt(sigils)+' Sigils · '+trial.crest+' grows to Rank '+crestRank+' (permanent '+trial.stat+' bonus)',kind:'dominion',amount:sigils,crestRank};
+ }
  if(wave===MAX_WAVE)return {icon:'♛',name:'Eternal Conqueror',detail:fmt(sigils)+' Sigils + Eternal Victory banner',kind:'eternal',amount:sigils};
+ const unlock=ascensionPaths.find(row=>row[5]===wave);
  if(unlock)return {icon:'✧',name:unlock[1]+' Discovery',detail:fmt(sigils)+' Sigils · Unlock '+unlock[1]+' in Power → Training'+(wave===1000?' · Ancient equipment can now drop':wave===2500?' · Celestial equipment can now drop':''),kind:'path',amount:sigils,unlock:unlock[0]};
+ if(trial&&outerMilestones.has(wave)){
+  const outerIndex=[125,225,375,625,875,1250,1750,3500,6500,8500,9500].indexOf(wave);
+  const reward=Math.ceil(sigils*(1.15+outerIndex*.025));
+  return {icon:['✦','◇','✧','❖'][outerIndex%4],name:trial.trial+' · Trial '+(outerIndex+1),detail:fmt(reward)+' Sigils · A unique conquest marker on the road to '+trial.crest,kind:'frontier',amount:reward};
+ }
  const milestoneNames={250:'Warfront Waystone',500:'The Fifth Seal',750:'Veteran Vanguard',1500:'Ancestral Waystone',2000:'Siege of Ages',3000:'Chronicle of Valor',4000:'Echo of the Citadel',6000:'Fallen Kingdom',7500:'High Sovereignty',8000:'Eternal Waystone',9000:'Final Trial'};
  return {icon:'💠',name:milestoneNames[wave]||'Ascension Tribute',detail:fmt(sigils)+' Primal Sigils · One-time tier achievement'+(wave===6000?' · Eternal equipment can now drop':''),kind:'deepSigils',amount:sigils};
 }
 function milestoneKey(tier,wave){return tier+':'+wave;}
-function nextMilestone(tier,wave){return milestonesAt.find(w=>w>=wave&&!p.milestones[milestoneKey(tier,w)])||milestonesAt.find(w=>w>=wave)||null;}
+function nextMilestone(tier,wave){const list=tierMilestones(tier);return list.find(w=>w>=wave&&!p.milestones[milestoneKey(tier,w)])||list.find(w=>w>=wave)||null;}
 function rewardMilestone(tier,wave){
  const key=milestoneKey(tier,wave);
- if(p.milestones[key]||!milestonesAt.includes(wave))return false;
+ if(p.milestones[key]||!tierMilestones(tier).includes(wave))return false;
  const prize=tierMilestone(tier,wave);
  p.milestones[key]=true;
+ if(prize.kind==='starter'){p.gold+=prize.gold;p.essence+=prize.essence;p.knowledge+=prize.knowledge;p.points+=prize.points;}
  if(prize.kind==='gold')p.gold+=prize.amount;
  if(prize.kind==='essence')p.essence+=prize.amount;
- if(['sigils','deepSigils','path','eternal'].includes(prize.kind))p.sigils+=prize.amount;
+ if(['sigils','deepSigils','path','eternal','frontier','dominion'].includes(prize.kind))p.sigils+=prize.amount;
  if(prize.kind==='legacy'){p.sigils+=prize.amount;p.legacyUnlocked=true;}
  if(prize.kind==='tier'){p.unlockedTier=Math.max(p.unlockedTier,Math.min(MAX_TIER,tier+1));p.sigils+=prize.amount;}
  if(prize.kind==='rune'){p.gold+=prize.amount;if(p.runes.length<240)p.runes.push({id:'milestone_'+key,type:['ember','storm','frost','fortune'][(tier-1)%4],tier:Math.min(12,2+Math.floor(tier/3))});}
  if(prize.kind==='banner'){const banner='Banner of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
  if(prize.kind==='eternal'){const banner='Eternal Victor of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
  if(prize.kind==='century'){p.essence+=prize.amount;p.sigils+=12+tier*3;}
- notice('MILESTONE '+fmt(wave)+' • '+prize.name.toUpperCase());
- message('✦ WAVE '+fmt(wave)+' MILESTONE UNLOCKED');
+ if(prize.crestRank){
+  p.dominionCrests[tier]=Math.max(Number(p.dominionCrests[tier])||0,prize.crestRank);
+  run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+run.maxHealth*.05);
+  notice(tierNames[tier-1].toUpperCase()+' · CREST RANK '+prize.crestRank);
+ }
+ notice('MILESTONE '+formatWave(wave)+' • '+prize.name.toUpperCase());
+ message('✦ WAVE '+formatWave(wave)+' MILESTONE UNLOCKED');
  save();return true;
 }
 let chosenTier=p.selectedTier;
