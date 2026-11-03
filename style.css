@@ -1596,3 +1596,43 @@
  .dominion-codex-entry>div strong{font-size:12px}
  .dominion-codex-entry>div small,.dominion-codex-entry>div p{font-size:8px}
 }
+
+
+/* Alpha 0.9.0 — Sovereign Oaths: late-game Sigil sinks with the existing high-fantasy progression language. */
+.milestone-entry.milestone-gate{border-color:#f4d38a;border-left:4px solid #ffdd9f;box-shadow:inset 1px 0 #ffdf8855;background:linear-gradient(90deg,#403e32,#23394a)}
+.milestone-entry.milestone-gate .milestone-copy strong{color:#ffedbf}
+.sovereign-oath-chamber{margin-top:11px;padding:9px;border:2px ridge #bb9b7d;background:linear-gradient(135deg,#433647f5,#20354af2 70%),url('assets/chambers/training.webp') center/cover;box-shadow:inset 0 0 0 1px #f6d8b52c,0 6px 12px #0008}
+.sovereign-oath-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #e9c28c6b;padding:3px 4px 8px;margin-bottom:8px}
+.sovereign-oath-head>div:first-child{flex:1;min-width:0}
+.sovereign-oath-head small{font:700 9px Arial,sans-serif;letter-spacing:.8px;color:#efd1aa}
+.sovereign-oath-head h3{font:700 21px Georgia,serif;color:#ffebc8;margin:3px 0}
+.sovereign-oath-head p{font:10px/1.35 Arial,sans-serif;color:#e0cfcb;margin:0}
+.sovereign-oath-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.sovereign-oath{display:grid;grid-template-columns:36px minmax(0,1fr) 87px;gap:7px;align-items:center;min-height:88px;padding:7px;border:1px solid #b49779;background:linear-gradient(125deg,#364659d9,#1f3142ef);box-shadow:inset 0 1px #eecda829}
+.sovereign-oath:nth-child(2n){background:linear-gradient(125deg,#3a3c53da,#253147ef)}
+.sovereign-oath-locked{border-color:#767380;filter:saturate(.65)}
+.sovereign-oath-emblem{display:grid;place-items:center;width:36px;height:43px;border:1px solid #bea38b;background:#182b3e}
+.sovereign-oath-emblem .forge-pixel-icon{width:34px;height:41px}
+.sovereign-oath-info{min-width:0}
+.sovereign-oath-info>small{display:block;font:700 8px/1.3 Arial,sans-serif;color:#dcc3e3;letter-spacing:.4px}
+.sovereign-oath-info strong{display:block;font:700 14px/1.1 Georgia,serif;margin:3px 0;color:#ffe7bf}
+.sovereign-oath-info p{font:10px/1.3 Arial,sans-serif;color:#dcd5ce;margin:3px 0 5px}
+.sovereign-oath-buy{display:flex;flex-direction:column;align-items:stretch;gap:3px;text-align:center}
+.sovereign-oath-buy>span{font:700 10px Arial,sans-serif;color:#f3dfb9}
+.sovereign-oath-buy>small{font:700 9px Arial,sans-serif;color:#f9d8a9}
+.sovereign-oath-buy button{min-height:33px;border:1px solid #c0a074;background:linear-gradient(#82603e,#44392e);color:#fff0d3;font:700 12px Arial,sans-serif}
+.sovereign-oath-buy button:disabled{opacity:.55;filter:grayscale(.45)}
+.sovereign-oath-foot{border-top:1px solid #cba98951;margin-top:8px;padding:8px 3px 0;font:10px/1.25 Arial,sans-serif;color:#e3ccba}
+@media(max-width:1000px){.sovereign-oath-grid{grid-template-columns:1fr}}
+@media(orientation:portrait) and (max-width:680px){
+ .sovereign-oath-chamber{padding:6px}
+ .sovereign-oath-head h3{font-size:18px}
+ .sovereign-oath-head p{font-size:9px}
+ .sovereign-oath{grid-template-columns:31px minmax(0,1fr) 81px;gap:5px;min-height:79px;padding:5px}
+ .sovereign-oath-emblem{width:30px;height:37px}
+ .sovereign-oath-emblem .forge-pixel-icon{width:29px;height:35px}
+ .sovereign-oath-info strong{font-size:12px}
+ .sovereign-oath-info p{font-size:9px}
+ .sovereign-oath-buy button{min-height:33px}
+ .sovereign-oath-foot{font-size:9px}
+}
