@@ -537,7 +537,7 @@ function renderSiegeCodex(){
  return `<details class="siege-codex" aria-label="Field manual and faction tactics">
   <summary>✦ FIELD MANUAL <span>10 FACTIONS · BOSS TACTICS · SPECIAL WAVES</span></summary>
   <div class="codex-body">
-    <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. Watch the arrival patterns: ambushes split to the flanks, shield guards protect standards and relics, spellcasters hold rear lanes, and chapter bosses gather reinforcements from the wings. Live warning text identifies a dangerous cast as it happens. The hero targets support units automatically; your build determines whether the defense holds.</p>
+    <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. Watch the arrival patterns: ambushes split to the flanks, shield guards protect standards and relics, spellcasters hold rear lanes, and chapter bosses gather reinforcements from the wings. Live warning text identifies a dangerous cast as it happens. Focused damage during a Sapper fuse, Frost or Thorn spell, or Riftstalker blink can interrupt it without requiring a kill. The gold line above a casting enemy shows disruption progress. The hero targets support units automatically; your build determines whether the defense holds.</p>
     <div class="codex-factions">${cards}</div>
     <div class="codex-events">
       <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Breaking a warned charge or warp, or shattering an Iron Ward, briefly exposes the boss to +12% damage. Siege Beast crusher windups can be interrupted too.</p>
