@@ -3,6 +3,8 @@ name: Primal KnIght - Onslaught quality checks
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -29,6 +31,11 @@ jobs:
           test -f assets/shaman.svg
           test -f assets/siegebeast.svg
           test -f assets/warlord.svg
+          test -f assets/thornweaver.svg
+          test -f assets/riftstalker.svg
+          test -f assets/warlord_iron.svg
+          test -f assets/warlord_ember.svg
+          test -f assets/warlord_rift.svg
 
       - name: Validate JavaScript and gameplay
         run: |
