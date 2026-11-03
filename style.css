@@ -1219,3 +1219,80 @@
  .forge-category .ascension-upgrade,.forge-legacy-chamber .ascension-upgrade{min-height:51px}
  .forge-legacy-rows{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
+
+
+/* Alpha 0.6.9 — Forge cleanup and self-contained pixel sprites. No cropped textures. */
+.panel[data-theme="training"] .forge-ledger{background:linear-gradient(160deg,rgba(19,30,43,.96),rgba(18,29,42,.97)),url('assets/chambers/training.webp') center/cover;border-color:#ac8955;padding:9px;box-shadow:inset 0 0 0 1px #efd9af1b,0 7px 16px #0007}
+.panel[data-theme="training"] .forge-ledger:before{border-color:#f4d6a10b}
+.panel[data-theme="training"] .ascension-shell{min-height:88px;padding:9px 13px 7px;gap:3px 11px;margin-bottom:7px}
+.panel[data-theme="training"] .ascension-copy h2{font-size:24px;margin:4px 0}
+.panel[data-theme="training"] .ascension-copy p{font-size:11px;max-width:500px}
+.panel[data-theme="training"] .forge-ledger-head{margin-bottom:8px;padding-bottom:7px}
+.panel[data-theme="training"] .forge-ledger-head h2{font-size:20px}
+.panel[data-theme="training"] .forge-ledger-head>span{max-width:240px;font-size:10px;line-height:1.3}
+.panel[data-theme="training"] .forge-all-categories{gap:9px}
+.panel[data-theme="training"] .forge-category{padding:5px;border-width:1px;border-color:#a18b6c;background:linear-gradient(148deg,#293846f2,#1b2938f5 85%);box-shadow:inset 0 1px #fff0d61c,0 4px 10px #0005}
+.panel[data-theme="training"] .forge-category-techniques{border-color:#9d8ba9}
+.panel[data-theme="training"] .forge-category-defense{border-color:#85a48d}
+.panel[data-theme="training"] .forge-category-economy{border-color:#b58b72}
+.panel[data-theme="training"] .forge-category-head{min-height:47px;margin:0 0 4px;padding:4px 6px 6px;gap:7px;background:transparent}
+.panel[data-theme="training"] .forge-category-heading h3{font-size:18px;margin:1px 0 2px}
+.panel[data-theme="training"] .forge-category-heading small{font-size:8px;letter-spacing:1px}
+.panel[data-theme="training"] .forge-category-heading p{font-size:10px}
+.panel[data-theme="training"] .forge-category-total b{font-size:18px}
+.panel[data-theme="training"] .forge-category-total small{font-size:8px}
+.panel[data-theme="training"] .forge-category-crest{width:37px;height:38px;background:linear-gradient(#2d4051,#152536);clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),50% 100%,0 calc(100% - 6px),0 6px)}
+.panel[data-theme="training"] .forge-category-rows,.panel[data-theme="training"] .forge-legacy-rows{gap:0}
+.panel[data-theme="training"] .forge-category .forge-upgrade-row,.panel[data-theme="training"] .forge-legacy-chamber .forge-upgrade-row{grid-template-columns:38px minmax(0,1fr) 100px;min-height:68px;gap:7px;padding:6px 6px;margin:0;border:0;border-bottom:1px solid #d5b47e34;box-shadow:none;background:linear-gradient(90deg,#2a39492a,#1a2d4124);transition:background .1s ease}
+.panel[data-theme="training"] .forge-category .forge-upgrade-row:last-child,.panel[data-theme="training"] .forge-legacy-chamber .forge-upgrade-row:last-child{border-bottom:0}
+.panel[data-theme="training"] .forge-category .forge-upgrade-row:hover,.panel[data-theme="training"] .forge-legacy-chamber .forge-upgrade-row:hover{background:linear-gradient(90deg,#9ab8c41a,#cba76713)}
+.panel[data-theme="training"] .forge-category .forge-upgrade-row:before,.panel[data-theme="training"] .forge-legacy-chamber .forge-upgrade-row:before{display:none}
+.panel[data-theme="training"] .forge-category .ascension-emblem,.panel[data-theme="training"] .forge-legacy-chamber .ascension-emblem,.panel[data-theme="research"] .archive-emblem{width:37px;height:41px;overflow:hidden;border:1px solid #bda06b;background:radial-gradient(circle at 50% 37%,#cfac7140,transparent 70%),linear-gradient(#2d3d4c,#142334);clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),50% 100%,0 calc(100% - 5px),0 5px);box-shadow:inset 0 0 0 1px #0007}
+.panel[data-theme="training"] .forge-category .ascension-upgrade-name,.panel[data-theme="training"] .forge-legacy-chamber .ascension-upgrade-name{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
+.panel[data-theme="training"] .forge-category .ascension-upgrade-name strong,.panel[data-theme="training"] .forge-legacy-chamber .ascension-upgrade-name strong{font-size:14px;line-height:1.15}
+.panel[data-theme="training"] .forge-category .ascension-upgrade-name small,.panel[data-theme="training"] .forge-legacy-chamber .ascension-upgrade-name small{font-size:9px}
+.panel[data-theme="training"] .forge-category .ascension-upgrade-copy p,.panel[data-theme="training"] .forge-legacy-chamber .ascension-upgrade-copy p{font-size:10px;line-height:1.25;color:#d7d1c4}
+.panel[data-theme="training"] .forge-category .ascension-next-cost,.panel[data-theme="training"] .forge-legacy-chamber .ascension-next-cost{font-size:10px;min-height:14px}
+.panel[data-theme="training"] .forge-category .ascension-action-buttons button,.panel[data-theme="training"] .forge-legacy-chamber .ascension-action-buttons button{min-height:36px;font-size:12px;border-radius:7px 7px 3px 3px}
+.panel[data-theme="training"] .forge-category .ascension-action-buttons .ascension-multi{background:linear-gradient(#476176,#293b4c);border-color:#9ab5ca}
+.panel[data-theme="training"] .forge-legacy-chamber{margin-top:9px;border-width:1px;background:linear-gradient(130deg,#2c3046,#1a2939)}
+.panel[data-theme="training"] .forge-legacy-chamber .forge-category-head{margin:0 0 4px}
+.panel[data-theme="training"] .forge-legacy-rows{gap:6px}
+.panel[data-theme="training"] .forge-legacy-chamber .forge-upgrade-row{border:1px solid #b5a27855}
+.forge-pixel-icon{display:block;width:100%;height:100%;max-width:100%;max-height:100%;shape-rendering:crispEdges;image-rendering:pixelated;filter:drop-shadow(0 1px 1px #0009)}
+.panel[data-theme="training"] .forge-category-crest .forge-pixel-icon{width:35px;height:35px}
+.panel[data-theme="training"] .ascension-emblem .forge-pixel-icon,.panel[data-theme="research"] .archive-emblem .forge-pixel-icon{width:35px;height:38px}
+.panel[data-theme="research"] .archive-emblem{width:42px;height:47px}
+.panel[data-theme="research"] .archive-emblem .forge-pixel-icon{width:40px;height:44px}
+@media(max-width:1150px){
+ .panel[data-theme="training"] .forge-category .forge-upgrade-row,.panel[data-theme="training"] .forge-legacy-chamber .forge-upgrade-row{grid-template-columns:35px minmax(0,1fr) 96px;gap:5px;padding:5px;min-height:68px}
+ .panel[data-theme="training"] .forge-category .ascension-upgrade-name strong,.panel[data-theme="training"] .forge-legacy-chamber .ascension-upgrade-name strong{font-size:13px}
+ .panel[data-theme="training"] .forge-category .ascension-upgrade-copy p,.panel[data-theme="training"] .forge-legacy-chamber .ascension-upgrade-copy p{font-size:10px}
+}
+@media(max-width:780px){
+ .panel[data-theme="training"] .forge-category .forge-upgrade-row,.panel[data-theme="training"] .forge-legacy-chamber .forge-upgrade-row{grid-template-columns:37px minmax(0,1fr) 102px;min-height:66px}
+ .panel[data-theme="training"] .forge-all-categories{grid-template-columns:1fr;gap:8px}
+ .panel[data-theme="training"] .forge-legacy-rows{grid-template-columns:1fr;gap:0}
+}
+@media(orientation:portrait) and (max-width:680px){
+ .panel[data-theme="training"] .forge-ledger{padding:6px}
+ .panel[data-theme="training"] .forge-ledger-head{align-items:center;padding:2px 3px 6px}
+ .panel[data-theme="training"] .forge-ledger-head h2{font-size:18px}
+ .panel[data-theme="training"] .forge-ledger-head>span{display:none}
+ .panel[data-theme="training"] .forge-category{padding:4px}
+ .panel[data-theme="training"] .forge-category-head{min-height:42px;padding:3px 4px 5px}
+ .panel[data-theme="training"] .forge-category-heading h3{font-size:17px}
+ .panel[data-theme="training"] .forge-category-heading p{font-size:9px}
+ .panel[data-theme="training"] .forge-category .forge-upgrade-row,.panel[data-theme="training"] .forge-legacy-chamber .forge-upgrade-row{grid-template-columns:34px minmax(0,1fr) 96px;gap:5px;padding:5px 3px;min-height:67px}
+ .panel[data-theme="training"] .forge-category .ascension-emblem,.panel[data-theme="training"] .forge-legacy-chamber .ascension-emblem{width:33px;height:38px}
+ .panel[data-theme="training"] .ascension-emblem .forge-pixel-icon{width:32px;height:35px}
+ .panel[data-theme="training"] .forge-category .ascension-upgrade-name strong,.panel[data-theme="training"] .forge-legacy-chamber .ascension-upgrade-name strong{font-size:12.5px}
+ .panel[data-theme="training"] .forge-category .ascension-upgrade-copy p,.panel[data-theme="training"] .forge-legacy-chamber .ascension-upgrade-copy p{font-size:9.5px}
+ .panel[data-theme="training"] .forge-category .ascension-action-buttons button,.panel[data-theme="training"] .forge-legacy-chamber .ascension-action-buttons button{min-height:35px;font-size:11px}
+ .panel[data-theme="training"] .ascension-copy p{font-size:10px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .panel[data-theme="training"] .forge-all-categories{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .panel[data-theme="training"] .forge-legacy-rows{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ .panel[data-theme="training"] .forge-category .forge-upgrade-row,.panel[data-theme="training"] .forge-legacy-chamber .forge-upgrade-row{min-height:59px;padding:4px}
+}
