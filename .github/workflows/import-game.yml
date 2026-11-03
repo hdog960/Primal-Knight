@@ -24,9 +24,15 @@ jobs:
           test -f assets/battlefield.png
           test -f assets/hero.png
           test -f assets/goblin.png
+          test -f assets/guardian.svg
+          test -f assets/raider.svg
+          test -f assets/shaman.svg
+          test -f assets/siegebeast.svg
+          test -f assets/warlord.svg
 
       - name: Validate JavaScript and gameplay
         run: |
           node --check game.js
           node tests/smoke.js
           node tests/balance.js
+          node tests/encounters.js
