@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.7.2. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.8.0. Hero Hall and connected skill-tree overhaul with combined overview and skill trees, plus the armory update. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -45,8 +45,8 @@ const gearNames={
  charm:['Copper Locket','Hunter Sigil','Wolfsbane Charm','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone'],
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
-function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,12);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
+function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},ascension:{},sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.ascension??={};p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,MAX_TIER);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -80,9 +80,45 @@ let ctx=$('game').getContext('2d'),c=$('game'),background=new Image();background
 let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,rewardTimer:0,shakes:0,flashes:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0;
 // The Tower-inspired structure: difficulty is chosen once, then every wave
 // automatically follows the previous one until the fortress falls or player retreats.
-const tierNames=['Verdant March','Ashen Frontier','Frostbound Pass','Sunken Dominion','Stormscar Reach','Hollow Kingdom','Emberfall Vale','Eclipse Bastion','Ancient Wilds','Astral Descent','Shattered Crown','Primordial Siege'];
-const roman=x=>['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][x]||String(x);
-const milestonesAt=[5,10,15,20,35,50,75,100];
+const tierNames=['Verdant March','Ashen Frontier','Frostbound Pass','Sunken Dominion','Stormscar Reach','Hollow Kingdom','Emberfall Vale','Eclipse Bastion','Ancient Wilds','Astral Descent','Shattered Crown','Primordial Siege','Cinder Throne','Obsidian Expanse','Eternal Rift','Last Kingdom'];
+const roman=x=>['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI'][x]||String(x);
+const MAX_WAVE=10000;
+const MAX_TIER=tierNames.length;
+const milestonesAt=[5,10,15,20,35,50,75,100,150,250,400,500,750,1000,1500,2000,2500,3000,4000,5000,6000,7500,8000,9000,MAX_WAVE];
+const waystonesAt=[100,250,500,1000,1500,2500,4000,6000,8000];
+const ascensionPaths=[
+ ['vanguard','Vanguard Doctrine','Permanent damage +6% per rank.',8,40,150],
+ ['bastion','Bastion Covenant','Permanent fortress HP +7% per rank.',9,40,400],
+ ['sunder','Armor Unbinding','Ignore 2.5% enemy armor per rank, up to 75%.',13,30,1000],
+ ['epoch','Epoch Resonance','Damage grows by 1.5% per rank × the square root of current wave / 100.',19,40,2500],
+ ['volley','Eternal Volley','Gain one additional attack arrow for every six ranks.',26,36,5000]
+];
+const ascRank=id=>n(p.ascension,id);
+const ascUnlockWave=row=>row[5];
+function waveThreat(wave){
+ const wave=Math.max(1,Math.min(MAX_WAVE,wave));
+ return wave<=100?1+wave*.19:20*Math.pow(1+(wave-100)/180,1.65);
+}
+function enemySpeedFactor(wave){
+ const w=Math.max(1,Math.min(MAX_WAVE,wave));
+ return 1+.023*Math.min(w,75)+.12*Math.log2(1+Math.max(0,w-75)/100);
+}
+function waveArmor(wave,tier){
+ const w=Math.max(1,Math.min(MAX_WAVE,wave));
+ return .21*Math.min(w,100)+(w>100?.20*Math.pow(w-100,.92):0)+(tier-1)*2;
+}
+function waveEnemyCount(wave){
+ return Math.min(24,8+Math.floor(Math.max(1,wave)*1.5)+(wave%5===0?1:0));
+}
+function milestoneUnlockedAt(wave){
+ return Object.keys(p.milestones||{}).some(key=>p.milestones[key]&&key.endsWith(':'+wave));
+}
+function ascUnlocked(row){return milestoneUnlockedAt(ascUnlockWave(row));}
+function ascCost(row){const rank=ascRank(row[0]);return Math.ceil(row[3]*(1+rank*.12+rank*rank*.018));}
+function waystoneForTier(tier){
+ return waystonesAt.filter(w=>p.milestones[milestoneKey(tier,w)]).at(-1)||1;
+}
+let useWaystone=true;
 const legacyPaths=[['siegebreaker','Siegebreaker','Deal +6% damage to siege bosses per rank.',2,30],['guardianOath','Guardian’s Oath','Increase permanent wall durability +3% per rank.',2,35],['goldenTouch','Golden Touch','Earn +4% gold from monster kills per rank.',3,40]];
 const lr=id=>n(p.legacy,id);
 function tierMilestone(tier,wave){
@@ -681,7 +717,7 @@ function renderPanel(){
  }
  $('panelContent').innerHTML=html;
  if(tab==='equipment')renderArmoryDrawer();else{const drawer=$('armoryDrawer');if(drawer){drawer.hidden=true;drawer.innerHTML='';}}
- const imp=$('importFile');if(imp)imp.onchange=async ev=>{let file=ev.target.files?.[0];if(!file)return;try{let obj=JSON.parse(await file.text());if(!obj.inventory||!obj.equipped||!obj.training)throw Error('Invalid save');if(!confirm('Replace your current progress with this backup?'))return;p={...defaultState(),...obj};p.bestByTier??={};p.milestones??={};p.legacy??={};p.banners??=['Crimson Standard'];p.sigils??=0;p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,12);chosenTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);save();initRun();showLobby();refreshHUD();renderPanel();notice('SAVE RESTORED');}catch(e){notice('Invalid save file')}};
+ const imp=$('importFile');if(imp)imp.onchange=async ev=>{let file=ev.target.files?.[0];if(!file)return;try{let obj=JSON.parse(await file.text());if(!obj.inventory||!obj.equipped||!obj.training)throw Error('Invalid save');if(!confirm('Replace your current progress with this backup?'))return;p={...defaultState(),...obj};p.bestByTier??={};p.milestones??={};p.ascension??={};p.legacy??={};p.banners??=['Crimson Standard'];p.sigils??=0;p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,12);chosenTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);save();initRun();showLobby();refreshHUD();renderPanel();notice('SAVE RESTORED');}catch(e){notice('Invalid save file')}};
 }
 function openTab(next,fromHub=false){
  // Hub navigation remembers the last page, but direct subtab selection must not
