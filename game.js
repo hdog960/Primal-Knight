@@ -203,6 +203,8 @@ function decorateTierGate(tier,wave,prize){
   prize.unlockNext=tier+1;
   prize.detail+=' · UNLOCK TIER '+roman(tier+1);
  }
+ const oath=sovereignOaths.find(row=>row[5]===tier&&row[6]===wave);
+ if(oath)prize.detail+=' · UNLOCK '+oath[1]+' in Power → Training';
  return prize;
 }
 function tierMilestones(tier){return milestonesAt.filter(w=>tier>=17||!outerMilestones.has(w));}
@@ -376,8 +378,8 @@ function gearStat(slot){
  return 1+score(slot);
 }
 function socketValue(type){let total=0;for(let id of Object.values(p.socketed)){let x=p.runes.find(r=>r.id===id);if(x&&x.type===type)total+=Math.pow(1.38,x.tier-1)*.015;}return total*(1+Math.min(12,res('attunement'))*.02)*(1+dominionBonus('runes'));}
-function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+skill('bulwark')*.15)*(1+gearStat('armor')*.06)*(1+lr('guardianOath')*.03)*(1+Math.min(16,res('masonry'))*.015)*(1+ascRank('bastion')*.07)*(1+dominionBonus('wall')+dominionSeals()*.01));}
-function damage(){return (32+2*t('power')+p.level*.85)*(1+skill('aim')*.06)*(1+(gearStat('weapon')-1)*.22)*(1+Math.min(15,res('calibration'))*.01)*(1+ascRank('vanguard')*.06)*(1+ascRank('epoch')*.015*Math.sqrt(Math.max(1,run.wave)/100))*(1+dominionBonus('damage')+dominionResonance());}
+function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+skill('bulwark')*.15)*(1+gearStat('armor')*.06)*(1+lr('guardianOath')*.03)*(1+Math.min(16,res('masonry'))*.015)*(1+ascRank('bastion')*.07)*(1+dominionBonus('wall')+dominionSeals()*.01)*(1+oathRank('sovereignAegis')*.015));}
+function damage(){return (32+2*t('power')+p.level*.85)*(1+skill('aim')*.06)*(1+(gearStat('weapon')-1)*.22)*(1+Math.min(15,res('calibration'))*.01)*(1+ascRank('vanguard')*.06)*(1+ascRank('epoch')*.015*Math.sqrt(Math.max(1,run.wave)/100))*(1+dominionBonus('damage')+dominionResonance())*(1+oathRank('sovereignBlade')*.015);}
 function attackInterval(){return Math.max(.22,.82/(1+Math.min(3,t('haste')*.025)+skill('quiver')*.05+(run.health<run.maxHealth*.3?skill('laststand')*.12:0)));}
 function trainCost(row){let [id,, ,base,mul]=row;let lv=t(id);return Math.floor(base*(1+lv*.075+lv*lv*.004)*Math.pow(1+(mul-1)*.07,Math.min(lv,120))*Math.pow(1.002,Math.max(0,lv-120))); }
 function stationCost(row){let[id,,,,base,mul]=row;let lv=station(id);return Math.floor(base*(1+lv*.2+lv*lv*.04)*Math.pow(1.04,Math.min(lv,40))*Math.pow(1.015,Math.max(0,lv-40))*(1-Math.min(.42,res('discount')*.014))); }
@@ -400,14 +402,14 @@ function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase=
 function spawnEnemy(){const isBoss=run.wave%5===0&&run.spawned===run.total-1;let type=isBoss?'ogre':(run.wave>=6?['goblin','skeleton','warg','warg']:run.wave>=3?['goblin','skeleton','warg']:['goblin','skeleton'])[Math.floor(Math.random()*(run.wave>=6?4:run.wave>=3?3:2))];const trial=dominionTrial(run.tier);const trait=trial?.trait||'';let mul=waveThreat(run.wave)*tierThreat(run.tier)*outerDepthPressure(run.tier,run.wave)*(trait==='armored'?1.15:1)*(trait==='elite'&&isBoss?1.3:1);let hp=(type==='ogre'?300:type==='warg'?58:type==='skeleton'?42:type==='imp'?28:36)*mul*(1-Math.min(.35,sup('health')*.005));const e={type,x:rnd(140,820),y:rnd(122,154),hp,max:hp,speed:(type==='ogre'?7:type==='warg'?25:type==='imp'?22:17)*enemySpeedFactor(run.wave)*(1+(run.tier-1)*.06)*(trait==='swift'?1.12:1)*(1-Math.min(.35,sup('speed')*.005)),armor:((type==='ogre'?7:type==='skeleton'?2:0)+waveArmor(run.wave,run.tier))*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(trait==='armored'?1.18:1)*(1-Math.min(.5,sup('armor')*.01)),buildup:0,burn:0,slow:0,wobble:rnd(0,6.28),golden:Math.random()<.02+station('midas')*.012,dead:false,valued:isBoss?45:Math.round(type==='warg'?12:10)};run.enemies.push(e);}
 function effect(x,y,color,count=8){const available=Math.max(0,140-run.particles.length);for(let i=0;i<Math.min(count,available);i++)run.particles.push({x,y,vx:rnd(-70,70),vy:rnd(-78,35),life:rnd(.25,.7),max:.7,color,size:rnd(2,5)});}
 function float(x,y,text,color='#ffe9b2'){if(run.floats.length>=28)run.floats.shift();run.floats.push({x,y,text,color,life:1.25});}
-function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let dealt=Math.max(1,raw*(e.type==='ogre'?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;effect(e.x,e.y,'#fbd47b',3);if(kind==='arrow'){
+function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let siegeOath=(e.type==='ogre'||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(e.type==='ogre'?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;effect(e.x,e.y,'#fbd47b',3);if(kind==='arrow'){
  if(Math.random()<skill('ember')*.06+socketValue('ember'))e.burn=Math.max(e.burn,3);
  if(Math.random()<skill('frost')*.055+socketValue('frost'))e.slow=Math.max(e.slow,2.7+skill('hail')*.5);
  if(Math.random()<skill('spark')*.04+socketValue('storm')+t('shock')*.001){const other=run.enemies.filter(o=>o!==e&&!o.dead).sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y))[0];if(other){effect(other.x,other.y,'#a5efff',8);hurt(other,raw*.45,'lightning');}}
  }
  if(e.hp<=0)kill(e);
 }
-function kill(e){e.dead=true;run.kills++;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(tierReward(run.tier))*(1+dominionBonus('gold')));if(e.golden||Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((e.type==='ogre'?70:8)*(1+run.wave*.055)*(tierReward(run.tier))));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
+function kill(e){e.dead=true;run.kills++;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(tierReward(run.tier))*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));if(e.golden||Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((e.type==='ogre'?70:8)*(1+run.wave*.055)*(tierReward(run.tier))));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
 function projectileCount(){return Math.min(12,1+Math.floor(t('multishot')/8)+Math.floor(ascRank('volley')/6));}
 function shoot(target,power=damage(),kind='arrow',originX=496,originY=390){if(!target||run.shots.length>=48)return;run.shots.push({x:originX,y:originY,target,power,kind,life:1.8,trail:[]});run.flashes=.13;}
 function tick(dt){
@@ -425,9 +427,9 @@ function tick(dt){
 function completeWave(){
  if(run.phase!=='fighting')return;
  const cleared=run.wave,tier=run.tier,multi=tierReward(tier);
- let essence=Math.round((12+cleared*4)*(1+t('essence')*.028)*multi*(1+Math.min(16,res('distillation'))*.015)*(1+dominionBonus('essence')));
- let knowledge=Math.round((5+cleared*1.6)*(1+res('studies')*.045)*multi*(1+dominionBonus('knowledge')));
- let waveGold=Math.round((35+cleared*9)*(1+res('interest')*.07+skill('prosperity')*.12)*multi*(1+dominionBonus('gold')));
+ let essence=Math.round((12+cleared*4)*(1+t('essence')*.028)*multi*(1+Math.min(16,res('distillation'))*.015)*(1+dominionBonus('essence'))*(1+oathRank('sovereignTribute')*.0125));
+ let knowledge=Math.round((5+cleared*1.6)*(1+res('studies')*.045)*multi*(1+dominionBonus('knowledge'))*(1+oathRank('sovereignTribute')*.0125));
+ let waveGold=Math.round((35+cleared*9)*(1+res('interest')*.07+skill('prosperity')*.12)*multi*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));
  p.essence+=essence;p.knowledge+=knowledge;p.gold+=waveGold;
  const firstClear=cleared>(p.bestByTier[tier]||0);
  if(firstClear)p.uniqueClears++;
