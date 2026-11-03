@@ -1,17 +1,23 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#10151d"><meta name="description" content="Primal KnIght – Onslaught. One hero, endless growth, one fortress to defend."><title>Primal KnIght – Onslaught</title><link rel="icon" href="assets/icon.png"><link rel="apple-touch-icon" href="assets/icon.png"><link rel="stylesheet" href="style.css?v=0.3.2.1"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#10151d"><meta name="description" content="Primal KnIght – Onslaught. One hero, endless growth, one fortress to defend."><title>Primal KnIght – Onslaught</title><link rel="icon" href="assets/icon.png"><link rel="apple-touch-icon" href="assets/icon.png"><link rel="stylesheet" href="style.css?v=0.4.0"></head>
 <body><div id="app">
 <header class="top">
- <div class="branding"><div class="crest-icon"><img src="assets/icon.png" alt=""></div><div class="wordmark"><strong>PRIMAL KNIGHT</strong><span>✦ ONSLAUGHT <em>ALPHA 0.3.1</em> ✦</span></div></div>
+ <div class="branding"><div class="crest-icon"><img src="assets/icon.png" alt=""></div><div class="wordmark"><strong>PRIMAL KNIGHT</strong><span>✦ ONSLAUGHT <em>ALPHA 0.4.0</em> ✦</span></div></div>
  <div class="resources" id="resources" aria-label="Your currencies"></div>
  <button class="utility-button" id="settingsButton" aria-label="Settings and save backup" title="Settings and save backup">⚙</button>
 </header>
 <div class="game-shell">
  <div class="battlefield" id="battlefield"><canvas id="game" width="960" height="540" aria-label="Animated siege battlefield"></canvas>
-  <div class="hud-top"><div class="hudbox"><span class="small">THE VERDANT MARCH</span><strong id="stageName">Forest Front • Stage 1</strong></div><div class="hudbox center"><span class="small">INCOMING WAVE</span><strong id="waveName">WAVE 1 / 10</strong><div class="wave-track"><div id="waveFill"></div></div></div><div class="hudbox right"><span class="small">FORTRESS INTEGRITY</span><strong id="wallText">100 / 100</strong><div class="hp-track"><div id="wallFill"></div></div></div></div>
-  <div class="hero-tag" id="heroTag">✦ LEVEL 1 <span>0 / 80 XP</span></div>
+  <div class="hud-top"><div class="hudbox"><span class="small">ONSLAUGHT DIFFICULTY</span><strong id="stageName">Tier I · Verdant March</strong></div><div class="hudbox center"><span class="small">INCOMING WAVE</span><strong id="waveName">WAVE 1 · ENDLESS</strong><div class="wave-track"><div id="waveFill"></div></div></div><div class="hudbox right"><span class="small">FORTRESS INTEGRITY</span><strong id="wallText">100 / 100</strong><div class="hp-track"><div id="wallFill"></div></div></div></div>
+  <div class="milestone-hint" id="milestoneHint">✦ NEXT MILESTONE · WAVE 5</div><div class="hero-tag" id="heroTag">✦ LEVEL 1 <span>0 / 80 XP</span></div>
   <div class="combat-msg" id="combatMessage" aria-live="polite">THE SIEGE AWAITS</div>
-  <div class="fight-actions"><button id="startButton" class="action-primary">⚔ BEGIN SIEGE</button><button id="speedButton" class="action-secondary" aria-label="Toggle battle speed">1×</button><button id="pauseButton" class="action-secondary" aria-label="Pause or resume battle">Ⅱ</button></div>
+  <div class="fight-actions"><button id="startButton" class="action-primary">⚔ BEGIN SIEGE</button><button id="speedButton" class="action-secondary" aria-label="Toggle battle speed">1×</button><button id="pauseButton" class="action-secondary" aria-label="Pause or resume battle">Ⅱ</button><button id="exitRunButton" class="action-secondary exit-run" hidden>⟵ END RUN</button></div>
+  <section class="tier-lobby" id="tierLobby" aria-label="Select a difficulty tier and view milestone rewards">
+   <div class="lobby-banner"><div class="lobby-hero-art"><img src="assets/hero.png" alt="The lone hero defending the fortress"></div><div class="lobby-title"><span>THE ENDLESS SIEGE</span><h1>CHOOSE YOUR ONSLAUGHT</h1><p>Choose a tier. Defend without stopping. Claim permanent rewards at milestone waves.</p><strong id="bannerBadge">♛ Crimson Standard</strong><p id="lobbySummary" aria-live="polite"></p></div></div>
+   <div class="lobby-content"><div class="lobby-tiers"><h2>DIFFICULTY TIERS <small>Clear wave 20 to open the next</small></h2><div class="tier-grid" id="tierGrid"></div></div>
+    <div class="lobby-milestones"><div class="lobby-detail-head"><h2 id="tierHeading">TIER I — VERDANT MARCH</h2><p id="tierDescription"></p></div><div class="milestone-scroll" id="milestoneList"></div></div></div>
+   <div class="lobby-footer"><span>Milestones pay once per tier · Normal enemy rewards pay every run</span><button id="launchTierButton" class="action-primary">⚔ START TIER I • ENDLESS SIEGE</button></div>
+  </section>
  </div>
  <section class="panel" id="panel" aria-label="Progression chamber" hidden>
   <aside class="chamber-aside" id="chamberAside">
@@ -40,4 +46,4 @@
  <button class="nav-item" data-hub="fortress"><span class="pixel-symbol pixel-symbol-fortress" aria-hidden="true"></span><b>FORTRESS</b><small>Build &amp; weaken</small></button>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-</div><script src="game.js?v=0.3.2"></script></body></html>
+</div><script src="game.js?v=0.4.0"></script></body></html>
