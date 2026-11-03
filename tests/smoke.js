@@ -465,4 +465,37 @@ assert(el('milestoneList').innerHTML.includes('data-start-mode="waystone"')===fa
 assert(el('milestoneList').innerHTML.includes('The First and Last Gate'),'Origin Gate narrative is visible in the final tier');
 assert(el('milestoneList').innerHTML.includes('THE FIRST WATCH'),'First Watch remains accessible on the new tier selection screen');
 
+
+// Dominion tier gates spread out earned progression after the first 16 tiers.
+for(const [tier,wave] of [[1,20],[13,20],[16,20],[17,100],[20,100],[21,150],[24,150],[25,250],[29,250],[30,null]])
+ assert.equal(hooks.tierAdvanceWave(tier),wave,'Tier '+tier+' requires a deliberately paced frontier milestone');
+assert.equal(hooks.tierMilestone(17,100).unlockNext,18,'Tier XVII 100th-wave win opens Tier XVIII');
+assert.equal(hooks.tierMilestone(21,150).unlockNext,22,'Tier XXI 150th-wave win opens Tier XXII');
+assert.equal(hooks.tierMilestone(25,250).unlockNext,26,'Tier XXV first Crest unlocks Tier XXVI');
+assert.equal(hooks.tierMilestone(29,250).unlockNext,30,'Tier XXIX Crest opens the final tier');
+p09.unlockedTier=17;
+assert(!p09.milestones['17:100'],'Tier XVII century reward initially unclaimed');
+hooks.rewardMilestone(17,100);
+assert.equal(p09.unlockedTier,18,'Outer Tier XVII does not unlock its next region until wave 100');
+p09.unlockedTier=25;
+hooks.rewardMilestone(25,20);
+assert.equal(p09.unlockedTier,25,'Tier XXV wave 20 rewards the player but does not prematurely unlock the next tier');
+hooks.rewardMilestone(25,250);
+assert.equal(p09.unlockedTier,26,'Tier XXV wave 250 unlocks Tier XXVI and a Dominion Crest');
+p09.unlockedTier=30;
+assert(hooks.outerDepthPressure(16,10000)===1,'Earlier sixteen tiers keep their existing difficulty');
+assert(hooks.outerDepthPressure(30,10000)>=50,'Final tier gains meaningful deep-wave pressure');
+assert(hooks.outerDepthPressure(30,20)===1,'Final-tier early waves remain approachable before deep-wave escalation');
+assert(hooks.dominionSeals()>=4,'Earned four-stage Dominion Crests contribute to account-wide Resonance');
+assert(hooks.dominionResonance()>0,'Every earned Dominion seal adds measurable universal damage');
+const cappedSave={...legacySave,version:3,unlockedTier:16,selectedTier:16,milestones:{'16:20':true},ascension:{vanguard:8},dominionCrests:{}};
+const completedOldRun={...oldSandbox,window:{__PK_TEST__:true,addEventListener(){}},
+ localStorage:{getItem(){return JSON.stringify(cappedSave)},setItem(){}}};
+vm.runInNewContext(fs.readFileSync('game.js','utf8'),completedOldRun,{filename:'game.js'});
+const completedOldData=completedOldRun.window.__PK_TEST_TOOLS__.p();
+assert.equal(completedOldData.unlockedTier,17,'Previously completed Tier XVI wave 20 auto-unlocks new Tier XVII');
+assert.equal(completedOldData.selectedTier,16,'Save migration retains the chosen tier');
+assert.equal(completedOldData.ascension.vanguard,8,'Save migration retains deep Ascension investments');
+assert(completedOldData.milestones['16:20'],'Save migration retains claimed historical milestones');
+
 console.log('PASS: 10,000-wave chronicle, 30 tiers, waystones, Ascension routes, balance limits, original research, Forge, Gear, legacy and save migration.');
