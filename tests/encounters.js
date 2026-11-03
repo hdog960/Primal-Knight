@@ -1,4 +1,4 @@
-// Alpha 0.10.0 deterministic Living Onslaught encounter and unit behavior regression.
+// Alpha 0.10.1 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const code=fs.readFileSync('game.js','utf8');
 function createWorld(seedValue=117){
@@ -22,7 +22,7 @@ function createWorld(seedValue=117){
  return {hooks,sandbox};
 }
 
-const spriteTypes=['guardian','raider','shaman','siegebeast','warlord'];
+const spriteTypes=['guardian','raider','shaman','siegebeast','warlord','frostbinder','sapper','banneret'];
 for(const type of spriteTypes){
  const path='assets/'+type+'.svg';
  assert(fs.existsSync(path),'New enemy '+type+' has a real game sprite');
@@ -43,7 +43,7 @@ for(let tier=1;tier<=30;tier++)for(let chapter=0;chapter<5;chapter++){
  assert(e.faction&&e.units.length>=4&&e.chapter===chapter+1,'Every tier/chapter has a valid faction and roster');
  assert.equal(encounter(1+100*chapter,tier).factionId,e.factionId,'Encounter choice is deterministic');
 }
-assert.equal(factions.size,5,'Initial Living Onslaught launches five distinct factions');
+assert.equal(factions.size,8,'Living Onslaught has eight distinct rotating factions');
 assert.equal(hooks.encounterUnit(encounter(1,1),0),'skeleton','First few waves retain familiar gentle enemies');
 assert(!['guardian','shaman','raider'].includes(hooks.encounterUnit(encounter(3,2),1)),'Opening waves do not surprise players with late mechanics');
 const late=[8,9,13,17,37,50,75,100,101,200,1000,2500,5000,10000];
@@ -113,4 +113,85 @@ assert(real.renderEncounterIntel(1).includes('WAVE 5'),'First special encounter 
 assert(world.sandbox.document.getElementById('milestoneList').innerHTML.includes('encounter-intel'),'Encounter intelligence is visible in the original Battle lobby');
 assert.equal(hudWorld.hooks.tierMilestone(1,100).kind,'century','Century boss does not replace milestone reward');
 assert(hudWorld.hooks.tierMilestones(30).includes(10000),'Final victory still exists in every tier');
-console.log('PASS: 5 factions, 7 encounter classes, original pixel-art sprites, protective guards, raider rushes, support rituals, boss phases, treasure wave and preserved tier milestones.');
+
+ // Phase 2: new rosters and specialists are earned after the gentle first 19 waves.
+const newlyAdded=[['frostvein',6,'frostbinder'],['cinder',7,'sapper'],['gilded',8,'banneret']];
+for(const [faction,tier,type] of newlyAdded){
+ const encounter20=encounter(25,tier);
+ assert.equal(encounter20.factionId,faction,'Tier '+tier+' introduces '+faction);
+ assert(encounter20.units.includes(type),'Faction '+faction+' fields its specialist');
+ assert(!['shaman','frostbinder','sapper','banneret'].includes(hooks.encounterUnit(encounter(8,tier),0)),'New mechanics are gated beyond early tutorial waves');
+ const field=createWorld(122+tier),rr=field.hooks.run();rr.wave=25;rr.tier=tier;field.hooks.beginWave();
+ for(let i=0;i<rr.total;i++){rr.spawned=i;field.hooks.spawnEnemy();}
+ assert(rr.enemies.some(e=>e.type===type),'Faction '+faction+' spawns '+type+' in real combat');
+ assert(rr.enemies.filter(e=>e.type===type).length<=2,'Specialist '+type+' is capped to prevent unfair stacking');
+}
+const extra=createWorld(720),hh=extra.hooks,br=hh.run();br.phase='fighting';br.wave=25;br.tier=6;br.maxHealth=2000;br.health=br.maxHealth;br.spawned=24;br.total=24;
+const baseInterval=hh.attackInterval();
+const frost={type:'frostbinder',hp:300,max:300,dead:false,x:330,y:220,frostCastClock:.01,frostWindup:0,wobble:0,speed:0,slow:0,burn:0,buildup:0};
+hh.specialEnemyMotion(frost,.05);
+assert(frost.frostWindup>0,'Frostcaster must telegraph spell before slowing hero attacks');
+assert.equal(br.heroChill,0,'Telegraphed frost spell does not immediately slow the hero');
+hh.specialEnemyMotion(frost,1);
+assert(br.heroChill>=2.5,'Completed frost cast applies temporary slow');
+assert(hh.attackInterval()>baseInterval,'Frost spell actually slows hero attack rate');
+br.heroChill=0;
+assert(Math.abs(hh.attackInterval()-baseInterval)<.00001,'Frost slow expires without permanently weakening the hero');
+const near={type:'goblin',x:260,y:210,dead:false};
+const banner={type:'banneret',x:250,y:205,dead:false};
+assert(hh.rallyAuraFactor(near,[banner])>1,'Banneret rallies a nearby living ally');
+banner.dead=true;
+assert.equal(hh.rallyAuraFactor(near,[banner]),1,'Killing the banneret removes the rally buff');
+banner.dead=false;banner.x=700;
+assert.equal(hh.rallyAuraFactor(near,[banner]),1,'Banneret cannot buff units across the arena');
+br.maxHealth=2000;br.health=2000;
+const saboteur={type:'sapper',x:230,y:250,dead:false,fuseTime:0,fuseSpent:false};
+hh.specialEnemyMotion(saboteur,.05);
+assert(saboteur.fuseTime>0,'Sapper lights a visible fuse before a wall blast');
+const preparedWall=br.health;
+hh.specialEnemyMotion(saboteur,.4);
+assert.equal(br.health,preparedWall,'Sapper cannot deal immediate untelegraphed wall damage');
+hh.specialEnemyMotion(saboteur,1);
+assert(br.health<preparedWall,'Surviving the fuse lets the sapper damage the wall');
+assert(preparedWall-br.health<=Math.ceil(br.maxHealth*.025),'Sapper attacks have a hard per-blast wall damage cap');
+const onceDamage=br.health;hh.specialEnemyMotion(saboteur,10);
+assert.equal(br.health,onceDamage,'Sapper charge can trigger only once per unit');
+const cancelledSapper={type:'sapper',x:240,y:245,dead:false,fuseTime:0,fuseSpent:false};
+hh.specialEnemyMotion(cancelledSapper,.05);
+cancelledSapper.dead=true;
+br.enemies=[cancelledSapper];br.spawned=0;br.total=24;hh.tick(.05);
+assert.equal(br.health,onceDamage,'Killing a sapper during windup interrupts detonation');
+const charger={type:'sapper',x:260,y:215,dead:false,fuseTime:.9};
+const closerGoblin={type:'goblin',x:250,y:300,dead:false};
+assert(hh.threatPriority(charger)>hh.threatPriority(closerGoblin),'Auto-targeting prioritizes the imminent sapper threat');
+const crusher={type:'siegebeast',x:240,y:245,dead:false,crushStarted:false,crushWindup:0,crushSurge:0};
+assert(hh.specialEnemyMotion(crusher,.05)<1,'Siegebeast visibly slows during the announced windup');
+assert(crusher.crushWindup>0,'Siegebeast windup is a real timed telegraph');
+hh.specialEnemyMotion(crusher,1.2);
+assert(hh.specialEnemyMotion(crusher,.05)>1,'Siegebeast enters an actual charge after windup');
+const challengeWorld=createWorld(821),ch=challengeWorld.hooks,cr=ch.run(),cp=ch.p();
+cr.tier=1;cr.wave=100;cr.maxHealth=ch.maxWall();cr.health=cr.maxHealth;cr.phase='fighting';cr.spawned=0;cr.breaches=0;
+ch.beginWave();
+assert(ch.chapterChallenge(cr.encounter),'Major boss encounters offer a genuine no-breach objective');
+
+cr.breaches=0;cr.phase='fighting';
+const essenceBefore=cp.essence,knowledgeBefore=cp.knowledge;
+ch.completeWave();
+assert(cp.chapterChallenges['1:1'],'Flawless chapter claim saved per tier/chapter');
+assert(cp.essence>essenceBefore&&cp.knowledge>knowledgeBefore,'Flawless chapter adds valuable earned rewards');
+const onceEssence=cp.essence,onceKnowledge=cp.knowledge;
+cr.phase='fighting';cr.wave=100;cr.encounter=ch.encounterDirector(100,1);
+ch.completeWave();
+assert.equal(cp.chapterChallenges['1:1'],true,'Flawless reward never becomes farmable');
+const awardedAgain=ch.awardChapterChallenge(1,100,100,100);
+assert.equal(awardedAgain,false,'Flawless reward cannot pay twice');
+assert(cp.essence>=onceEssence&&cp.knowledge>=onceKnowledge,'Replay leaves permanent resources untouched');
+cr.wave=200;cr.phase='fighting';cr.encounter=ch.encounterDirector(200,1);cr.breaches=1;
+assert.equal(ch.awardChapterChallenge(1,200,100,100),false,'Any breach invalidates the optional chapter challenge');
+assert(!cp.chapterChallenges['1:2'],'Failed challenge remains available to earn in a future run');
+const goal=challengeWorld.sandbox.document.getElementById('encounterGoal');
+cr.phase='fighting';cr.wave=300;cr.breaches=0;cr.encounter=ch.encounterDirector(300,1);
+ch.beginWave();
+assert(goal.hidden===false,'Live chapter objective is visible in battlefield HUD');
+
+console.log('PASS: 8 factions, 7 encounter classes, coherent enemy sprites, eight specialist behaviors, telegraphed boss and sapper attacks, anti-farming chapter challenges, preserved tiers.');
