@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.9. Living Onslaught phase 10: boss attack progress and reliable mobile siege controls and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.10.10. Living Onslaught phase 11: fair specialist cast interrupts and visible disruption feedback and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -537,7 +537,7 @@ function renderSiegeCodex(){
  return `<details class="siege-codex" aria-label="Field manual and faction tactics">
   <summary>✦ FIELD MANUAL <span>10 FACTIONS · BOSS TACTICS · SPECIAL WAVES</span></summary>
   <div class="codex-body">
-    <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. Watch the arrival patterns: ambushes split to the flanks, shield guards protect standards and relics, spellcasters hold rear lanes, and chapter bosses gather reinforcements from the wings. Live warning text identifies a dangerous cast as it happens. The hero targets support units automatically; your build determines whether the defense holds.</p>
+    <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. Watch the arrival patterns: ambushes split to the flanks, shield guards protect standards and relics, spellcasters hold rear lanes, and chapter bosses gather reinforcements from the wings. Live warning text identifies a dangerous cast as it happens. Focused damage during a Sapper fuse, Frost or Thorn spell, or Riftstalker blink can interrupt it without requiring a kill. The gold line above a casting enemy shows disruption progress. The hero targets support units automatically; your build determines whether the defense holds.</p>
     <div class="codex-factions">${cards}</div>
     <div class="codex-events">
       <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Breaking a warned charge or warp, or shattering an Iron Ward, briefly exposes the boss to +12% damage. Siege Beast crusher windups can be interrupted too.</p>
@@ -641,7 +641,7 @@ function spawnEnemy(){
   speed:(baseSpeed[type]||17)*(relicGuardian?.88:1)*enemySpeedFactor(run.wave)*(1+(run.tier-1)*.06)*(trait==='swift'?1.12:1)*(1-Math.min(.35,sup('speed')*.005)),
   armor:((baseArmor[type]||0)+(relicGuardian?3:0)+waveArmor(run.wave,run.tier))*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(trait==='armored'?1.18:1)*(1-Math.min(.5,sup('armor')*.01)),
   buildup:0,burn:0,slow:0,wobble:rnd(0,6.28),
-  dashClock:type==='raider'?rnd(1.2,3.0):0,dashTime:0,ritualClock:type==='shaman'?rnd(3.2,5.5):0,bossPhase:1,frostCastClock:type==='frostbinder'?rnd(3.4,4.6):0,frostWindup:0,fuseTime:0,fuseSpent:false,bannerGlow:0,crushStarted:false,crushWindup:0,crushSurge:0,thornCastClock:type==='thornweaver'?rnd(3.1,4.5):0,thornWindup:0,thornWardTimer:0,blinkStarted:false,blinkWindup:0,bossStyle:isBoss&&type==='warlord'?encounter.bossStyle:null,bossWardTimer:0,bossFuryClock:3.8,bossFuryWindup:0,bossFurySurge:0,bossBlinkStarted:false,bossBlinkWindup:0,bossBlinkCooldown:0,bossCastDamage:0,bossWardDamage:0,bossExposedTimer:0,
+  dashClock:type==='raider'?rnd(1.2,3.0):0,dashTime:0,ritualClock:type==='shaman'?rnd(3.2,5.5):0,bossPhase:1,frostCastClock:type==='frostbinder'?rnd(3.4,4.6):0,frostWindup:0,fuseTime:0,fuseSpent:false,bannerGlow:0,crushStarted:false,crushWindup:0,crushSurge:0,thornCastClock:type==='thornweaver'?rnd(3.1,4.5):0,thornWindup:0,thornWardTimer:0,blinkStarted:false,blinkWindup:0,spellBreakDamage:0,bossStyle:isBoss&&type==='warlord'?encounter.bossStyle:null,bossWardTimer:0,bossFuryClock:3.8,bossFuryWindup:0,bossFurySurge:0,bossBlinkStarted:false,bossBlinkWindup:0,bossBlinkCooldown:0,bossCastDamage:0,bossWardDamage:0,bossExposedTimer:0,
   golden:encounter.kind==='treasure'||Math.random()<.02+station('midas')*.012,
   dead:false,valued:isBoss?65:relicGuardian?25:type==='guardian'?17:type==='shaman'||type==='frostbinder'?16:type==='banneret'||type==='thornweaver'?17:type==='riftstalker'?16:type==='sapper'?14:type==='raider'?13:Math.round(type==='warg'?12:10)};
  e.max=e.hp;
@@ -673,7 +673,34 @@ function bossCounterplay(e,dealt){
  effect(e.x,e.y-15,'#f5d98e',9);
  return true;
 }
-function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let siegeOath=(isSiegeBoss(e)||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(isSiegeBoss(e)?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));dealt*=shieldAuraReduction(e,run.enemies)*thornWardReduction(e,run.enemies)*(e.type==='warlord'&&e.bossWardTimer>0?.78:1)*(e.bossExposedTimer>0?1.12:1);if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;bossCounterplay(e,dealt);
+// The live combat field manual promises interruptible casts. Focused damage during
+// a telegraphed ability can break it without requiring a complete enemy kill.
+// Bosses have separate (stronger) thresholds and are handled independently.
+function specialistCast(e){
+ if(!e||e.dead)return null;
+ if(e.type==='sapper'&&e.fuseTime>0)return 'fuse';
+ if(e.type==='frostbinder'&&e.frostWindup>0)return 'frost';
+ if(e.type==='thornweaver'&&e.thornWindup>0)return 'thorn';
+ if(e.type==='riftstalker'&&e.blinkWindup>0)return 'rift';
+ return null;
+}
+function specialistCounterplay(e,dealt){
+ const cast=specialistCast(e);
+ if(!cast||!Number.isFinite(e.max)||e.max<=0||!Number.isFinite(dealt)||dealt<=0||e.hp<=0)return false;
+ e.spellBreakDamage=(e.spellBreakDamage||0)+dealt;
+ const threshold=e.max*(cast==='rift'?.22:.18);
+ if(e.spellBreakDamage<threshold)return false;
+ e.spellBreakDamage=0;
+ let label='';
+ if(cast==='fuse'){e.fuseTime=0;e.fuseSpent=true;label='FUSE DISARMED';}
+ else if(cast==='frost'){e.frostWindup=0;e.frostCastClock=5.4;label='FROST RITE BROKEN';}
+ else if(cast==='thorn'){e.thornWindup=0;e.thornCastClock=5.3;label='THORN WARD BROKEN';}
+ else{e.blinkWindup=0;e.blinkStarted=true;label='RIFT DISRUPTED';}
+ float(e.x,e.y-28,label,'#ffe1a3');
+ effect(e.x,e.y-11,'#f6d699',7);
+ return true;
+}
+function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let siegeOath=(isSiegeBoss(e)||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(isSiegeBoss(e)?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));dealt*=shieldAuraReduction(e,run.enemies)*thornWardReduction(e,run.enemies)*(e.type==='warlord'&&e.bossWardTimer>0?.78:1)*(e.bossExposedTimer>0?1.12:1);if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;bossCounterplay(e,dealt);specialistCounterplay(e,dealt);
  if(e.type==='warlord'&&e.bossPhase===1&&e.hp>0&&e.hp<=e.max*.55){
   e.bossPhase=2;e.speed*=1.14;
   if(e.bossStyle==='iron'){e.bossWardTimer=2.2;e.bossWardDamage=0;}
@@ -708,25 +735,25 @@ function specialEnemyMotion(e,dt){
   if(e.frostWindup>0){
    e.frostWindup=Math.max(0,e.frostWindup-dt);motion=.55;
    if(e.frostWindup===0){
-    run.heroChill=Math.max(run.heroChill||0,2.6);e.frostCastClock=8.2;
+    run.heroChill=Math.max(run.heroChill||0,2.6);e.frostCastClock=8.2;e.spellBreakDamage=0;
     effect(e.x,e.y-14,'#9eecff',10);float(e.x,e.y-28,'FROST RITE','#bcecff');
    }
   }else{
    e.frostCastClock=(e.frostCastClock??4)-dt;
    if(e.frostCastClock<=0){
-    e.frostWindup=.95;float(e.x,e.y-22,'FROST CASTING','#a9e2fa');effect(e.x,e.y-12,'#7ec6e9',5);
+    e.frostWindup=.95;e.spellBreakDamage=0;float(e.x,e.y-22,'FROST CASTING','#a9e2fa');effect(e.x,e.y-12,'#7ec6e9',5);
    }
   }
  }
  if(e.type==='sapper'){
   if(!e.fuseSpent&&e.y>=218){
-   e.fuseSpent=true;e.fuseTime=1.3;
+   e.fuseSpent=true;e.fuseTime=1.3;e.spellBreakDamage=0;
    float(e.x,e.y-22,'FUSE LIT','#ffb36d');effect(e.x,e.y-10,'#ffc26e',5);
   }
   if(e.fuseTime>0){
    e.fuseTime=Math.max(0,e.fuseTime-dt);motion=.50;
    if(e.fuseTime===0){
-    const blast=sapperBlastDamage();
+    e.spellBreakDamage=0;const blast=sapperBlastDamage();
     run.health=Math.max(0,run.health-blast);run.shakes=Math.max(run.shakes,.12);
     float(e.x,e.y-25,'SABOTAGE · -'+formatWave(blast),'#ffc78c');
     effect(e.x,e.y-10,'#ffae67',12);
@@ -738,19 +765,19 @@ function specialEnemyMotion(e,dt){
   if(e.thornWindup>0){
    e.thornWindup=Math.max(0,e.thornWindup-dt);motion=.50;
    if(e.thornWindup===0){
-    e.thornWardTimer=2.8;e.thornCastClock=8;
+    e.thornWardTimer=2.8;e.thornCastClock=8;e.spellBreakDamage=0;
     effect(e.x,e.y-16,'#b5e58c',8);float(e.x,e.y-26,'THORN WARD','#d0ecaa');
    }
   }else{
    e.thornCastClock=(e.thornCastClock??3.5)-dt;
-   if(e.thornCastClock<=0){e.thornWindup=.85;float(e.x,e.y-24,'WARD RISING','#d5eeaa');}
+   if(e.thornCastClock<=0){e.thornWindup=.85;e.spellBreakDamage=0;float(e.x,e.y-24,'WARD RISING','#d5eeaa');}
   }
  }
  if(e.type==='riftstalker'){
-  if(!e.blinkStarted&&e.y>=205){e.blinkStarted=true;e.blinkWindup=.95;float(e.x,e.y-22,'RIFT OPENING','#dfb4ff');}
+  if(!e.blinkStarted&&e.y>=205){e.blinkStarted=true;e.blinkWindup=.95;e.spellBreakDamage=0;float(e.x,e.y-22,'RIFT OPENING','#dfb4ff');}
   if(e.blinkWindup>0){
    e.blinkWindup=Math.max(0,e.blinkWindup-dt);motion=.28;
-   if(e.blinkWindup===0){e.y=Math.min(398,e.y+36);effect(e.x,e.y,'#bd9ef0',9);float(e.x,e.y-18,'BLINK','#e3cfff');}
+   if(e.blinkWindup===0){e.spellBreakDamage=0;e.y=Math.min(398,e.y+36);effect(e.x,e.y,'#bd9ef0',9);float(e.x,e.y-18,'BLINK','#e3cfff');}
   }
  }
  if(e.type==='warlord'&&e.bossPhase===2){
@@ -962,6 +989,13 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
   ctx.strokeStyle='#ee966d';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.48,Math.max(8,9*s),0,0,Math.PI*2);ctx.stroke();
  }
  if(e.type==='frostbinder'&&run.heroChill>0){ctx.fillStyle='rgba(166,229,248,.75)';ctx.fillRect(e.x-2,py-9,4,4);}
+  // Warm interruption bar above HP only while the enemy is actually casting.
+  const casting=specialistCast(e),castGoal=e.max*(casting==='rift'?.22:.18);
+  if(casting&&e.spellBreakDamage>0&&castGoal>0){
+   const progress=clamp(e.spellBreakDamage/castGoal,0,1),bar=Math.max(26,22*s);
+   ctx.fillStyle='#1a2425';ctx.fillRect(e.x-bar/2,py-16,bar,4);
+   ctx.fillStyle='#ffd898';ctx.fillRect(e.x-bar/2,py-16,bar*progress,4);
+  }
  if(e.slow>0){ctx.strokeStyle='#91f1f9';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.36,6*s,0,0,7);ctx.stroke();}if(e.burn>0){ctx.fillStyle='#ffa554';ctx.fillRect(e.x-6,e.y-sh*.45-4,5,8);}let barW=clamp(26*s,20,64);ctx.fillStyle='#1e1b25';ctx.fillRect(e.x-barW/2,py-7,barW,4);ctx.fillStyle=isSiegeBoss(e)?'#ed796e':e.type==='guardian'?'#9bd6dd':e.type==='shaman'?'#c1a4ef':'#a8d675';ctx.fillRect(e.x-barW/2,py-7,barW*clamp(e.hp/e.max,0,1),4);}
  // Fortress battlements and hero are their own painted foreground layer.
  // Draw AFTER enemies: attackers remain behind the wall, never over it.
@@ -1771,5 +1805,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
