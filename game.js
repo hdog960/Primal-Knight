@@ -455,14 +455,21 @@ function spawnEnemy(){
 }
 function effect(x,y,color,count=8){const available=Math.max(0,140-run.particles.length);for(let i=0;i<Math.min(count,available);i++)run.particles.push({x,y,vx:rnd(-70,70),vy:rnd(-78,35),life:rnd(.25,.7),max:.7,color,size:rnd(2,5)});}
 function float(x,y,text,color='#ffe9b2'){if(run.floats.length>=28)run.floats.shift();run.floats.push({x,y,text,color,life:1.25});}
-function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let siegeOath=(e.type==='ogre'||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(e.type==='ogre'?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;effect(e.x,e.y,'#fbd47b',3);if(kind==='arrow'){
+function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let siegeOath=(isSiegeBoss(e)||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(isSiegeBoss(e)?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));dealt*=shieldAuraReduction(e,run.enemies);if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;
+ if(e.type==='warlord'&&e.bossPhase===1&&e.hp>0&&e.hp<=e.max*.55){
+  e.bossPhase=2;e.speed*=1.22;
+  effect(e.x,e.y-20,'#fa9875',22);
+  float(e.x,e.y-35,'WARLORD ENRAGED','#ffc49b');
+  message('WARLORD PHASE II · THE LAST STAND');
+ }
+ effect(e.x,e.y,'#fbd47b',3);if(kind==='arrow'){
  if(Math.random()<skill('ember')*.06+socketValue('ember'))e.burn=Math.max(e.burn,3);
  if(Math.random()<skill('frost')*.055+socketValue('frost'))e.slow=Math.max(e.slow,2.7+skill('hail')*.5);
  if(Math.random()<skill('spark')*.04+socketValue('storm')+t('shock')*.001){const other=run.enemies.filter(o=>o!==e&&!o.dead).sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y))[0];if(other){effect(other.x,other.y,'#a5efff',8);hurt(other,raw*.45,'lightning');}}
  }
  if(e.hp<=0)kill(e);
 }
-function kill(e){e.dead=true;run.kills++;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(tierReward(run.tier))*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));if(e.golden||Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((e.type==='ogre'?70:8)*(1+run.wave*.055)*(tierReward(run.tier))));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
+function kill(e){e.dead=true;run.kills++;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(tierReward(run.tier))*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));if(e.golden){amount*=2;}else if(Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((isSiegeBoss(e)?70:8)*(1+run.wave*.055)*(tierReward(run.tier))));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
 function projectileCount(){return Math.min(12,1+Math.floor(t('multishot')/8)+Math.floor(ascRank('volley')/6));}
 function shoot(target,power=damage(),kind='arrow',originX=496,originY=390){if(!target||run.shots.length>=48)return;run.shots.push({x:originX,y:originY,target,power,kind,life:1.8,trail:[]});run.flashes=.13;}
 function tick(dt){
@@ -470,7 +477,26 @@ function tick(dt){
  if(run.phase==='intermission'){run.rewardTimer-=dt*run.speed;if(run.rewardTimer<=0)beginWave();return;}if(run.phase!=='fighting')return;dt*=run.speed;run.time+=dt;run.spawnClock-=dt;run.shotClock-=dt;run.stationClock-=dt;
  if(run.spawned<run.total&&run.spawnClock<=0){spawnEnemy();run.spawned++;run.spawnClock=Math.max(.26,1.05-run.wave*.018);}
  let gravity=1-Math.min(.4,station('gravity')*.018),cryo=1-Math.min(.4,station('cryo')*.018);
- for(const e of run.enemies){if(e.dead)continue;e.wobble+=dt*2;e.y+=e.speed*dt*(e.slow>0?.5:1)*gravity*cryo;e.x+=Math.sin(e.wobble)*dt*(e.type==='imp'?11:4);e.slow=Math.max(0,e.slow-dt);e.buildup=Math.max(0,e.buildup-dt);if(e.burn>0){e.burn-=dt;e.hp-=dt*(2+skill('ember')*1.3);if(e.hp<=0){kill(e);continue;}}if(e.y>430){e.dead=true;run.breaches++;let pressure=1+Math.min(2.4,run.breaches*(.015+.09*Math.min(1,run.wave/1000)));let attack=Math.ceil(pressure*(e.type==='ogre'?36:13)*(1+run.wave*.055)*(1+(run.tier-1)*.25)*(dominionTrial(run.tier)?.trait==='crushing'?1.22:1)*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04)));run.health-=attack;run.shakes=.18;float(750,450,'BREACH '+run.breaches+' · -'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);}}
+ for(const e of run.enemies){
+  if(e.dead)continue;
+  e.wobble+=dt*2;
+  let rush=1;
+  if(e.type==='raider'){
+   e.dashClock=(e.dashClock||0)-dt;
+   if(e.dashClock<=0){e.dashTime=.55;e.dashClock=3.6;effect(e.x,e.y,'#ebad85',5);}
+   if(e.dashTime>0){rush=1.65;e.dashTime-=dt;}
+  }
+  if(e.type==='shaman'){
+   e.ritualClock=(e.ritualClock||0)-dt;
+   if(e.ritualClock<=0){
+    e.ritualClock=6;
+    const allies=run.enemies.filter(other=>other&&!other.dead&&other!==e&&Math.abs(other.y-e.y)<130&&other.hp<other.max)
+      .sort((a,b)=>(a.hp/a.max)-(b.hp/b.max)).slice(0,2);
+    if(allies.length){for(const ally of allies){ally.hp=Math.min(ally.max,ally.hp+ally.max*.06);effect(ally.x,ally.y,'#baa6ea',4);}float(e.x,e.y-20,'RITUAL','#dfbfff');}
+   }
+  }
+  e.y+=e.speed*dt*rush*(e.slow>0?.5:1)*gravity*cryo;
+  e.x+=Math.sin(e.wobble)*dt*(e.type==='imp'||e.type==='raider'?11:4);e.slow=Math.max(0,e.slow-dt);e.buildup=Math.max(0,e.buildup-dt);if(e.burn>0){e.burn-=dt;e.hp-=dt*(2+skill('ember')*1.3);if(e.hp<=0){kill(e);continue;}}if(e.y>430){e.dead=true;run.breaches++;let pressure=1+Math.min(2.4,run.breaches*(.015+.09*Math.min(1,run.wave/1000)));let attack=Math.ceil(pressure*(isSiegeBoss(e)?36:13)*(e.type==='siegebeast'?2.0:e.type==='warlord'&&e.bossPhase===2?1.4:1)*(1+run.wave*.055)*(1+(run.tier-1)*.25)*(dominionTrial(run.tier)?.trait==='crushing'?1.22:1)*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04)));run.health-=attack;run.shakes=.18;float(750,450,'BREACH '+run.breaches+' · -'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);}}
  if(run.health<=0){run.health=0;run.phase='fallen';message('THE FORTRESS HAS FALLEN');notice('Tier '+roman(run.tier)+' · Wave '+run.wave+' • Permanent progress saved');save();showLobby('FORTRESS FALLEN · Tier '+roman(run.tier)+' · Reached Wave '+run.wave+' · Select a tier to fight again');refreshHUD();return;}
  if(run.shotClock<=0&&run.enemies.some(e=>!e.dead)){const targets=run.enemies.filter(e=>!e.dead).sort((a,b)=>b.y-a.y);let count=projectileCount();for(let i=0;i<count;i++){const tar=targets[i%targets.length];shoot(tar);if(Math.random()<skill('double')*.08)shoot(tar,damage()*.65,'arrow',476,390);}run.shotClock=attackInterval();}
  if(run.stationClock<=0){let targets=run.enemies.filter(e=>!e.dead).sort((a,b)=>b.y-a.y);if(targets.length){if(station('ballista'))shoot(targets[0],damage()*(.6+station('ballista')*.22),'ballista',240,360);if(station('thunder'))shoot(targets[Math.min(1,targets.length-1)],damage()*(.4+station('thunder')*.15),'lightning',760,360);}run.stationClock=Math.max(.48,2.9/(1+station('ballista')*.06+station('thunder')*.05));}
@@ -483,11 +509,12 @@ function completeWave(){
  let essence=Math.round((12+cleared*4)*(1+t('essence')*.028)*multi*(1+Math.min(16,res('distillation'))*.015)*(1+dominionBonus('essence'))*(1+oathRank('sovereignTribute')*.0125));
  let knowledge=Math.round((5+cleared*1.6)*(1+res('studies')*.045)*multi*(1+dominionBonus('knowledge'))*(1+oathRank('sovereignTribute')*.0125));
  let waveGold=Math.round((35+cleared*9)*(1+res('interest')*.07+skill('prosperity')*.12)*multi*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));
+ if(run.encounter?.wave===cleared&&run.encounter.kind==='treasure')waveGold=Math.round(waveGold*encounterSpecialBonus('treasure'));
  p.essence+=essence;p.knowledge+=knowledge;p.gold+=waveGold;
  const firstClear=cleared>(p.bestByTier[tier]||0);
  if(firstClear)p.uniqueClears++;
  p.best=Math.max(p.best,cleared);p.bestByTier[tier]=Math.max(p.bestByTier[tier]||0,cleared);
- p.highestWave=Math.max(p.highestWave,cleared+1);p.clears++;xpAdd(15+cleared*5);grantDrops();
+ p.highestWave=Math.max(p.highestWave,cleared+1);p.clears++;xpAdd(15+cleared*5);grantDrops();if(run.encounter?.wave===cleared&&run.encounter.kind==='treasure')grantDrops();
  run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+run.maxHealth*(.08+.42*(1-Math.exp(-t('regen')/120))+skill('mend')*.025+dominionBonus('healing')));
  if(tierMilestones(tier).includes(cleared))rewardMilestone(tier,cleared);
  else message('WAVE '+fmt(cleared)+' CLEARED · +'+fmt(essence)+' ESSENCE');
