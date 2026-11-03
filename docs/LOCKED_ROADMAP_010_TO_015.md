@@ -77,3 +77,8 @@ Delivered: Thornwake Circle and Riftborne Court (ten total factions); interrupti
 Delivered: readable on-field major-boss health, live phase labels and impending-attack warnings; real gold-marked Relic Warden foes on rare relic waves; new Standard Assault formations with a bounded +20% normal wave Gold bonus; no-loss pending Relic Vault recovery when the 240-rune cap is reached; accurate tier-gate guidance and expanded encounter tests. See `docs/ALPHA_0103_ENCOUNTER_CLARITY.md`.
 
 **Alpha 0.10 Living Onslaught remains in review** for extended encounter variety, real-device visual legibility and boss fairness. Do not proceed to the locked 0.11 phase until these are evaluated.
+
+### Alpha 0.10.4 — Living Onslaught, slice 5
+Delivered: Arcane Convergence caster-focused encounter cadence, real mixed spell-support formations with a bounded +18% wave Knowledge reward, three-active-caster cross-type safety limit, more responsive automatic counterplay, a ten-faction Siege Codex inside Battle, and readable live tactical encounter hints. Full regression checks required; review `docs/ALPHA_0104_ARCANE_CONVERGENCE.md`.
+
+**Alpha 0.10 remains in real-device evaluation.** Player acceptance of boss patterns, portrait/landscape HUD, Field Manual and deep-wave performance is still required. Do not advance to 0.11 until the phase acceptance criteria are evaluated.
