@@ -87,3 +87,8 @@ Delivered: Arcane Convergence caster-focused encounter cadence, real mixed spell
 Delivered: earned damage-based boss cast interruptions, counterable Iron Ward, short +12% exposed-vulnerability windows, safe repeating bounded Void Steps, improved automatic focus on boss telegraphs, actionable battlefield warnings and refreshed tactical field manual, regression checks covering interruption and duration. See `docs/ALPHA_0105_BOSS_COUNTERPLAY.md`.
 
 **Alpha 0.10 is still under active evaluation.** Hardware legibility, extended boss fairness and deep-wave play remain pending; do not move into 0.11 until assessed.
+
+### Alpha 0.10.6 — Living Onslaught, slice 7
+Delivered: actual visually distinct special-wave arrival formations on the battlefield; clear live interruptible-threat warnings in the existing ribbon; corrected zero-speed pause for wave time/spawns/intermissions; tactical Field Manual guidance and deterministic spawn/UI/pause QA. See `docs/ALPHA_0106_FORMATIONS_AND_WARNINGS.md`.
+
+**Alpha 0.10 remains open.** Physical iPhone visual acceptance, advanced-wave performance, and subjective enemy/boss fairness review remain necessary before advancing to locked Alpha 0.11 Hero Combat Depth.
