@@ -343,6 +343,7 @@ for(let i=0;i<6;i++)clickButton({action:'ascension:volley'});
 assert.equal(hooks.p().ascension.volley,6,'Six Eternal Volley ranks purchased');
 assert.equal(hooks.projectileCount(),Math.min(12,volleyBefore+1),'Eternal Volley grants one extra projectile every six ranks');
 hooks.renderTierLobby();
+el('tierGrid').listeners.click({target:{closest:()=>({dataset:{tier:'1'},disabled:false})}});
 assert(el('tierGrid').innerHTML.includes('TIER XVI'),'Late-game lobby offers Tier XVI');
 assert(el('milestoneList').innerHTML.includes('Wave 10,000'),'Tier milestone ledger shows final wave');
 assert(el('milestoneList').innerHTML.includes('data-start-mode="waystone"'),'Return waystone restart button present');
