@@ -107,3 +107,8 @@ Delivered: refresh-rate independent visual effects, at-most-60Hz battlefield ren
 Delivered: real attack-countdown progress inside the boss HP HUD (Cinder, Void, Siege Beast, Iron Ward), mobile pause indicator, 1×/2× resume-speed selection without secretly unpausing, consistent control accessibility, background auto-pause during both fighting and intermissions, clean speed reset after run restart/import, and added real-combat UI regressions. See `docs/ALPHA_0109_BOSS_TIMELINES.md`.
 
 **Alpha 0.10 remains open for device acceptance and encounter feel review.** Do not mistake automated QA for physical iPhone validation; keep the locked Alpha 0.11–0.15 sequence unchanged.
+
+### Alpha 0.10.10 — Living Onslaught, slice 11
+Delivered: damage-based counterplay against actual active Sapper fuse, Frostbinder frost ritual, Thornweaver ward and Riftstalker blink windups; safe specialist recovery cooldowns, no phantom explosive/chill/ward/warp outcomes after interruption, gold damage-progress strips and distinct break feedback, and actual-hit regressions proving cast windows and original noninterrupted dangers. See `docs/ALPHA_01010_SPECIALIST_COUNTERPLAY.md`.
+
+**Alpha 0.10 remains open for user/device acceptance and subjective combat fairness review.** Preserve all locked Alpha 0.11–0.15 objectives and do not treat the estimated 1,250-hour pacing as measured.
