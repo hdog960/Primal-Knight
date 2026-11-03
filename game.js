@@ -137,8 +137,12 @@ function outerDepthPressure(tier,wave){
  if(t<=16)return 1;
  const tierProgress=Math.min(1,(t-16)/14);
  const waveProgress=Math.max(0,Math.min(1,(wave-100)/9900));
- return 1+23*Math.pow(tierProgress,1.65)*Math.pow(waveProgress,2);
+ return 1+64*Math.pow(tierProgress,1.65)*Math.pow(waveProgress,2);
 }
+function dominionSeals(){
+ return dominionTrials.reduce((sum,trial)=>sum+Math.min(4,Math.max(0,Number(p.dominionCrests?.[trial.tier])||0)),0);
+}
+function dominionResonance(){return dominionSeals()*.03;}
 function tierThreat(tier){const t=Math.max(1,Math.min(MAX_TIER,Number(tier)||1));return 1+(t-1)*.64+(t>16?.12*Math.pow(t-16,1.6):0);}
 function tierReward(tier){const t=Math.max(1,Math.min(MAX_TIER,Number(tier)||1));return 1+(t-1)*.32+Math.max(0,t-16)*.055;}
 
@@ -363,8 +367,8 @@ function gearStat(slot){
  return 1+score(slot);
 }
 function socketValue(type){let total=0;for(let id of Object.values(p.socketed)){let x=p.runes.find(r=>r.id===id);if(x&&x.type===type)total+=Math.pow(1.38,x.tier-1)*.015;}return total*(1+Math.min(12,res('attunement'))*.02)*(1+dominionBonus('runes'));}
-function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+skill('bulwark')*.15)*(1+gearStat('armor')*.06)*(1+lr('guardianOath')*.03)*(1+Math.min(16,res('masonry'))*.015)*(1+ascRank('bastion')*.07)*(1+dominionBonus('wall')));}
-function damage(){return (32+2*t('power')+p.level*.85)*(1+skill('aim')*.06)*(1+(gearStat('weapon')-1)*.22)*(1+Math.min(15,res('calibration'))*.01)*(1+ascRank('vanguard')*.06)*(1+ascRank('epoch')*.015*Math.sqrt(Math.max(1,run.wave)/100))*(1+dominionBonus('damage'));}
+function maxWall(){return Math.floor((145+12*t('fort'))*(1+skill('stone')*.08+skill('bulwark')*.15)*(1+gearStat('armor')*.06)*(1+lr('guardianOath')*.03)*(1+Math.min(16,res('masonry'))*.015)*(1+ascRank('bastion')*.07)*(1+dominionBonus('wall')+dominionSeals()*.01));}
+function damage(){return (32+2*t('power')+p.level*.85)*(1+skill('aim')*.06)*(1+(gearStat('weapon')-1)*.22)*(1+Math.min(15,res('calibration'))*.01)*(1+ascRank('vanguard')*.06)*(1+ascRank('epoch')*.015*Math.sqrt(Math.max(1,run.wave)/100))*(1+dominionBonus('damage')+dominionResonance());}
 function attackInterval(){return Math.max(.22,.82/(1+Math.min(3,t('haste')*.025)+skill('quiver')*.05+(run.health<run.maxHealth*.3?skill('laststand')*.12:0)));}
 function trainCost(row){let [id,, ,base,mul]=row;let lv=t(id);return Math.floor(base*(1+lv*.075+lv*lv*.004)*Math.pow(1+(mul-1)*.07,Math.min(lv,120))*Math.pow(1.002,Math.max(0,lv-120))); }
 function stationCost(row){let[id,,,,base,mul]=row;let lv=station(id);return Math.floor(base*(1+lv*.2+lv*lv*.04)*Math.pow(1.04,Math.min(lv,40))*Math.pow(1.015,Math.max(0,lv-40))*(1-Math.min(.42,res('discount')*.014))); }
@@ -789,7 +793,7 @@ function renderDominionCodex(){
  const sprite={damage:'power',essence:'essence',boss:'boss',wall:'fort',knowledge:'xp',critical:'critDmg',healing:'regen',runes:'attunement',armor:'pierce',stations:'ballista',gold:'gold',xp:'xp',all:'crit'};
  return `<section class="dominion-codex" aria-label="Dominion Crest archive">
    <div class="dominion-codex-head"><div><small>♛ THE OUTER DOMINIONS · TIERS XVII–XXX</small><h3>Dominion Crest Archive</h3>
-   <p>Four permanent seals per territory. Each tier has its own trial and a unique passive power, earned at waves 250, 1,000, 5,000 and 10,000.</p></div><div class="dominion-codex-total"><strong>${owned}</strong><small>/ ${dominionTrials.length*4} seals</small></div></div>
+   <p>Four permanent seals per territory. Each tier has its own trial and a unique passive power, earned at waves 250, 1,000, 5,000 and 10,000.</p></div><div class="dominion-codex-total"><strong>${owned}</strong><small>/ ${dominionTrials.length*4} seals</small><small>+${(dominionResonance()*100).toFixed(0)}% dmg</small></div></div>
    <div class="dominion-codex-grid">${dominionTrials.map(row=>{
     const rank=Math.min(4,Number(p.dominionCrests[row.tier])||0);
     return `<article class="dominion-codex-entry ${rank?'unlocked':''}" data-crest-tier="${row.tier}">
@@ -799,7 +803,7 @@ function renderDominionCodex(){
       <span class="dominion-codex-rank">${rank}/4</span>
     </article>`;
    }).join('')}</div>
-   <div class="dominion-codex-foot">New territories award bonus Sigils at eleven additional Trial milestones. Their Crests work in every tier, encouraging late-game returns to older waves.</div>
+   <div class="dominion-codex-foot">Each claimed seal also adds <b>+3% global hero damage</b> and <b>+1% fortress health</b> through Dominion Resonance. Reach 56 seals for the strongest endgame build. The 14 Crests also have their own unique passive powers.</div>
  </section>`;
 }
 function renderTrainingLedger(){
@@ -1052,5 +1056,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,dominionTrial,dominionBonus,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
