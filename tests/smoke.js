@@ -498,4 +498,58 @@ assert.equal(completedOldData.selectedTier,16,'Save migration retains the chosen
 assert.equal(completedOldData.ascension.vanguard,8,'Save migration retains deep Ascension investments');
 assert(completedOldData.milestones['16:20'],'Save migration retains claimed historical milestones');
 
+
+// Alpha 0.9.0 Sovereign Oaths: permanent, earned, capped and actually change combat/economy.
+const oathRows=[
+ ['sovereignBlade','Sovereign Blade','',30,58,17,250,'power'],
+ ['sovereignAegis','Sovereign Aegis','',35,58,20,1000,'fort'],
+ ['sovereignTribute','Sovereign Tribute','',40,58,24,2500,'gold'],
+ ['sovereignJudgment','Sovereign Judgment','',45,58,28,5000,'boss']
+];
+assert(hooks.oathUnlocked(oathRows[0]),'First Sovereign Oath unlocks with the Tier XVII Crest');
+assert(!hooks.oathUnlocked(oathRows[1]),'Other Sovereign Oaths require individual Dominion milestones');
+clickHub('power');clickSub('training');
+const sovereignScreen=el('panelContent').innerHTML;
+assert.equal((sovereignScreen.match(/data-sovereign-oath="/g)||[]).length,4,'All four Sovereign Oaths appear with permanent ranks');
+assert(sovereignScreen.includes('Sovereign Blade')&&sovereignScreen.includes('Sovereign Judgment'),'Sovereign Oath names are visible');
+p09.sigils+=250000;
+let currentOathDamage=hooks.damage(),sigilsBeforeOath=p09.sigils;
+clickButton({action:'oath:sovereignBlade'});
+assert.equal(p09.sovereignOaths.sovereignBlade,1,'First Sovereign Blade rank is purchased');
+assert(hooks.damage()>currentOathDamage,'Sovereign Blade changes actual hero damage');
+assert(p09.sigils<sigilsBeforeOath,'Sovereign Oaths spend Primal Sigils');
+const beforeIllegal=p09.sovereignOaths.sovereignAegis||0;
+clickButton({action:'oath:sovereignAegis'});
+assert.equal(p09.sovereignOaths.sovereignAegis||0,beforeIllegal,'Locked Sovereign Oath cannot be purchased');
+hooks.rewardMilestone(20,1000);
+assert(hooks.oathUnlocked(oathRows[1]),'Tier XX wave 1000 unlocks Sovereign Aegis');
+const beforeAegis=hooks.maxWall();clickButton({action:'oath:sovereignAegis'});
+assert(hooks.maxWall()>beforeAegis,'Sovereign Aegis increases actual fortress health');
+hooks.rewardMilestone(24,2500);
+assert(hooks.oathUnlocked(oathRows[2]),'Tier XXIV wave 2500 unlocks Sovereign Tribute');
+const incomeRun=hooks.run();
+incomeRun.tier=1;incomeRun.wave=69;incomeRun.phase='fighting';incomeRun.maxHealth=hooks.maxWall();incomeRun.health=incomeRun.maxHealth;
+const incomeBefore=[p09.gold,p09.essence,p09.knowledge];hooks.completeWave();
+const baselineIncome=[p09.gold-incomeBefore[0],p09.essence-incomeBefore[1],p09.knowledge-incomeBefore[2]];
+clickButton({action:'oath:sovereignTribute'});
+incomeRun.tier=1;incomeRun.wave=69;incomeRun.phase='fighting';incomeRun.maxHealth=hooks.maxWall();incomeRun.health=incomeRun.maxHealth;
+const incomeAfterStart=[p09.gold,p09.essence,p09.knowledge];hooks.completeWave();
+const boostedIncome=[p09.gold-incomeAfterStart[0],p09.essence-incomeAfterStart[1],p09.knowledge-incomeAfterStart[2]];
+assert(boostedIncome[1]>baselineIncome[1]&&boostedIncome[2]>baselineIncome[2],'Sovereign Tribute increases Essence and Knowledge income');
+hooks.rewardMilestone(28,5000);
+assert(hooks.oathUnlocked(oathRows[3]),'Tier XXVIII wave 5000 unlocks Sovereign Judgment');
+const testSiegeTarget=()=>({type:'ogre',hp:100000,max:100000,armor:20,dead:false,x:220,y:170,buildup:0,burn:0,slow:0});
+const noOathBoss=testSiegeTarget();hooks.hurt(noOathBoss,1000,'ballista');
+clickButton({action:'oath:sovereignJudgment'});
+const oathBoss=testSiegeTarget();hooks.hurt(oathBoss,1000,'ballista');
+assert(oathBoss.hp<noOathBoss.hp,'Sovereign Judgment increases attack damage against bosses and from stations');
+p09.sovereignOaths.sovereignBlade=57;
+const rankBeforeLast=p09.sigils;clickButton({action:'oath:sovereignBlade'});
+assert.equal(p09.sovereignOaths.sovereignBlade,58,'Sovereign Oath final rank is attainable');
+assert(p09.sigils<rankBeforeLast,'Final rank consumes exact Sigils');
+const spentFinal=p09.sigils;clickButton({action:'oath:sovereignBlade'});
+assert.equal(p09.sovereignOaths.sovereignBlade,58,'Sovereign Oath cannot exceed 58 ranks');
+assert.equal(p09.sigils,spentFinal,'At max rank, Sovereign Oath cannot waste Sigils');
+assert(JSON.parse(storedSave).sovereignOaths.sovereignBlade===58,'Sovereign Oaths persist to the existing save');
+
 console.log('PASS: 10,000-wave chronicle, 30 tiers, waystones, Ascension routes, balance limits, original research, Forge, Gear, legacy and save migration.');
