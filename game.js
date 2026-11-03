@@ -358,6 +358,22 @@ function renderDominionPreview(tier){
  return '<section class="dominion-preview" aria-label="Tier '+roman(tier)+' Dominion Trial"><div><small>♛ OUTER DOMINION · '+trial.trait.toUpperCase()+' HOST</small><strong>'+trial.trial+'</strong><p>'+trial.crest+' · +'+(trial.bonus*100).toFixed(1)+'% '+label+' per seal. Permanent across all tiers.</p></div><span>RANK '+rank+' / 4<br><small>'+(next?'NEXT SEAL '+formatWave(next):'COMPLETE')+'</small></span></section>';
 }
 
+function renderEncounterIntel(tier){
+ const startWave=useWaystone?waystoneForTier(tier):1;
+ const focus=encounterDirector(startWave,tier);
+ let upcoming=null;
+ for(let w=startWave;w<=Math.min(MAX_WAVE,startWave+100);w++){
+  const event=encounterDirector(w,tier);
+  if(['chapterBoss','commander','treasure','ambush','elite'].includes(event.kind)){upcoming=event;break;}
+ }
+ const roleNames={goblin:'goblins',skeleton:'skeletons',warg:'wargs',raider:'rush raiders',guardian:'shield guards',shaman:'ritual shamans'};
+ const roles=[...new Set(focus.units.map(n=>roleNames[n]||n))].join(' · ');
+ return `<section class="encounter-intel" aria-label="Upcoming enemy intelligence">
+  <div><small>⚔ SIEGE INTELLIGENCE · CHAPTER ${roman(focus.chapter)}</small>
+   <strong>${focus.faction}</strong><p>${roles}</p>
+  </div><span>${upcoming?'NEXT '+upcoming.label+'<b>WAVE '+formatWave(upcoming.wave)+'</b>':'FINAL CHAPTER'} </span>
+ </section>`;
+}
 function renderTierLobby(){
  chosenTier=clamp(chosenTier,1,MAX_TIER);
  $('tierGrid').innerHTML=tierNames.map((name,i)=>{
@@ -388,7 +404,7 @@ function renderTierLobby(){
     <span class="milestone-status">${claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
    </div>`;
  }).join('');
- $('milestoneList').innerHTML=renderFirstWatch()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
+ $('milestoneList').innerHTML=renderFirstWatch()+renderEncounterIntel(tier)+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
  $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(useWaystone?stone:1)+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
@@ -1208,5 +1224,5 @@ $('milestoneList').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('speedButton').onclick=()=>{run.speed=run.speed===2?1:2;storedSpeed=run.speed;$('speedButton').textContent=run.speed+'×';notice('BATTLE SPEED '+run.speed+'×')};
 $('pauseButton').onclick=()=>{if(run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';notice('BATTLE PAUSED')}else{run.speed=storedSpeed;$('pauseButton').textContent='Ⅱ';notice('BATTLE RESUMED')}};
 window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(run.phase==='fighting'&&run.speed){storedSpeed=run.speed;run.speed=0;$('pauseButton').textContent='▶';}}});
-initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,shieldAuraReduction,encounterSpecialBonus,isSiegeBoss,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,run:()=>run,p:()=>p,renderTierLobby,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,renderEncounterIntel,shieldAuraReduction,encounterSpecialBonus,isSiegeBoss,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
