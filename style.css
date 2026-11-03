@@ -1739,3 +1739,42 @@
  .boss-hud{bottom:132px;left:50%;transform:translateX(-50%);width:min(280px,88%);min-width:0}
  .relic-vault{flex-wrap:wrap}.relic-vault button{width:100%;max-width:none}
 }
+
+
+/* Alpha 0.10.4 — compact field guide & battle hints for mobile. */
+.encounter-ribbon:has(.encounter-hint:not([hidden])){flex-wrap:wrap;row-gap:3px}
+.encounter-ribbon .encounter-hint{display:block;flex:1 0 100%;min-width:0;text-align:center;
+ color:#cbe7db;font:700 9px/1.25 Arial,sans-serif;letter-spacing:.3px;
+ white-space:normal;border-top:1px solid #b7cfb14b;padding-top:3px}
+.encounter-ribbon .encounter-hint[hidden]{display:none!important}
+.encounter-ribbon[data-kind="arcane"]{border-color:#b89bde;background:linear-gradient(90deg,#39314ced,#283d4bed)}
+.encounter-ribbon[data-kind="arcane"] strong{color:#e2c9ff}
+.siege-codex{border:1px solid #987f61;background:linear-gradient(125deg,#243743,#1b2a34);
+ margin:0 0 10px;color:#eee0c1;box-shadow:inset 0 1px #d2c09636,0 2px 6px #0006}
+.siege-codex summary{cursor:pointer;padding:9px 11px;list-style-position:inside;
+ font:bold 11px Georgia,serif;color:#f7ddab;letter-spacing:.4px;touch-action:manipulation}
+.siege-codex summary span{float:right;font:700 9px Arial,sans-serif;color:#b7cfc9;margin-top:2px}
+.siege-codex[open] summary{border-bottom:1px solid #9d8464}
+.siege-codex .codex-body{padding:9px 11px;max-height:280px;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
+.siege-codex .codex-body>p{font:11px/1.5 Arial,sans-serif;color:#d7dbd3;margin:0 0 9px}
+.codex-factions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.codex-faction{border:1px solid #70877d;background:#112430b8;padding:7px;min-width:0}
+.codex-faction-title{display:flex;align-items:center;gap:7px}
+.codex-faction-title span{width:9px;height:9px;flex:none;border:1px solid #ffffff77}
+.codex-faction-title strong{font:700 11px Georgia,serif;color:#f7e5ba}
+.codex-faction small{display:block;margin:3px 0 2px 16px;font:700 8px Arial,sans-serif;color:#9db7ae}
+.codex-faction p{font:10px/1.3 Arial,sans-serif;color:#c9d3ca;margin:3px 0 0}
+.codex-events{margin-top:9px;border-top:1px solid #7d8776;padding-top:7px}
+.codex-events p{font:10px/1.42 Arial,sans-serif;color:#d3d7d0;margin:4px 0}
+.codex-events strong{color:#f6dbb0}
+@media(orientation:portrait) and (max-width:680px){
+ .siege-codex summary span{float:none;display:block;margin:4px 0 0;font-size:8px}
+ .codex-factions{grid-template-columns:1fr}
+ .siege-codex .codex-body{max-height:220px}
+ .encounter-ribbon .encounter-hint{font-size:8px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .siege-codex summary{padding:6px 8px;font-size:10px}
+ .siege-codex .codex-body{max-height:160px}
+ .encounter-ribbon .encounter-hint{font-size:8px;padding-top:2px}
+}
