@@ -1636,3 +1636,34 @@
  .sovereign-oath-buy button{min-height:33px}
  .sovereign-oath-foot{font-size:9px}
 }
+
+
+/* Alpha 0.10.0 — living encounter HUD: faction and threat identity, pixel-era fantasy framing. */
+.encounter-ribbon{position:absolute;z-index:4;pointer-events:none;top:93px;left:50%;transform:translateX(-50%);
+ display:flex;align-items:center;justify-content:center;gap:9px;max-width:90%;min-width:215px;padding:5px 11px;
+ border:1px solid #9eb9a0;background:linear-gradient(95deg,#18333ce8,#243542f0,#18333ce8);
+ box-shadow:inset 0 1px #d6e9c32b,0 3px 8px #0b1123ab;
+ font:700 10px/1.2 Arial,sans-serif;color:#e9e5ce;letter-spacing:.4px;white-space:nowrap}
+.encounter-ribbon[hidden]{display:none!important}
+.encounter-ribbon strong{font:bold 10px/1.2 Georgia,serif;color:#f8dcad;letter-spacing:.8px}
+.encounter-ribbon span{font:bold 10px/1.2 Arial,sans-serif;color:#bee0ca;overflow:hidden;text-overflow:ellipsis}
+.encounter-ribbon small{font:700 8px Arial,sans-serif;color:#a9bac0}
+.encounter-ribbon[data-kind="commander"],.encounter-ribbon[data-kind="chapterBoss"]{
+ border-color:#f2bd79;background:linear-gradient(90deg,#48342fdc,#5a3732ef,#353043e9);
+ box-shadow:inset 0 1px #ffc99450,0 3px 9px #0008}
+.encounter-ribbon[data-kind="chapterBoss"] strong{color:#fff1b5}
+.encounter-ribbon[data-kind="treasure"]{border-color:#eed18a;background:linear-gradient(90deg,#484329dc,#40392fef,#384532ef)}
+.encounter-ribbon[data-kind="treasure"] strong{color:#ffe4a6}
+.encounter-ribbon[data-kind="ambush"]{border-color:#cf958b;background:linear-gradient(90deg,#50322edd,#3d2d3ee8)}
+@media(orientation:portrait) and (max-width:680px){
+ .encounter-ribbon{top:77px;min-width:0;gap:5px;padding:3px 7px;max-width:84%}
+ .encounter-ribbon strong{font-size:8px}
+ .encounter-ribbon span{font-size:8px}
+ .encounter-ribbon small{font-size:7px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .encounter-ribbon{top:68px;padding:3px 8px;gap:6px}
+ .encounter-ribbon strong{font-size:9px}
+ .encounter-ribbon span{font-size:9px}
+ .encounter-ribbon small{font-size:7px}
+}
