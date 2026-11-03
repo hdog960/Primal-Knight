@@ -1961,3 +1961,19 @@
  .siege-report-stat strong{font-size:13px}
  .siege-report-range{font-size:8px;padding-bottom:5px}
 }
+
+
+/* Alpha 0.10.14: compact boss break meter and honest 7-stat battle debrief.
+   Uses the existing pixel-illustrated gold/stone visual vocabulary. */
+.boss-cast-row span{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+#bossCastBreak{flex:none;color:#ffe1a2;font-weight:800;letter-spacing:.2px;min-width:55px;text-align:right}
+.boss-cast-track[data-ward="true"] #bossCastBreak{color:#c9ebff}
+.siege-report-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(orientation:portrait) and (max-width:680px){
+ .siege-report-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #bossCastBreak{font-size:9px;min-width:54px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .siege-report-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+ #bossCastBreak{font-size:8px;min-width:49px}
+}
