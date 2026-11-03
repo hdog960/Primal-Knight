@@ -781,3 +781,158 @@
 .panel[data-theme="hero"] .chamber-mobile-art,.panel[data-theme="skills"] .chamber-mobile-art{display:none!important}
 .panel[data-theme="hero"] .hero-profile-art,.panel[data-theme="skills"] .talent-board{scroll-margin-top:18px}
 @media(max-width:650px){.panel[data-theme="skills"] .panel-content-scroll,.panel[data-theme="hero"] .panel-content-scroll{padding-top:10px}.panel[data-theme="skills"] .highlight-banner{padding:9px 11px;margin-bottom:9px}.panel[data-theme="skills"] .highlight-banner b{font-size:15px}.panel[data-theme="skills"] .highlight-banner small{font-size:10px}}
+/* Alpha 0.6.6 — The Hero Hall is an illustrated, compact character sheet and a complete 4x6 skill chart. */
+.panel[data-theme="hero"] .chamber-tabs[hidden]{display:none!important}
+.panel[data-theme="hero"] .chamber-main{background:
+  radial-gradient(ellipse at 40% 0,rgba(144,87,55,.16),transparent 40%),
+  linear-gradient(120deg,rgba(16,27,38,.97),rgba(13,23,35,.97)),
+  url('assets/chambers/hero.webp') center/cover}
+.panel[data-theme="hero"] .panel-content-scroll{padding:9px 15px 24px}
+.hall-compact{color:#e8d5b8;display:flex;flex-direction:column;gap:9px;font-family:Arial,sans-serif}
+.hall-compact button{touch-action:manipulation;cursor:pointer}
+.hall-compact button:focus-visible{outline:2px solid #ffe9ad;outline-offset:2px}
+.hall-top{display:grid;grid-template-columns:minmax(170px,245px) minmax(0,1fr);gap:9px;padding:6px;border:1px solid #a98755;background:linear-gradient(110deg,rgba(61,40,31,.82),rgba(21,36,49,.94) 31%,rgba(17,28,39,.98));box-shadow:inset 0 1px 0 #ead0a047}
+.hall-champion{display:flex;gap:8px;align-items:center;border-right:1px solid #a88c584f;padding:2px 8px 2px 0;min-width:0}
+.hall-portrait{width:95px;height:118px;display:grid;place-items:center;flex:none;overflow:hidden;position:relative;background:radial-gradient(ellipse,#bb854c55,#1a2536 70%);border:1px solid #b9945a;clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}
+.hall-portrait:after{content:'✦';position:absolute;bottom:3px;color:#ffe3a1;text-shadow:0 2px 3px #000;font-size:10px}
+.hall-portrait img{width:98%;height:122%;object-fit:contain;object-position:50% 18%;filter:drop-shadow(0 3px 5px #000a)}
+.hall-champion-copy{min-width:0;flex:1}
+.hall-champion-copy>small{font:bold 8px Arial,sans-serif;letter-spacing:1.2px;color:#d9b67f}
+.hall-champion-copy h2{font:700 21px/1.04 Georgia,serif;margin:6px 0 9px;color:#ffedc0;text-shadow:0 2px #472a25}
+.hall-level-line{display:flex;flex-direction:column;gap:2px;font:9px Arial,sans-serif;color:#d6cdba}
+.hall-level-line b{font-size:11px;letter-spacing:1px;color:#fbd08b}
+.hall-xp-track{margin:6px 0 0;height:6px;border:1px solid #ac8652;background:#101a27}
+.hall-summary{min-width:0}
+.hall-section-cap{height:23px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dcb97a59;color:#ffdda3;font:700 10px Georgia,serif;letter-spacing:1.2px}
+.hall-section-cap small{font:700 8px Arial,sans-serif;color:#9cbab9;letter-spacing:1.3px}
+.hall-stat-matrix{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.hall-stat{min-width:0;min-height:41px;display:flex;flex-direction:column;justify-content:center;padding:5px 9px;border-bottom:1px solid #e0c29418;border-right:1px solid #e0c2941e}
+.hall-stat small{font:bold 8px Arial,sans-serif;letter-spacing:.7px;color:#c4b59d;white-space:nowrap}
+.hall-stat b{font:700 17px/1.15 Georgia,serif;color:#fff0bf;overflow:hidden;text-overflow:ellipsis}
+.hall-bonus-line{display:flex;align-items:center;gap:8px;padding:5px 1px 1px;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#98754c transparent;white-space:nowrap}
+.hall-bonus-label{font:700 9px Arial,sans-serif;color:#e6b978;letter-spacing:.7px}
+.hall-bonus{flex:none;display:inline-flex;gap:5px;align-items:center;font:700 10px Arial,sans-serif;color:#d1f2d1}
+.hall-bonus small{font:700 8px Arial,sans-serif;color:#b6b4ac}
+.hall-cosmetics{display:grid;grid-template-columns:minmax(165px,235px) minmax(0,1fr);gap:6px;min-height:67px;align-items:center;border-top:2px solid #c8a467;border-bottom:2px solid #c8a467;padding:5px 8px;background:repeating-linear-gradient(100deg,#442d29b2 0px,#442d29b2 2px,#1c2d3dbb 2px,#1c2d3dbb 8px)}
+.hall-cosmetics-title span{display:block;font:700 13px Georgia,serif;color:#ffe3af;letter-spacing:.4px}
+.hall-cosmetics-title small{display:block;margin-top:4px;font:9px/1.3 Arial,sans-serif;color:#d5be9b}
+.hall-banner-rack{display:flex;gap:7px;overflow-x:auto;padding:3px 1px 6px;scrollbar-width:thin;scrollbar-color:#af8a53 transparent}
+.hall-banner-choice{display:flex;align-items:center;gap:6px;min-width:127px;max-width:205px;flex:none;min-height:49px;text-align:left;border:1px solid #856744;background:linear-gradient(145deg,#293646,#182634);padding:5px 9px;color:#ebd1a6;position:relative;box-shadow:inset 0 1px #edd4a51e}
+.hall-banner-choice.selected{border-color:#f6ce86;background:linear-gradient(145deg,#69402e,#273747);box-shadow:0 0 0 1px #f7c97e55,inset 0 2px #ffecb92b}
+.hall-flag{width:29px;height:38px;position:relative;flex:none;border-left:3px solid #deb77a;padding-left:3px}
+.hall-flag:before{content:'';position:absolute;left:5px;top:1px;bottom:3px;width:23px;clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%);background:linear-gradient(90deg,#812d32,#b94643,#552a32);border:1px solid #e7c17f}
+.hall-banner-choice.hue-1 .hall-flag:before{background:linear-gradient(90deg,#244870,#578eae,#203c6b)}
+.hall-banner-choice.hue-2 .hall-flag:before{background:linear-gradient(90deg,#38664c,#78a16c,#214734)}
+.hall-banner-choice.hue-3 .hall-flag:before{background:linear-gradient(90deg,#74527c,#b48ec4,#4d345a)}
+.hall-flag span{position:absolute;top:8px;left:9px;font-size:13px;color:#ffe6ae;z-index:1;text-shadow:1px 2px #0009}
+.hall-banner-name{font:700 11px/1.15 Georgia,serif;max-width:115px;white-space:normal}
+.hall-banner-choice small{align-self:end;font:700 7px Arial,sans-serif;color:#dff7c6}
+.hall-skills{border:2px ridge #b58a55;padding:7px 8px 8px;background:linear-gradient(160deg,rgba(29,38,49,.96),rgba(18,29,41,.96));box-shadow:inset 0 0 0 1px #141f2b,0 8px 16px #0005}
+.hall-chart-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 5px}
+.hall-chart-title span{font:700 8px Arial,sans-serif;letter-spacing:2px;color:#cdb086}
+.hall-chart-title h2{font:700 18px/1.1 Georgia,serif;margin:2px 0;color:#ffe2a9}
+.hall-points-counter{display:flex;align-items:center;gap:6px;border:1px solid #b69159;background:linear-gradient(#4b392d,#27313b);padding:5px 9px;white-space:nowrap}
+.hall-points-counter strong{font:700 20px Georgia,serif;color:#fff1c7}
+.hall-points-counter small{font:700 8px Arial,sans-serif;letter-spacing:.6px;color:#e5ceac}
+.hall-inspect{display:flex;justify-content:space-between;align-items:center;gap:9px;border:1px solid #af854e;background:linear-gradient(100deg,#423426,#233449 60%,#202b3c);min-height:52px;padding:5px 9px;margin-bottom:6px}
+.hall-inspect-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+.hall-inspect-copy small{font:700 8px Arial,sans-serif;letter-spacing:.8px;color:#f0c88c}
+.hall-inspect-copy strong{font:700 14px Georgia,serif;color:#fff0bd}
+.hall-inspect-copy span{font:10px/1.2 Arial,sans-serif;color:#e2d8c7}
+.hall-inspect-buy{flex:none;min-width:88px;padding:8px 10px;border:1px solid #f3c580;background:linear-gradient(#8e5932,#593a2b);font:700 9px Arial,sans-serif;letter-spacing:.2px;color:#ffebc0;min-height:37px}
+.hall-inspect-buy:disabled{border-color:#665b51;background:#2c3540;color:#aaa6a0;opacity:.73}
+.hall-chart-scroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#af8550 #152533}
+.hall-chart-table{width:100%;min-width:345px;table-layout:fixed;border-collapse:separate;border-spacing:2px;background:linear-gradient(120deg,#101b29,#202b36);border:1px solid #b49261}
+.hall-chart-table th,.hall-chart-table td{text-align:center;min-width:0}
+.hall-chart-table thead th{height:34px;border-bottom:2px solid #b59668;background:linear-gradient(#384350,#1d2b3b);color:#f1dfc5}
+.hall-row-corner{width:29px;font:700 8px Arial,sans-serif;letter-spacing:.4px;color:#e5c58e!important}
+.hall-school-heading{font:700 11px Georgia,serif;letter-spacing:.3px}
+.hall-school-heading>span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hall-school-heading small{display:block;margin-top:2px;font:700 8px Arial,sans-serif;color:#d9c09c}
+.hall-school-marksman{--hall-path:#dbb15d}
+.hall-school-arcanist{--hall-path:#c695f2}
+.hall-school-guardian{--hall-path:#84cda8}
+.hall-school-prospector{--hall-path:#e6a67e}
+.hall-school-heading.hall-school-marksman{border-top:3px solid #dbb15d}
+.hall-school-heading.hall-school-arcanist{border-top:3px solid #c695f2}
+.hall-school-heading.hall-school-guardian{border-top:3px solid #84cda8}
+.hall-school-heading.hall-school-prospector{border-top:3px solid #e6a67e}
+.hall-row-index{font:700 8px Arial,sans-serif;background:#1e2e3b;color:#e6d0a4;border-right:1px solid #a58258}
+.hall-row-index small{display:block;font-size:11px;color:#ffe8b8}
+.hall-row-index span{display:block;margin-top:3px;line-height:1.2;font-size:7px}
+.hall-chart-cell{background:linear-gradient(160deg,#2c3945,#1b2937);border-left:2px solid var(--hall-path);border-bottom:1px solid #bda17c30;vertical-align:top;position:relative}
+.hall-chart-cell.state-locked{opacity:.55;filter:saturate(.5)}
+.hall-chart-cell.state-mastered{background:linear-gradient(160deg,#4a4433,#263746)}
+.hall-chart-cell.is-selected{outline:2px solid #ffe5a5;outline-offset:-2px;background:linear-gradient(165deg,#4c4037,#28394b);box-shadow:inset 0 0 18px #d2a86a33}
+.hall-chart-cell:not(.state-locked):hover{background:linear-gradient(165deg,#4d4943,#263c48)}
+.hall-chart-node{min-height:61px;display:flex;flex-direction:column;justify-content:space-between;gap:4px;padding:5px 6px 4px}
+.hall-skill-name{display:block;width:100%;background:none;border:0;color:#f7dfb0;font:700 11px/1.1 Georgia,serif;padding:0;text-align:center;min-height:26px;white-space:normal;overflow-wrap:anywhere}
+.hall-skill-bottom{display:flex;justify-content:space-between;align-items:center;gap:2px}
+.hall-gems{display:flex;gap:2px}
+.hall-gems i{display:block;width:6px;height:6px;transform:rotate(45deg);border:1px solid #a98b64;background:#243443}
+.hall-gems i.lit{background:var(--hall-path);box-shadow:0 0 5px var(--hall-path)}
+.hall-rank-buy{width:24px;height:24px;display:grid;place-items:center;border:1px solid #e7bd79;background:linear-gradient(#875a39,#4b3329);color:#ffe2ad;font:700 16px Arial,sans-serif;line-height:1;padding:0}
+.hall-rank-buy:disabled{background:#242e39;border-color:#655b51;font-size:11px;color:#a99d8b}
+.hall-chart-footnote{margin:6px 2px 0;color:#c6b599;font:9px/1.35 Arial,sans-serif}
+@media(max-width:1050px){
+ .panel[data-theme="hero"] .panel-content-scroll{padding:6px 9px 16px}
+ .hall-top{grid-template-columns:minmax(140px,200px) minmax(0,1fr)}
+ .hall-portrait{width:69px;height:92px}
+ .hall-champion-copy h2{font-size:16px;margin:3px 0 6px}
+ .hall-champion-copy>small{font-size:7px}
+ .hall-champion{gap:5px}
+ .hall-stat{min-height:32px;padding:3px 5px}
+ .hall-stat b{font-size:14px}
+ .hall-bonus-line{gap:6px}
+ .hall-chart-node{min-height:54px;padding:4px}
+ .hall-skill-name{font-size:10px;min-height:23px}
+ .hall-cosmetics{grid-template-columns:140px minmax(0,1fr)}
+}
+@media(max-width:680px), (orientation:portrait){
+ .hall-compact{gap:6px}
+ .hall-top{grid-template-columns:1fr;gap:4px}
+ .hall-champion{border-right:0;border-bottom:1px solid #ab875546;padding-bottom:5px}
+ .hall-portrait{width:72px;height:82px}
+ .hall-champion-copy{display:grid;grid-template-columns:1fr 1fr;gap:0 7px}
+ .hall-champion-copy>small,.hall-champion-copy h2{grid-column:1/-1}
+ .hall-champion-copy h2{font-size:18px;margin:2px 0 4px}
+ .hall-level-line{grid-column:1/-1;flex-direction:row;justify-content:space-between}
+ .hall-xp-track{grid-column:1/-1;margin-top:3px}
+ .hall-stat-matrix{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .hall-stat{min-height:32px;padding:3px 6px}
+ .hall-stat small{font-size:7px}
+ .hall-stat b{font-size:13px}
+ .hall-section-cap{height:18px}
+ .hall-bonus-line{padding-top:4px}
+ .hall-cosmetics{display:block;padding:5px}
+ .hall-cosmetics-title{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:4px}
+ .hall-cosmetics-title span{font-size:11px}
+ .hall-cosmetics-title small{font-size:8px}
+ .hall-banner-choice{min-height:42px}
+ .hall-flag{height:32px}
+ .hall-skills{padding:5px}
+ .hall-chart-title h2{font-size:16px}
+ .hall-inspect{min-height:50px;padding:4px 6px}
+ .hall-inspect-copy span{font-size:9px}
+ .hall-inspect-buy{min-width:70px;font-size:8px;padding:5px}
+ .hall-chart-table{border-spacing:1px;min-width:0}
+ .hall-row-corner{width:22px;font-size:6px}
+ .hall-row-index small{font-size:9px}
+ .hall-row-index span{font-size:6px}
+ .hall-school-heading{font-size:8px;letter-spacing:0}
+ .hall-school-heading small{font-size:7px}
+ .hall-chart-node{min-height:51px;padding:3px 2px}
+ .hall-skill-name{font-size:9px;min-height:23px}
+ .hall-gems{gap:1px}
+ .hall-gems i{width:4px;height:4px}
+ .hall-rank-buy{height:22px;width:22px;font-size:14px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .panel[data-theme="hero"] .panel-content-scroll{padding:4px 6px 10px}
+ .hall-top{grid-template-columns:minmax(155px,200px) 1fr}
+ .hall-champion{border-bottom:0;border-right:1px solid #a88c584f}
+ .hall-cosmetics{display:grid;grid-template-columns:150px 1fr}
+ .hall-stat{min-height:27px}
+ .hall-chart-node{min-height:47px}
+ .hall-skill-name{font-size:9px;min-height:20px}
+}
