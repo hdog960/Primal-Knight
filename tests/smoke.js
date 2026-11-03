@@ -1,4 +1,4 @@
-// Alpha 0.7.1: Fortress sprite repair, 12 functional research projects, icon-safe Forge, progression, saves,
+// Alpha 0.7.2: Gear and Rune pixel-art consistency, Fortress sprites, 12 research projects, progression and saves,
 // skills, legacy purchases, save and menu navigation, with no browser dependencies.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 let nextFrame=null,storedSave=null;
@@ -160,8 +160,25 @@ else delete hooks.p().socketed.helm;
 for(const [id,rank] of Object.entries(olderRanks))
  assert.equal(hooks.p().research[id]||0,rank,'Original research '+id+' rank preserved');
 assert(JSON.parse(storedSave).research.appraisal===1,'Research additions persist in the existing save');
-clickHub('gear');assert(el('panelContent').innerHTML.includes('Leather Cowl'));
-clickSub('runes');clickButton({socketSlot:'helm'});assert(el('panelContent').innerHTML.includes('rune-picker'));
+clickHub('gear');
+const gearShowcase=el('panelContent').innerHTML;
+assert(gearShowcase.includes('Leather Cowl'),'Gear equipment panel remains functional');
+for(const slot of ['helm','amulet','chest','legs','boots','gauntlets','charm','ring1','ring2','ring3','ring4']){
+ assert(gearShowcase.includes('aria-label="gear_'+slot+' pixel art icon"'),'Equipment slot '+slot+' has a standalone, slot-specific pixel emblem');
+}
+assert.equal((gearShowcase.match(/class="forge-pixel-icon"/g)||[]).length,11,'All 11 equipped slots use consistent pixel emblems');
+assert(!gearShowcase.includes('armory-slot-gem"><span class="pixel-symbol'),'Old cropped Gear slot texture no longer used');
+clickSub('runes');
+const runeScreen=el('panelContent').innerHTML;
+assert(runeScreen.includes('rune-socket-emblem'),'Rune sockets have standalone pixel-art emblems');
+for(const slot of ['helm','amulet','chest','legs','boots','gauntlets','charm','ring1','ring2','ring3','ring4']){
+ assert(runeScreen.includes('data-socket-slot="'+slot+'"'),'Rune socket '+slot+' remains selectable');
+}
+assert(runeScreen.includes('aria-label="rune_ember pixel art icon"'),'Rune collection uses unique Ember art');
+assert(runeScreen.includes('class="forge-pixel-icon"'),'Rune collection icons are vector pixel sprites');
+clickButton({socketSlot:'helm'});
+assert(el('panelContent').innerHTML.includes('rune-picker'));
+assert(el('panelContent').innerHTML.includes('rune-choice-icon'),'Rune picker uses matching pixel icons');
 clickButton({socketRune:'helm:seedember'});assert(JSON.parse(storedSave).socketed.helm==='seedember');
 clickHub('fortress');
 const stationScreen=el('panelContent').innerHTML;
@@ -198,10 +215,14 @@ assert.equal(hooks.run().wave,1);
 // Alpha 0.6 regression: Diablo-style body slots, inventory drawer and gear salvage.
 clickHub('gear');clickSub('equipment');
 assert(el('panelContent').innerHTML.includes('armory-hero-stage'),'Armory shows the front-facing hero');
+for(const slot of ['helm','amulet','chest','legs','boots','gauntlets','charm','ring1','ring2','ring3','ring4'])
+ assert(el('panelContent').innerHTML.includes('aria-label="gear_'+slot+' pixel art icon"'),'Equipped slot artwork remains on re-entry');
 for(const slot of ['helm','amulet','chest','legs','boots','gauntlets','charm','ring1','ring2','ring3','ring4'])assert(el('panelContent').innerHTML.includes('data-gear-slot="'+slot+'"'),'Body-positioned '+slot+' slot');
 clickButton({gearSlot:'helm'});
 assert.equal(el('armoryDrawer').hidden,false,'Tapped slot opens inventory drawer');
 assert(el('armoryDrawer').innerHTML.includes('SORTED BY RARITY'));
+assert(el('armoryDrawer').innerHTML.includes('aria-label="gear_helm pixel art icon"'),'Inventory drawers show the matching Helm pixel art');
+assert(!el('armoryDrawer').innerHTML.includes('armory-item-icon"><span class="pixel-symbol'),'Inventory no longer uses generic cropped menu textures');
 const armoryClick=ds=>el('armoryDrawer').listeners.click({target:{closest:()=>({dataset:ds,disabled:false})}});
 const armoryChange=(rank,checked)=>el('armoryDrawer').listeners.change({target:{closest:()=>({dataset:{sellRarity:String(rank)},checked})}});
 const testLoot={id:'qa06_loot',slot:'helm',rarity:2,plus:0};
