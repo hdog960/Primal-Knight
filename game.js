@@ -132,7 +132,7 @@ function tierMilestone(tier,wave){
  if(wave===50)return {icon:'♛',name:'Banner of the Conqueror',detail:'Unique collectible and equippable banner',kind:'banner',amount:0};
  if(wave===75)return {icon:'💠',name:'Primal Treasury',detail:(6+tier*2)+' Sigils',kind:'sigils',amount:6+tier*2};
  if(wave===100)return {icon:'✦',name:'Century of Onslaught',detail:fmt(700*scale)+' Essence + '+(12+tier*3)+' Sigils',kind:'century',amount:Math.round(700*scale)};
- const sigils=Math.ceil((tier+3)*(2+Math.log2(1+wave/100))*(1+wave/MAX_WAVE));
+ const sigils=Math.ceil(1.4*(tier+3)*(2+Math.log2(1+wave/100))*(1+wave/MAX_WAVE));
  const unlock=ascensionPaths.find(row=>row[5]===wave);
  if(wave===MAX_WAVE)return {icon:'♛',name:'Eternal Conqueror',detail:fmt(sigils)+' Sigils + Eternal Victory banner',kind:'eternal',amount:sigils};
  if(unlock)return {icon:'✧',name:unlock[1]+' Discovery',detail:fmt(sigils)+' Sigils · Unlock '+unlock[1]+' in Power → Training'+(wave===1000?' · Ancient equipment can now drop':wave===2500?' · Celestial equipment can now drop':''),kind:'path',amount:sigils,unlock:unlock[0]};
