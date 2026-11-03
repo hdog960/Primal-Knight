@@ -1,4 +1,4 @@
-// Alpha 0.10.2 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
+// Alpha 0.10.3 deterministic Living Onslaught encounter, tactical unit and boss challenge regression.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const code=fs.readFileSync('game.js','utf8');
 function createWorld(seedValue=117){
@@ -31,7 +31,7 @@ for(const type of spriteTypes){
 }
 const {hooks}=createWorld();
 const encounter=hooks.encounterDirector;
-const expected=[[1,'standard'],[5,'vanguard'],[10,'elite'],[17,'ambush'],[25,'commander'],[37,'treasure'],[43,'relic'],[50,'commander'],[75,'commander'],[100,'chapterBoss'],[200,'chapterBoss'],[10000,'chapterBoss']];
+const expected=[[1,'standard'],[5,'vanguard'],[10,'elite'],[17,'ambush'],[25,'commander'],[37,'treasure'],[43,'relic'],[50,'commander'],[61,'bannerAssault'],[75,'commander'],[100,'chapterBoss'],[200,'chapterBoss'],[10000,'chapterBoss']];
 for(const [wave,kind] of expected)assert.equal(encounter(wave,1).kind,kind,'Wave '+wave+' director chooses '+kind);
 assert.equal(encounter(100,1).bossType,'warlord','Every century ends with a warlord');
 assert.equal(encounter(25,1).bossType,'siegebeast','Each quarter century commander is a siege beast');
@@ -258,4 +258,48 @@ assert.equal(hunt.awardRelicChallenge(1,43,100),false,'Relic hunt never pays twi
 huntRun.encounter=encounter(132,1);huntRun.breaches=1;
 assert.equal(hunt.awardRelicChallenge(1,132,100),false,'Breached fortress cannot claim optional relic hunt');
 assert(!huntProgress.relicHunts['1:132'],'Failed relic hunt can be retried later');
-console.log('PASS: 10 factions, 8 encounter classes, coherent sprites, two new counterable specialists, three boss archetypes with bounded reinforcements, nonfarmable relic and chapter rewards, preserved tiers.');
+// Phase 4: previously generic special encounters now have distinct formations and payout.
+const banners=encounter(61,1);
+assert.equal(banners.kind,'bannerAssault','Standard Assault occurs on rare predictable wave 61');
+assert.equal(hooks.encounterUnit(banners,0),'banneret','Standard Assault begins with the enemy battle flag');
+assert.equal(hooks.encounterUnit(banners,1),'guardian','Standard Assault uses a defensive front line');
+assert.equal(hooks.encounterSpecialBonus('bannerAssault'),1.20,'Standard Assault pays a bounded twenty-percent Gold bonus');
+const bannerWorld=createWorld(1249),bw=bannerWorld.hooks,bar=bw.run();
+bar.tier=1;bar.wave=61;bar.maxHealth=bw.maxWall();bar.health=bar.maxHealth;bw.beginWave();
+for(let i=0;i<bar.total;i++){bar.spawned=i;bw.spawnEnemy();}
+assert.equal(bar.enemies.length,bar.total,'Standard Assault uses standard capped enemy count');
+assert(bar.enemies.some(e=>e.type==='banneret')&&bar.enemies.some(e=>e.type==='guardian'),'Banner assault loads its designed mixed battle formation');
+assert(bar.enemies.filter(e=>e.type==='banneret'&&!e.dead).length<=2,'Banner assault never stacks more than two live banners');
+// The Relic Warden is a physical special-encounter foe, not just a reward label.
+const keeperWorld=createWorld(1251),kh=keeperWorld.hooks,kr=kh.run();
+kr.tier=1;kr.wave=43;kr.maxHealth=kh.maxWall();kr.health=kr.maxHealth;kh.beginWave();
+for(let i=0;i<kr.total;i++){kr.spawned=i;kh.spawnEnemy();}
+const relicWarden=kr.enemies.find(e=>e.relicGuardian);
+const standardGuardian=kr.enemies.find(e=>e.type==='guardian'&&!e.relicGuardian);
+assert(relicWarden&&relicWarden.type==='guardian','Relic Hunt contains a real distinguished Relic Warden');
+assert(standardGuardian&&relicWarden.hp>standardGuardian.hp*1.4,'Relic Warden has a materially stronger but bounded health pool');
+assert.equal(kr.enemies.filter(e=>e.relicGuardian).length,1,'Exactly one marked warden per Relic Hunt');
+// Boss phase HUD accurately reflects live encounter state and its telegraph.
+bh.refreshHUD();
+const bossHud=bossWorld.sandbox.document.getElementById('bossHud');
+assert(!bossHud.hidden,'Chapter boss gets a readable overlay while present');
+assert.equal(bossWorld.sandbox.document.getElementById('bossName').textContent,'IRON TYRANT','Hero is shown the real boss identity');
+assert.equal(bossWorld.sandbox.document.getElementById('bossPhase').textContent,'PHASE II','Hud switches to actual boss phase');
+assert(bossWorld.sandbox.document.getElementById('bossWarning').textContent.includes('IRON WARD'),'Boss HUD reports temporary defense stance');
+// Guarantee a one-time rune reward even when the live rune pouch has reached its hard cap.
+const vaultWorld=createWorld(1261),vh=vaultWorld.hooks,vr=vh.run(),progress=vh.p();
+vr.wave=43;vr.tier=1;vr.maxHealth=vh.maxWall();vr.health=vr.maxHealth;vh.beginWave();
+progress.runes=Array.from({length:240},(_,i)=>({id:'full_'+i,type:'ember',tier:1}));
+const knowledgeBeforeVault=progress.knowledge;
+assert(vh.awardRelicChallenge(1,43,100),'Full bag still lets players earn one-time relic objective');
+assert.equal(progress.runes.length,240,'Full inventory is not overflowed by the relic');
+assert.equal(progress.pendingRelics.length,1,'Rune is safely reserved for later collection');
+assert(progress.knowledge>knowledgeBeforeVault,'Knowledge reward still pays on successful vault');
+assert.equal(vh.awardRelicChallenge(1,43,100),false,'Replaying earned reward cannot enqueue duplicates');
+progress.runes.pop();
+assert.equal(vh.claimPendingRelics(),1,'Vault releases one earned rune once space is free');
+assert.equal(progress.runes.length,240,'Recovering rune respects inventory cap');
+assert(progress.runes.some(r=>r.id==='relic1_43'),'Original earned rune identity survives recovery');
+assert.equal(progress.pendingRelics.length,0,'Claimed rune is removed from temporary vault');
+assert.equal(vh.claimPendingRelics(),0,'Recovered rune cannot be claimed twice');
+console.log('PASS: 10 factions, 9 encounter classes, differentiated Relic Wardens and Standard Assault formations, readable live boss phase warnings, guaranteed queued rune rewards, existing progression and combat caps.');
