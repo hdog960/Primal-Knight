@@ -627,7 +627,7 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  // Subtle animated fog and light make the illustrated environment breathe.
  const time=performance.now()/1000;let gd=ctx.createLinearGradient(0,96,0,415);gd.addColorStop(0,'rgba(5,25,39,.08)');gd.addColorStop(1,'rgba(18,10,21,.13)');ctx.fillStyle=gd;ctx.fillRect(0,90,960,350);
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
- for(const e of [...run.enemies].filter(e=>!e.dead).sort((a,b)=>a.y-b.y)){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'?1.18:1);let im=sprites[e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;ctx.drawImage(im,e.x-sw/2,py,sw,sh);ctx.restore();
+ for(const e of [...run.enemies].filter(e=>!e.dead).sort((a,b)=>a.y-b.y)){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'||e.type==='banneret'?1.18:1);let im=sprites[e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;ctx.drawImage(im,e.x-sw/2,py,sw,sh);ctx.restore();
  if(e.type==='guardian'){
   ctx.strokeStyle='rgba(153,219,224,.74)';ctx.lineWidth=2;
   ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.54,Math.max(5,7*s),0,0,Math.PI*2);ctx.stroke();
@@ -638,9 +638,26 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  if(e.type==='shaman'){
   ctx.fillStyle='rgba(207,171,255,.78)';ctx.fillRect(e.x-2,py-5,4,4);
  }
+ if(e.type==='banneret'){
+  ctx.strokeStyle='rgba(247,212,140,.58)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.39,sw*.58,Math.max(5,9*s),0,0,Math.PI*2);ctx.stroke();
+ }
+ if(e.type==='frostbinder'&&e.frostWindup>0){
+  ctx.strokeStyle='#9ce5fc';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(e.x,py+sh*.13,10+6*(1-e.frostWindup/.95),0,Math.PI*2);ctx.stroke();
+ }
+ if(e.type==='sapper'&&e.fuseTime>0){
+  ctx.fillStyle='#281c28';ctx.fillRect(e.x-15,py-15,30,5);
+  ctx.fillStyle='#ffb36e';ctx.fillRect(e.x-14,py-14,28*(1-e.fuseTime/1.3),3);
+ }
+ if(e.type==='siegebeast'&&e.crushWindup>0){
+  ctx.strokeStyle='#f8cb96';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(e.x,py+sh*.20,Math.max(16,sw*.26),0,Math.PI*2*(1-e.crushWindup/1.1));ctx.stroke();
+ }
  if(e.type==='warlord'&&e.bossPhase===2){
   ctx.strokeStyle='#ee966d';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.48,Math.max(8,9*s),0,0,Math.PI*2);ctx.stroke();
  }
+ if(e.type==='frostbinder'&&run.heroChill>0){ctx.fillStyle='rgba(166,229,248,.75)';ctx.fillRect(e.x-2,py-9,4,4);}
  if(e.slow>0){ctx.strokeStyle='#91f1f9';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.36,6*s,0,0,7);ctx.stroke();}if(e.burn>0){ctx.fillStyle='#ffa554';ctx.fillRect(e.x-6,e.y-sh*.45-4,5,8);}let barW=clamp(26*s,20,64);ctx.fillStyle='#1e1b25';ctx.fillRect(e.x-barW/2,py-7,barW,4);ctx.fillStyle=isSiegeBoss(e)?'#ed796e':e.type==='guardian'?'#9bd6dd':e.type==='shaman'?'#c1a4ef':'#a8d675';ctx.fillRect(e.x-barW/2,py-7,barW*clamp(e.hp/e.max,0,1),4);}
  // Fortress battlements and hero are their own painted foreground layer.
  // Draw AFTER enemies: attackers remain behind the wall, never over it.
