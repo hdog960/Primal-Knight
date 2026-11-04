@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.11.6. Hero Combat Depth - Earned First Watch and Rally: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.11.7. Hero Combat Depth - Earned retries and Sigil Ledger: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1910,6 +1910,64 @@ function renderAscensionChronicle(){
   <div class="forge-ascension-footer"><span>Best milestone reached: <b>${fmt(highest)}</b> / ${formatWave(MAX_WAVE)}</span><span>Unlock each mastery at its listed wave in <b>any tier</b>. Purchase with Primal Sigils.</span></div>
  </section>`;
 }
+// Alpha 0.11.7 — finite, one-time Sigil accounting from real milestone definitions.
+// This projection does not grant anything or imply that every tier is reachable.
+function sigilMilestoneAmount(tier,wave){
+ const prize=tierMilestone(tier,wave);
+ if(prize.kind==='century')return 12+tier*3;
+ return ['sigils','deepSigils','path','eternal','frontier','dominion','legacy','tier'].includes(prize.kind)?prize.amount:0;
+}
+function sigilLedgerSummary(){
+ let claimed=0,unclaimed=0,unlockedRemaining=0,lockedRemaining=0,achievements=0;
+ for(let tier=1;tier<=MAX_TIER;tier++){
+  for(const wave of tierMilestones(tier)){
+   const value=sigilMilestoneAmount(tier,wave);
+   if(!value)continue;
+   achievements++;
+   if(p.milestones[milestoneKey(tier,wave)])claimed+=value;
+   else{
+    unclaimed+=value;
+    if(tier<=p.unlockedTier)unlockedRemaining+=value;
+    else lockedRemaining+=value;
+   }
+  }
+ }
+ const earnedWatch=earlyWatchChapters.reduce((n,chapter,i)=>n+(p.firstWatchClaimed.includes(i)?chapter[5]:0),0);
+ const unclaimedWatch=earlyWatchChapters.reduce((n,chapter,i)=>n+(p.firstWatchClaimed.includes(i)?0:chapter[5]),0);
+ const future=unclaimed+unclaimedWatch;
+ const legacyRequired=legacyPaths.reduce((sum,row)=>{
+  for(let rank=lr(row[0]);rank<row[4];rank++)sum+=Math.ceil(row[3]*(1+rank*.35+Math.pow(rank,1.35)*.26));
+  return sum;
+ },0);
+ const ascensionRequired=ascensionPaths.reduce((sum,row)=>{
+  for(let rank=ascRank(row[0]);rank<row[4];rank++)sum+=Math.ceil(row[3]*(1+rank*.12+rank*rank*.018));
+  return sum;
+ },0);
+ const oathRequired=sovereignOaths.reduce((sum,row)=>{
+  for(let rank=oathRank(row[0]);rank<row[4];rank++)sum+=Math.ceil(row[3]*(1+rank*.08+rank*rank*.012));
+  return sum;
+ },0);
+ return {held:p.sigils,claimed,earnedWatch,unclaimed,unclaimedWatch,unlockedRemaining,lockedRemaining,
+  future,achievements,legacyRequired,ascensionRequired,oathRequired,
+  remainingCosts:legacyRequired+ascensionRequired+oathRequired,eventualCapacity:p.sigils+future};
+}
+function renderSigilLedger(){
+ const s=sigilLedgerSummary(),short=s.eventualCapacity<s.remainingCosts;
+ return `<details class="sigil-ledger" aria-label="Permanent Sigil budget and remaining mastery costs">
+  <summary>◇ PRIMAL SIGIL LEDGER <span>💠 ${fmt(s.held)} HELD · ${fmt(s.future)} UNCLAIMED</span></summary>
+  <div class="sigil-ledger-body">
+    <p>The kingdom's Sigils are awarded <b>once</b> through milestones and First Watch. Ordinary wave Gold, Essence and loot repeat; Sigils do not. This forecast cannot grant resources or unlock tiers.</p>
+    <div class="sigil-ledger-grid">
+     <div><small>HELD NOW</small><strong>${fmt(s.held)}</strong></div>
+     <div><small>UNCLAIMED · ALL 30 TIERS</small><strong>${fmt(s.unclaimed)}</strong></div>
+     <div><small>UNCLAIMED · FIRST WATCH</small><strong>${fmt(s.unclaimedWatch)}</strong></div>
+     <div><small>REMAINING COST · ALL MASTERIES</small><strong>${fmt(s.remainingCosts)}</strong></div>
+    </div>
+    <p>Potential unclaimed tier rewards: ${fmt(s.unlockedRemaining)} in currently unlocked tiers; ${fmt(s.lockedRemaining)} in locked tiers. These require actual wave victories and are <b>not spendable now</b>.</p>
+    <p>Remaining full-rank costs: Legacy ${fmt(s.legacyRequired)} · Ascension ${fmt(s.ascensionRequired)} · Sovereign Oaths ${fmt(s.oathRequired)}. Total held + unclaimed: ${fmt(s.eventualCapacity)} versus ${fmt(s.remainingCosts)} remaining rank costs. ${short?'The listed lifetime budget is insufficient for all remaining ranks at present.':'The listed lifetime budget is sufficient on paper, but obtaining each rank and final-wave victory is not guaranteed.'}</p>
+  </div>
+ </details>`;
+}
 function renderSovereignOaths(){
  const owned=sovereignOaths.reduce((sum,row)=>sum+oathRank(row[0]),0);
  const max=sovereignOaths.reduce((sum,row)=>sum+row[4],0);
@@ -2015,6 +2073,7 @@ function renderTrainingLedger(){
   </section>
   ${renderAscensionChronicle()}
   ${renderSovereignOaths()}
+  ${renderSigilLedger()}
   ${renderDominionCodex()}
   <div class="forge-ledger-note">🔷 Train up to ten ranks per tap. 💠 Legacy and Ascension use Primal Sigils. All purchases are permanent.</div>
  </div>`;
@@ -2112,9 +2171,14 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.3 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.7 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
- $('panelContent').innerHTML=html;
+ // Keep the Sigil Ledger expanded while permanent ranks are purchased.
+ // UI-only preference: no new save schema or persistent field.
+ const panelContentEl=$('panelContent');
+ const ledgerOpen=tab==='training'&&!!panelContentEl.querySelector?.('details.sigil-ledger')?.open;
+ panelContentEl.innerHTML=html;
+ if(ledgerOpen){const ledger=panelContentEl.querySelector?.('details.sigil-ledger');if(ledger)ledger.open=true;}
  if(tab==='equipment')renderArmoryDrawer();else{const drawer=$('armoryDrawer');if(drawer){drawer.hidden=true;drawer.innerHTML='';}}
  const imp=$('importFile');if(imp)imp.onchange=async ev=>{
   const file=ev.target.files?.[0];if(!file)return;
@@ -2328,5 +2392,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
