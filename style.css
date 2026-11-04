@@ -2060,3 +2060,59 @@
 @media(prefers-reduced-motion:reduce){
  .hall-doctrine-choice{transition:none!important}
 }
+
+
+/* Alpha 0.11.1 — meaningful passive choices and reference-only build presets.
+   Three fixed-width illustrated panels on desktop; large, readable taps on iPhone. */
+.hall-passives,.combat-build-presets{min-width:0;padding:10px 12px;border:1px solid #ac885b;
+ background:linear-gradient(116deg,#182b37f5,#26323dee 57%,#273336f2);
+ box-shadow:inset 0 1px #d7bc8455,0 3px 12px #070e18a8;color:#dce6de}
+.hall-passive-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:9px 0 6px}
+.hall-passive-choice{min-width:0;display:flex;flex-direction:column;gap:5px;min-height:140px;
+ text-align:left;padding:10px 11px;border:2px solid #71654d;color:#dce5dd;
+ background:linear-gradient(145deg,#1a303e,#223443 65%,#172833);touch-action:manipulation}
+.hall-passive-choice:not(:disabled):hover,.hall-passive-choice.selected{border-color:#e9c188}
+.hall-passive-choice.selected{box-shadow:inset 0 0 0 2px #81613e,0 0 9px #cbb16a35}
+.hall-passive-choice:disabled{opacity:.58;cursor:not-allowed}
+.hall-passive-choice small{font:800 9px Arial,sans-serif;letter-spacing:.8px;color:#cbbd9c}
+.hall-passive-choice strong{font:700 16px Georgia,serif;color:#f4dca8}
+.hall-passive-choice span{flex:1;font:11px/1.42 Arial,sans-serif;color:#d5e0da}
+.hall-passive-choice em{font:800 10px Arial,sans-serif;letter-spacing:.35px;font-style:normal;color:#e6c891}
+.hall-passives>p{margin:5px 0 0;color:#c2cec6;font:10px/1.55 Arial,sans-serif}
+.combat-build-head{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap}
+.combat-build-head strong{color:#ffe0a2;font:800 12px Georgia,serif;letter-spacing:.4px}
+.combat-build-head small{color:#c5d5cc;font:10px/1.4 Arial,sans-serif}
+.combat-build-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:9px}
+.build-preset{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:9px;
+ border:1px solid #806f58;background:linear-gradient(130deg,#293a45,#152838);
+ padding:9px 10px}
+.build-preset.active{border-color:#f0c783;box-shadow:inset 0 0 0 1px #d8ad695e}
+.build-preset-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.build-preset-copy small{color:#eed4a4;font:800 9px/1.2 Arial,sans-serif;letter-spacing:.9px}
+.build-preset-copy strong{color:#e9eee5;font:800 12px/1.32 Georgia,serif;overflow-wrap:anywhere}
+.build-preset-copy span{color:#c4cfc8;font:10px/1.4 Arial,sans-serif}
+.build-preset-actions{display:flex;flex-wrap:wrap;gap:6px}
+.build-preset-actions button{min-height:42px;flex:1 1 75px;border:1px solid #c5a578;
+ background:linear-gradient(#564735,#273640);color:#ffe4b7;font:800 10px Arial,sans-serif;
+ letter-spacing:.35px;cursor:pointer;touch-action:manipulation}
+.build-preset-actions button:disabled{opacity:.53;cursor:not-allowed;border-color:#63717a}
+.build-preset-actions button:focus-visible,.hall-passive-choice:focus-visible{
+ outline:2px solid #ffe5ae;outline-offset:2px}
+@media(max-width:680px),(orientation:portrait){
+ .hall-passives,.combat-build-presets{padding:8px}
+ .hall-passive-grid,.combat-build-grid{grid-template-columns:1fr;gap:7px}
+ .hall-passive-choice{min-height:95px;padding:9px}
+ .hall-passive-choice strong{font-size:15px}
+ .hall-passive-choice span{font-size:10px}
+ .build-preset{flex-direction:row;align-items:center;gap:8px;padding:8px}
+ .build-preset-copy{flex:1}
+ .build-preset-actions{flex:0 0 auto;flex-direction:column}
+ .build-preset-actions button{flex:none;min-width:70px;min-height:44px}
+ .combat-build-head strong{font-size:11px}
+ .combat-build-head small{font-size:9px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .hall-passive-choice{min-height:95px;padding:7px}
+ .build-preset-actions button{min-height:42px}
+}
+@media(prefers-reduced-motion:reduce){.hall-passive-choice,.build-preset-actions button{transition:none!important}}
