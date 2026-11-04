@@ -62,3 +62,4 @@ jobs:
           node tests/sigil-gated-combat.js
           node tests/doctrine-tactics.js
           node tests/doctrine-tactic-battles.js
+          node tests/doctrine-telemetry.js
