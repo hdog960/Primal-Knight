@@ -2243,3 +2243,30 @@
  .war-recovery p{margin:5px 0}
  .war-recovery-action button{min-height:42px}
 }
+
+
+/* Alpha 0.11.7 — the optional, legible Sigil Ledger in Power → Training. */
+.sigil-ledger{margin:12px 0;border:2px solid #b39868;min-width:0;background:
+ radial-gradient(ellipse at 95% 0%,#6d5b3b55,transparent 52%),linear-gradient(125deg,#1e3441,#182631 70%);
+ box-shadow:inset 0 0 0 2px #111e2c,0 5px 12px #0008;color:#e7e0cc}
+.sigil-ledger>summary{cursor:pointer;display:flex;gap:7px;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;padding:12px 14px;list-style:none;font:800 14px Georgia,serif;color:#ffe2a6}
+.sigil-ledger>summary::-webkit-details-marker{display:none}
+.sigil-ledger>summary:before{content:'▸';color:#e6bd76;margin-right:3px}
+.sigil-ledger[open]>summary:before{content:'▾'}
+.sigil-ledger>summary span{font:700 10px Arial,sans-serif;color:#c9ddcd;letter-spacing:.4px}
+.sigil-ledger>summary:focus-visible{outline:2px solid #fff2a1;outline-offset:-3px}
+.sigil-ledger-body{padding:11px 14px 13px;border-top:1px solid #9279578c}
+.sigil-ledger-body p{font:11px/1.55 Arial,sans-serif;color:#d7e3dd;margin:7px 0}
+.sigil-ledger-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+.sigil-ledger-grid>div{display:flex;min-width:0;flex-direction:column;gap:6px;padding:9px 8px;
+ border:1px solid #927e60;background:#152531bb}
+.sigil-ledger-grid small{font:800 9px/1.35 Arial,sans-serif;letter-spacing:.35px;color:#d7bd8f}
+.sigil-ledger-grid strong{font:800 17px Georgia,serif;color:#f9e4b6;overflow-wrap:anywhere}
+@media(max-width:780px){.sigil-ledger-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:400px){.sigil-ledger>summary{padding:10px;font-size:12px}
+ .sigil-ledger>summary span{font-size:9px}
+ .sigil-ledger-body{padding:10px}
+ .sigil-ledger-grid strong{font-size:15px}}
+@media(orientation:landscape) and (max-height:460px){.sigil-ledger>summary{padding:8px 11px}
+ .sigil-ledger-body{padding:8px 11px}}
