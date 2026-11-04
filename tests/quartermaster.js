@@ -38,8 +38,8 @@ assert.equal(startEssence,180,'New characters own the original Essence starter b
 const first=h.councilTrainingOffers(h.warCouncilPlan(1,1));
 assert.equal(first.length,3,'Three original permanent training lines are visible');
 assert.equal(new Set(first.map(o=>o.id)).size,3,'No repeated upgrade cards');
-assert.equal(first[0].id,'fort','Early rushing Mirebound opponents suggest fortress endurance');
-assert.equal(first[0].cost,10,'Fortitude cost comes from the live Training formula');
+assert.equal(first[0].id,'power','Earned First Watch evidence favors Might as the first available investment');
+assert.equal(first[0].cost,8,'Might cost comes from the live Training formula');
 assert(first.every(o=>o.affordable),'Starter budget supports each available first rank');
 const shields=h.councilTrainingOffers(h.warCouncilPlan(2,20));
 assert.equal(shields[0].id,'power','Shielded formation favors attack investment');
@@ -50,7 +50,7 @@ assert(markup.includes('THE FIELD QUARTERMASTER'),'The live War Council includes
 assert(markup.includes('data-council-train="fort"'),'Button directs a real Fortitude upgrade');
 assert(markup.includes('data-council-train="power"'),'Button directs a real Might upgrade');
 assert(markup.includes('data-council-train="haste"'),'Button directs a real Reflexes upgrade');
-assert(markup.includes('TRAIN · 10 ESSENCE'),'Displayed cost matches the real Power purchase cost');
+assert(markup.includes('TRAIN · 8 ESSENCE'),'Displayed cost matches the real Power purchase cost');
 h.renderTierLobby();
 assert(el('milestoneList').innerHTML.includes('THE FIELD QUARTERMASTER'),'Real Battle lobby displays Quartermaster cards');
 const clickHandler=el('milestoneList').listeners.click;
@@ -99,7 +99,7 @@ assert.equal(JSON.stringify({training:p.training,essence:p.essence}),beforeFight
  'No extra healing or free rank can be gained through a forged mid-battle click');
 r.phase='intermission';
 assert.equal(h.purchaseCouncilTraining('fort'),false,'Between-wave waits cannot bypass purchase restriction');
-assert(html.includes('ALPHA 0.11.5')&&html.includes('style.css?v=0.11.5')&&html.includes('game.js?v=0.11.5'),
+assert(html.includes('ALPHA 0.11.6')&&html.includes('style.css?v=0.11.6')&&html.includes('game.js?v=0.11.6'),
  'iPhone web assets and release banner display latest version');
 assert(css.includes('.war-quartermaster-grid')&&css.includes('min-height:44px'),
  'Original art-consistent Quartermaster cards have large touch targets');

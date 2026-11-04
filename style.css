@@ -2215,3 +2215,31 @@
  .war-quartermaster-entry{padding:6px}
  .war-quartermaster-entry button{min-height:42px;font-size:9px}
 }
+
+
+/* Alpha 0.11.6 — War Council earned-Essence rally after an actual defeat. */
+.war-recovery{margin-top:11px;padding:10px 12px;border:1px solid #d7a56c;
+ background:radial-gradient(ellipse at 95% 0%,#96644b33,transparent 65%),linear-gradient(115deg,#3b3431,#222f38 75%);
+ box-shadow:inset 0 1px 0 #ffdfa733;color:#e6decf}
+.war-recovery-header{display:flex;gap:7px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+ padding-bottom:6px;border-bottom:1px solid #c9a57866}
+.war-recovery-header strong{font:800 13px Georgia,serif;color:#ffe1a4;letter-spacing:.35px}
+.war-recovery-header span{font:800 10px Arial,sans-serif;color:#e9c4a6;letter-spacing:.5px}
+.war-recovery p{margin:7px 0;font:11px/1.5 Arial,sans-serif;color:#e5e4d8}
+.war-recovery-action{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.war-recovery-action span{font:11px/1.45 Arial,sans-serif;color:#d6e2da}
+.war-recovery-action button{flex:none;min-height:44px;padding:8px 12px;border:1px solid #e6be78;
+ background:linear-gradient(#866345,#503f32);color:#ffe8bc;font:800 10px/1.3 Arial,sans-serif;
+ cursor:pointer;touch-action:manipulation}
+.war-recovery-action button:disabled{opacity:.6;cursor:not-allowed;border-color:#887e70}
+.war-recovery-action button:focus-visible{outline:2px solid #ffe8a5;outline-offset:2px}
+@media(max-width:750px),(orientation:portrait){
+ .war-recovery{padding:9px 10px}
+ .war-recovery-action{flex-direction:column;align-items:stretch;gap:7px}
+ .war-recovery-action button{width:100%}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .war-recovery{padding:7px 9px;margin-top:7px}
+ .war-recovery p{margin:5px 0}
+ .war-recovery-action button{min-height:42px}
+}
