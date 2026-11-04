@@ -165,7 +165,9 @@ function siegePressure(doctrine,passive){
  const w=world(5512),h=w.h,p=h.p(),r=h.run();
  p.level=8;p.combatDoctrine=doctrine;p.combatPassive=passive;
  r.tier=1;r.wave=30;r.phase='ready';h.beginWave();
- r.spawned=r.total;r.spawnClock=99;r.shotClock=99;r.stationClock=99;
+ // Leave one enemy unspawned behind a delayed clock so neither profile collects
+ // a wave-clear healing reward during the measured pressure window.
+ r.spawned=r.total-1;r.spawnClock=99;r.shotClock=99;r.stationClock=99;
  r.maxHealth=10000;r.health=5000;r.doctrineClock=.1;
  r.enemies=[0,1,2].map((i)=>({
   type:'goblin',x:350+i*110,y:385+i*2,hp:1e7,max:1e7,armor:0,speed:5,
@@ -176,6 +178,7 @@ function siegePressure(doctrine,passive){
 }
 const offense=siegePressure('vanguard','hunter');
 const guard=siegePressure('aegis','sentinel');
+console.log('MATCHED PRE-REWARD WALL PRESSURE: Hunter Volley '+JSON.stringify(offense)+' vs Aegis Rampart '+JSON.stringify(guard));
 assert(guard.casts>0&&offense.casts>0,'Both real builds use their active doctrines under wall pressure');
 assert(guard.hp>offense.hp,'Defensive Guardian pairing preserves more real wall HP during a prolonged push');
 assert(guard.breaches<=offense.breaches,'Guardian knockback cannot worsen the paired fortress breach count');
