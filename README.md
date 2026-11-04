@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.11.1 (Hero Combat Depth, Slice 2)
+## Current release — Alpha 0.11.2 (Hero Combat Depth, Slice 3)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -34,9 +34,11 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 
 **New in 0.11.1:** Choose one passive combat trait — **Predator's Eye** (+8% focused arrows vs bosses/specialists), **Storm Conductor** (+10% lightning damage and brief slow), or **Rampart Oath** (-10% fortress/Sapper breach damage). Save three full reference-only build presets (**Scout, Tempest, Bastion**) in Hero Hall, including owned equipment, sockets, active doctrine and passive; load them with one tap from Battle's **Quick Preparation** area. Missing gear, missing runes, level-locked abilities and active sieges block preset switching before any item changes. Old iPhone saves remain compatible, and all twelve regression checks now cover these features.
 
+**New in 0.11.2:** Added a real **War Council** before launching a siege. It recognizes your tier, starting waystone, all ten rotating factions, the next special encounter and Iron/Ember/Void/Siege Beast boss starts. The game suggests *available* doctrine/passive combinations, shows actual owned/socketed rune options and rates all three saved loadouts for faction suitability. One button equips the suggested ability pair **without replacing gear or runes**, or changing currency or earned progression. This is tactical guidance, not a claimed win-rate simulation; all thirteen mandatory CI checks now cover the live system.
+
 **Play:** https://hdog960.github.io/Primal-Knight/
 
-Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0111_PASSIVES_AND_PRESETS.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js && node tests/first-watch-vault.js && node tests/siege-chronicle.js && node tests/boss-fairness.js && node tests/hero-doctrines.js && node tests/combat-builds.js` for the automated suite.
+Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0112_WAR_COUNCIL.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js && node tests/first-watch-vault.js && node tests/siege-chronicle.js && node tests/boss-fairness.js && node tests/hero-doctrines.js && node tests/combat-builds.js && node tests/war-council.js` for the automated suite.
 
 ---
 
