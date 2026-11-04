@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.11.2. Hero Combat Depth phase 3: faction-aware War Council, actionable prep and safe comparative loadout advice and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.11.3. Hero Combat Depth phase 4: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -147,7 +147,7 @@ const combatDoctrineData={
  vanguard:{id:'vanguard',name:"HUNTER'S VOLLEY",school:'Marksman',level:1,cooldown:10,
   short:'Focus-fire up to three bonus arrows.',description:'Automatic burst fire · +1 arrow at Quiver rank III. Scales with hero damage.'},
  storm:{id:'storm',name:'ARCANE CHAIN',school:'Arcanist',level:3,cooldown:12,
-  short:'Chain lightning across up to three foes.',description:'Deals focused lightning damage and briefly slows targets. Spark talents and socketed Storm runes strengthen the chain.'},
+  short:'Piercing chain magic strikes and slows up to three foes.',description:'Arcane Chain ignores 35% of enemy armor, hits up to three enemies and slows them. Spark, Hail and socketed Storm runes strengthen the chain; station bonuses apply only to station attacks.'},
  aegis:{id:'aegis',name:'AEGIS PULSE',school:'Guardian',level:5,cooldown:14,
   short:'Recover the wall and repel advancing threats.',description:'Restores a small fraction of wall health and repels up to three approaching foes. Stone and Bulwark training improve the pulse.'}
 };
@@ -271,7 +271,7 @@ function castCombatDoctrine(){
  }else if(discipline.id==='storm'){
   const power=damage()*(.42+Math.min(.10,skill('spark')*.014)+Math.min(.10,socketValue('storm')*2.5));
   for(const enemy of targets.slice(0,3)){
-   hurt(enemy,power,'lightning');
+   hurt(enemy,power,'arcane');
    if(!enemy.dead)enemy.slow=Math.max(enemy.slow||0,.85+Math.min(.45,skill('hail')*.1));
    effect(enemy.x,enemy.y-6,'#90eaff',7);
   }
@@ -892,7 +892,7 @@ function renderSiegeCodex(){
     <p>Every 100 waves begins a new chapter. Factions rotate between tiers and chapters. Watch the arrival patterns: ambushes split to the flanks, shield guards protect standards and relics, spellcasters hold rear lanes, and chapter bosses gather reinforcements from the wings. Live warning text identifies a dangerous cast as it happens. Focused damage during a Sapper fuse, Frost or Thorn spell, or Riftstalker blink can interrupt it without requiring a kill. The gold line above a casting enemy shows disruption progress. The hero targets support units automatically; your build determines whether the defense holds.</p>
     <div class="codex-factions">${cards}</div>
     <div class="codex-events">
-      <p><strong>Hero Combat Doctrines:</strong> Visit Hero → Battle Doctrines to select Hunter's Volley (level 1), Arcane Chain (level 3) or Aegis Pulse (level 5). Each ability auto-casts during an active fight when it has eligible targets. Existing Marksman talents boost Volley, Spark talents and socketed Storm runes empower Chain, and Stone/Bulwark talents improve Aegis. Switching is free, but cannot reset a live cooldown.</p>
+      <p><strong>Hero Combat Doctrines:</strong> Visit Hero → Battle Doctrines to select Hunter's Volley (level 1), Arcane Chain (level 3) or Aegis Pulse (level 5). Each ability auto-casts during an active fight when it has eligible targets. Marksman talents boost Volley; Arcane Chain now pierces 35% of enemy armor, while Spark talents and Storm runes increase its damage. Station damage crests only strengthen actual fortress station attacks, not hero magic. Stone/Bulwark talents improve Aegis. Switching is free, but cannot reset a live cooldown.</p>
       <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Breaking a warned charge or warp, or shattering an Iron Ward, briefly exposes the boss to +12% damage. The auto-hero focuses an active Iron Ward; the boss timer also shows the real percentage of damage needed to break an attack or ward. Siege Beast crusher windups can be interrupted too. After the siege, the Chronicle credits only bosses actually defeated; a boss that reaches the wall is reported separately as a breach.</p>
       <p><strong>Relic Hunt:</strong> Protect the wall without a breach to earn one non-farmable rune and bonus Knowledge.</p>
       <p><strong>Standard Assault:</strong> Break support banners for +20% wave Gold.</p>
@@ -1070,10 +1070,10 @@ function specialistCounterplay(e,dealt){
  effect(e.x,e.y-11,'#f6d699',7);
  return true;
 }
-function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor'));let siegeOath=(isSiegeBoss(e)||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(isSiegeBoss(e)?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));dealt*=shieldAuraReduction(e,run.enemies)*thornWardReduction(e,run.enemies)*(e.type==='warlord'&&e.bossWardTimer>0?.78:1)*(e.bossExposedTimer>0?1.12:1);
+function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,t('pierce')*.001+skill('penetrate')*.04+ascRank('sunder')*.025+dominionBonus('armor')+(kind==='arcane'?.35:0));let siegeOath=(isSiegeBoss(e)||kind==='ballista'||kind==='lightning')?1+oathRank('sovereignJudgment')*.02:1;let dealt=Math.max(1,raw*siegeOath*(isSiegeBoss(e)?(1+lr('siegebreaker')*.06)*(1+dominionBonus('boss')):1)*(kind==='ballista'||kind==='lightning'?1+dominionBonus('stations'):1)-e.armor*(1-armorIgnored));dealt*=shieldAuraReduction(e,run.enemies)*thornWardReduction(e,run.enemies)*(e.type==='warlord'&&e.bossWardTimer>0?.78:1)*(e.bossExposedTimer>0?1.12:1);
  if(p.combatPassive==='hunter'&&kind==='arrow'&&(isSiegeBoss(e)||['sapper','frostbinder','thornweaver','riftstalker','shaman','banneret'].includes(e.type)))dealt*=1.08;
- if(p.combatPassive==='conductor'&&kind==='lightning')dealt*=1.10;
- if(p.combatPassive==='conductor'&&kind==='lightning'&&!e.dead)e.slow=Math.max(e.slow||0,.45);
+ if(p.combatPassive==='conductor'&&(kind==='lightning'||kind==='arcane'))dealt*=1.10;
+ if(p.combatPassive==='conductor'&&(kind==='lightning'||kind==='arcane')&&!e.dead)e.slow=Math.max(e.slow||0,.45);
  if(kind==='arrow'&&Math.random()<(.06+t('crit')*.002)){dealt*=(1.7+t('critDmg')*.025+skill('focus')*.2)*(1+dominionBonus('critical'));float(e.x,e.y-22,'CRIT '+Math.floor(dealt),'#ffe18a')}else if(Math.random()<.18)float(e.x,e.y-18,Math.floor(dealt),'#fff0d5');e.hp-=dealt;e.buildup=.15;bossCounterplay(e,dealt);specialistCounterplay(e,dealt);
  if(e.type==='warlord'&&e.bossPhase===1&&e.hp>0&&e.hp<=e.max*.55){
   e.bossPhase=2;e.speed*=1.14;
@@ -1090,7 +1090,7 @@ function hurt(e,raw,kind='arrow'){if(e.dead)return;let armorIgnored=Math.min(.9,
  effect(e.x,e.y,'#fbd47b',3);if(kind==='arrow'){
  if(Math.random()<skill('ember')*.06+socketValue('ember'))e.burn=Math.max(e.burn,3);
  if(Math.random()<skill('frost')*.055+socketValue('frost'))e.slow=Math.max(e.slow,2.7+skill('hail')*.5);
- if(Math.random()<skill('spark')*.04+socketValue('storm')+t('shock')*.001){const other=run.enemies.filter(o=>o!==e&&!o.dead).sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y))[0];if(other){effect(other.x,other.y,'#a5efff',8);hurt(other,raw*.45,'lightning');}}
+ if(Math.random()<skill('spark')*.04+socketValue('storm')+t('shock')*.001){const other=run.enemies.filter(o=>o!==e&&!o.dead).sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y))[0];if(other){effect(other.x,other.y,'#a5efff',8);hurt(other,raw*.45,'arcane');}}
  }
  if(e.hp<=0)kill(e);
 }
@@ -2037,7 +2037,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.2 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.3 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  $('panelContent').innerHTML=html;
  if(tab==='equipment')renderArmoryDrawer();else{const drawer=$('armoryDrawer');if(drawer){drawer.hidden=true;drawer.innerHTML='';}}
