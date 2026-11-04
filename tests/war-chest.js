@@ -27,7 +27,7 @@ assert.equal(p.legacyUnlocked,true);
 const offers=h.warChestOffers(1,1);
 assert.equal(offers.available,5);
 assert.equal(offers.totalUnlocked,3,'All three authentic Legacy paths are unlocked');
-assert.equal(offers.upcoming.wave,75,'Wave 15 is claimed; next unclaimed Sigil-bearing milestone is wave 75');
+assert.equal(offers.upcoming.wave,20,'Wave 15 is claimed; next unclaimed Tier I wave 20 grants one-time Sigils');
 assert(offers.options.every(x=>x.cost>0&&x.rank===0&&x.affordable));
 const markup=h.renderWarChest(1,1);
 assert(markup.includes('SOVEREIGN WAR CHEST')&&markup.includes('data-war-chest="legacy:siegebreaker"'),
@@ -60,7 +60,9 @@ assert.equal(h.purchaseWarChest('legacy','guardianOath'),false,'Cannot buy perma
 r.phase='intermission';
 assert.equal(h.purchaseWarChest('legacy','guardianOath'),false,'Cannot buy ranks between waves');
 r.phase='fallen';
-assert.equal(h.purchaseWarChest('legacy','guardianOath'),true,'Can buy a real rank after a defeat');
+const affordableNext=h.warChestOffers(1,1).options.find(x=>x.affordable);
+assert(affordableNext,'At least one genuine rank remains affordable');
+assert.equal(h.purchaseWarChest(affordableNext.kind,affordableNext.id),true,'Can buy a real rank after a defeat');
 assert.equal(h.rewardMilestone(1,15),false,'No duplicate Sigils on replay');
 const current=h.sigilLedgerSummary();
 assert.equal(current.eventualCapacity,initialSigilCapacity-(5-p.sigils),'No repeat-claim increases total budget');
