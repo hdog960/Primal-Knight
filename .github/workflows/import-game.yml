@@ -58,3 +58,5 @@ jobs:
           node tests/earned-first-watch.js
           node tests/earned-retries.js
           node tests/sigil-ledger.js
+          node tests/war-chest.js
+          node tests/sigil-gated-combat.js
