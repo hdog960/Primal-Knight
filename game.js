@@ -229,12 +229,13 @@ function applyCombatLoadout(index){
  return true;
 }
 function renderCombatLoadouts(compact=false){
+ const counsel=compact?warCouncilPlan(chosenTier,useWaystone?waystoneForTier(chosenTier):1):null;
  const cards=combatLoadoutNames.map((name,index)=>{
   const saved=p.combatLoadouts[index],state=loadoutReadiness(index),active=saved&&
    saved.doctrine===p.combatDoctrine&&saved.passive===p.combatPassive&&
    JSON.stringify(saved.equipped)===JSON.stringify(p.equipped)&&
    JSON.stringify(saved.socketed)===JSON.stringify(p.socketed);
-  return `<div class="build-preset${active?' active':''}"><div class="build-preset-copy"><small>SLOT ${index+1} · ${name}</small><strong>${saved?combatDoctrineData[saved.doctrine].name+' / '+combatPassiveData[saved.passive].name:'EMPTY LOADOUT'}</strong><span>${saved?(compact&&state.ready?'TACTICAL MATCH '+warCouncilFit(saved.doctrine,saved.passive,warCouncilPlan(chosenTier,useWaystone?waystoneForTier(chosenTier):1).guide,saved.socketed)+'/9 · '+state.reason:state.reason):'Save your current equipment, runes and abilities here.'}</span></div><div class="build-preset-actions">${compact?'':`<button type="button" data-action="saveLoadout:${index}" aria-label="Save current build into preset ${name}">SAVE</button>`}<button type="button" data-action="applyLoadout:${index}" ${state.ready?'':'disabled'} aria-label="Apply preset ${name}">${active?'EQUIPPED':state.ready?'EQUIP':'UNAVAILABLE'}</button></div></div>`;
+  return `<div class="build-preset${active?' active':''}"><div class="build-preset-copy"><small>SLOT ${index+1} · ${name}</small><strong>${saved?combatDoctrineData[saved.doctrine].name+' / '+combatPassiveData[saved.passive].name:'EMPTY LOADOUT'}</strong><span>${saved?(compact&&state.ready?'TACTICAL MATCH '+warCouncilFit(saved.doctrine,saved.passive,counsel.guide,saved.socketed)+'/9 · '+state.reason:state.reason):'Save your current equipment, runes and abilities here.'}</span></div><div class="build-preset-actions">${compact?'':`<button type="button" data-action="saveLoadout:${index}" aria-label="Save current build into preset ${name}">SAVE</button>`}<button type="button" data-action="applyLoadout:${index}" ${state.ready?'':'disabled'} aria-label="Apply preset ${name}">${active?'EQUIPPED':state.ready?'EQUIP':'UNAVAILABLE'}</button></div></div>`;
  }).join('');
  return `<section class="combat-build-presets" aria-label="Saved combat loadout presets"><div class="combat-build-head"><strong>✦ ${compact?'QUICK PREPARATION':'THREE BATTLE LOADOUTS'}</strong><small>${compact?'Equip a saved build before the siege':'Three free presets · equipment and runes are referenced, never copied'}</small></div><div class="combat-build-grid">${cards}</div></section>`;
 }
@@ -489,7 +490,7 @@ function warCouncilPlan(tier=chosenTier,wave=useWaystone?waystoneForTier(tier):1
   if(p.level<combatDoctrineData[doctrine].level)continue;
   for(const passive of Object.keys(combatPassiveData)){
    if(p.level<combatPassiveData[passive].level)continue;
-   options.push({doctrine,passive,fit:warCouncilFit(doctrine,passive,guide)});
+   options.push({doctrine,passive,fit:warCouncilFit(doctrine,passive,guide,p.socketed)});
   }
  }
  options.sort((a,b)=>b.fit-a.fit||a.doctrine.localeCompare(b.doctrine)||a.passive.localeCompare(b.passive));
