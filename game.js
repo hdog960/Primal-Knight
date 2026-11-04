@@ -1801,7 +1801,7 @@ function renderHeroHall(){
       </div>
     </section>
     <section class="hall-doctrines" aria-label="Auto-cast combat disciplines">
-      <div class="hall-doctrine-head"><div><small>⚔ HERO COMBAT DEPTH · ONE ACTIVE DISCIPLINE</small><h2>Battle Doctrines</h2><p>Choose one battle style. Your champion automatically casts its signature ability whenever an eligible target is on the field. Free to switch and no new currency required.</p></div><strong>✦ ${chosenDoctrine().school.toUpperCase()} ACTIVE</strong></div>
+      <div class="hall-doctrine-head"><div><small>⚔ HERO COMBAT DEPTH · ONE ACTIVE DISCIPLINE</small><h2>Battle Doctrines</h2><p>Choose one battle style and set when your champion automatically casts below. The original Rapid timing remains the default; all strategies use existing cooldowns and cost no additional currency.</p></div><strong>✦ ${chosenDoctrine().school.toUpperCase()} ACTIVE</strong></div>
       <div class="hall-doctrine-grid">${Object.values(combatDoctrineData).map(d=>{
        const locked=p.level<d.level,selected=p.combatDoctrine===d.id;
        return `<button class="hall-doctrine-choice hall-doctrine-${d.id}${selected?' selected':''}${locked?' locked':''}" type="button" data-action="doctrine:${d.id}" ${locked?'disabled':''} aria-pressed="${selected}" aria-label="${d.name}, ${locked?'requires hero level '+d.level:selected?'active combat doctrine':'select this combat doctrine'}">
@@ -2268,7 +2268,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.8 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.9 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
