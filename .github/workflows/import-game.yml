@@ -52,3 +52,4 @@ jobs:
           node tests/hero-doctrines.js
           node tests/combat-builds.js
           node tests/war-council.js
+          node tests/combat-balance-matrix.js
