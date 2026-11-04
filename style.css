@@ -2116,3 +2116,65 @@
  .build-preset-actions button{min-height:42px}
 }
 @media(prefers-reduced-motion:reduce){.hall-passive-choice,.build-preset-actions button{transition:none!important}}
+
+
+/* Alpha 0.11.2 — War Council tactical briefing, real rotating factions.
+   Illustrated parchment & iron palette; compact, legible on portrait iPhones. */
+.war-council{position:relative;min-width:0;margin:0 0 10px;padding:12px 13px;
+ border:2px solid #c0a175;background:
+ radial-gradient(ellipse at 90% 10%,#7463414a,transparent 48%),
+ linear-gradient(115deg,#1e3540,#293747 54%,#242d37);
+ box-shadow:inset 0 0 0 2px #152838,0 4px 14px #030d17a8;
+ color:#e1e6de}
+.war-council-heading{display:flex;justify-content:space-between;align-items:center;gap:9px;
+ padding-bottom:8px;border-bottom:1px solid #bda47678}
+.war-council-heading>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.war-council-heading small{font:800 9px Arial,sans-serif;letter-spacing:1.1px;color:#d6c09a}
+.war-council-heading strong{font:800 18px Georgia,serif;letter-spacing:.4px;color:#ffe5ad}
+.war-council-heading span{font:11px/1.4 Arial,sans-serif;color:#c8d8cf}
+.war-council-heading .war-council-next{flex:0 0 auto;max-width:37%;padding:6px 9px;
+ text-align:right;background:#182733b5;border:1px solid #96805d;
+ font:800 10px/1.4 Arial,sans-serif;letter-spacing:.15px;color:#e5cc99}
+.war-council-risk,.war-council-tip{font:11px/1.48 Arial,sans-serif;margin:8px 0 0}
+.war-council-risk{color:#e3e5de}
+.war-council-risk:before{content:'THREAT · ';font-weight:800;color:#f5c79c}
+.war-council-tip{color:#cae2d5}
+.war-council-tip:before{content:'COUNTER · ';font-weight:800;color:#bce3d2}
+.war-council-choice{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ margin-top:11px;padding:11px;border:1px solid #bba279;
+ background:linear-gradient(105deg,#263b43,#182b3b)}
+.war-council-choice>div{display:flex;flex-direction:column;min-width:0;gap:4px}
+.war-council-choice small{font:800 9px Arial,sans-serif;letter-spacing:.75px;color:#f1d5a3}
+.war-council-choice strong{font:700 15px/1.3 Georgia,serif;color:#ffe9b9}
+.war-council-choice span{font:10px/1.45 Arial,sans-serif;color:#d2e3dc}
+.war-council-choice button{flex:none;max-width:178px;min-width:130px;min-height:44px;
+ border:1px solid #e4bb7f;background:linear-gradient(#826344,#503e30 48%,#283a42);
+ font:800 10px/1.3 Arial,sans-serif;color:#ffebb9;letter-spacing:.35px;
+ padding:6px 9px;cursor:pointer;touch-action:manipulation}
+.war-council-choice button:disabled{opacity:.68;cursor:not-allowed;border-color:#9d957f}
+.war-council-choice button:focus-visible{outline:2px solid #ffeca6;outline-offset:2px}
+.war-council-rune{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:9px}
+.war-council-rune strong{font:800 10px Georgia,serif;color:#e2d3a8}
+.war-council-rune span{font:800 9px Arial,sans-serif;color:#c4e0dc;letter-spacing:.35px}
+.war-council-foot{font:10px/1.5 Arial,sans-serif;color:#c5c7b5;margin:8px 0 0}
+@media(max-width:750px),(orientation:portrait){
+ .war-council{padding:9px 10px;margin-bottom:8px}
+ .war-council-heading{align-items:stretch;flex-direction:column;gap:5px}
+ .war-council-heading small{font-size:8px}
+ .war-council-heading strong{font-size:16px}
+ .war-council-heading .war-council-next{max-width:none;align-self:flex-start;text-align:left;padding:5px 7px;font-size:9px}
+ .war-council-risk,.war-council-tip{font-size:10px}
+ .war-council-choice{flex-direction:column;align-items:stretch;gap:8px;padding:8px}
+ .war-council-choice strong{font-size:14px}
+ .war-council-choice span{font-size:10px}
+ .war-council-choice button{max-width:none;width:100%;min-height:44px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .war-council{padding:6px 9px;margin-bottom:6px}
+ .war-council-heading strong{font-size:14px}
+ .war-council-heading small{font-size:8px}
+ .war-council-risk,.war-council-tip{margin-top:5px;font-size:10px}
+ .war-council-choice{margin-top:7px;padding:6px 8px}
+ .war-council-choice button{min-height:42px}
+}
+@media(prefers-reduced-motion:reduce){.war-council-choice button{transition:none!important}}
