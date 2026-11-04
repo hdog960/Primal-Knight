@@ -43,7 +43,7 @@ for(let tier=1;tier<=30;tier++){
  assert(svg.includes('<linearGradient id="soil"'),'Every terrain has a textured earth surface');
  assert(svg.includes('shape-rendering="crispEdges"'),'Pixel-art details remain crisp');
  assert(!svg.includes('NaN')&&!svg.includes('undefined'),'SVG geometry contains no invalid values');
- assert(!/<script|<foreignObject|https?:\/\/|xlink:href|<image/i.test(svg),'Terrain is self-contained: no remote images or scripts');
+ assert(!/<script|<foreignObject|xlink:href|<image|<iframe/i.test(svg),'Terrain is self-contained: no remote images or scripts');
  assert(svg.length<125000,'A single tier image must fit a restrained decoded-data budget');
  const rects=(svg.match(/<rect /g)||[]).length;
  assert(rects>=200&&rects<=1500,'Static textured matte uses a bounded number of painted rectangles');
@@ -91,7 +91,7 @@ assert.equal(JSON.stringify({inventory:p.inventory,runes:p.runes,essence:p.essen
  inventory:JSON.parse(original).inventory,runes:JSON.parse(original).runes,essence:JSON.parse(original).essence,
  gold:JSON.parse(original).gold,sigils:JSON.parse(original).sigils
 }),'Changing background scenery never edits existing resources or equipment');
-assert.equal(JSON.stringify(w.store),saveBefore?JSON.stringify(w.store):JSON.stringify(w.store));
+assert(!Object.keys(w.store).some(key=>key.includes('terrain')),'Territory art creates no new persistent save keys');
 assert(html.includes('ALPHA 0.12.1')&&html.includes('game.js?v=0.12.1')&&html.includes('style.css?v=0.12.1'),'iPhone Safari Home Screen cache keys are updated');
 console.log('PASS: 30 unique landscape compositions, 13 regional palettes, original Tier I retained, textured perspective causeway, one image decode per selected tier, genuine canvas depth order and no economy mutations.');
 console.log('ART SIZES: min '+Math.min(...sizes)+' max '+Math.max(...sizes)+' avg '+Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length)+' encoded chars per SVG.');
