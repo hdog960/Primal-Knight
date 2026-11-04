@@ -144,7 +144,7 @@ for(const [seed,wave,type] of [[7001,25,'siegebeast'],[7002,100,'warlord'],[7003
  assert.equal(run.bossesKilledThisWave,0,'Defeat flag resets across subsequent waves');
  assert.equal(run.bossVictories,1,'Lifetime Chronicle keeps the legitimate prior boss victory');
 }
-assert(html.includes('ALPHA 0.11.9')&&html.includes('game.js?v=0.11.9'),
+assert(html.includes('ALPHA 0.11.10')&&html.includes('game.js?v=0.11.10'),
  'iPhone cache correctly identifies the new release');
 assert(html.includes('id="bossCastBreak"'),'Real HUD includes percentage-based boss break text');
 assert(css.includes('.siege-report-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}'),

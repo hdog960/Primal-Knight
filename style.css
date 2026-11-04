@@ -2332,3 +2332,13 @@
  .doctrine-tactics-choice{min-height:48px;padding:6px}
  .doctrine-tactics-compact .doctrine-tactics-choice{min-height:45px}
  .doctrine-tactics>p{margin:5px 0 7px}}
+
+
+/* Alpha 0.11.10 — distinguish conserved charge from ready/empty-target ability. */
+.doctrine-hud[data-status="held"]{border-color:#e8ac77;background:linear-gradient(115deg,#43362bdb,#302e31ed)}
+.doctrine-hud[data-status="held"] strong{color:#ffe0a2}
+.doctrine-hud[data-status="waiting"]{border-color:#84989c;color:#c2d8d4}
+.doctrine-hud[data-status="waiting"] strong{color:#c1d5d2}
+.doctrine-hud[data-status="ready"] strong{color:#fff4b2}
+@media(max-width:420px){.siege-report-stat strong{font-size:14px}
+ .siege-report-stat small{line-height:1.45}}

@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.11.9. Hero Combat Depth - Automatic tactical cast timing: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.11.10. Hero Combat Depth - Tactical cast feedback and Siege Chronicle: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -173,19 +173,36 @@ function chooseDoctrineTactic(id){
  if(run.phase==='fighting'||run.phase==='intermission'||!Object.prototype.hasOwnProperty.call(doctrineTacticModes,id))return false;
  p.doctrineTactic=id;return true;
 }
-function doctrineTacticEligible(){
+// The assessment mirrors the player-chosen tactical rules and additionally
+// reports WHY a cast is being held or released. Rapid retains legacy eligibility.
+function doctrineTacticAssessment(){
  const mode=normalizeDoctrineTactic(p.doctrineTactic);
- if(mode==='rapid')return true; // This exactly preserves previous auto-casting.
  const alive=run.enemies.filter(e=>e&&!e.dead);
- if(!alive.length)return false;
+ if(mode==='rapid')return {eligible:true,reason:'rapid',targets:alive.length};
+ if(!alive.length)return {eligible:false,reason:'no-target',targets:0};
  const damaged=run.health<=run.maxHealth*.91;
  const urgent=alive.some(e=>e.bossWardTimer>0||e.crushWindup>0||e.bossFuryWindup>0||
-   e.bossBlinkWindup>0||e.type==='sapper'&&e.y>=220||
-   e.type==='shaman'&&e.ritualClock<=1.4);
+  e.bossBlinkWindup>0||e.type==='sapper'&&e.y>=220||
+  e.type==='shaman'&&e.ritualClock<=1.4);
  const aegis=chosenDoctrine().id==='aegis';
- if(mode==='horde')return alive.length>=4||urgent||(aegis&&damaged);
- return urgent||alive.some(e=>e.y>=288)||alive.length>=9||
-   run.health<=run.maxHealth*.78||(aegis&&run.health<=run.maxHealth*.91);
+ if(mode==='horde'){
+  if(urgent)return {eligible:true,reason:'urgent',targets:alive.length};
+  if(alive.length>=4)return {eligible:true,reason:'crowd',targets:alive.length};
+  if(aegis&&damaged)return {eligible:true,reason:'repair',targets:alive.length};
+  return {eligible:false,reason:'hold',targets:alive.length};
+ }
+ if(urgent)return {eligible:true,reason:'urgent',targets:alive.length};
+ if(alive.some(e=>e.y>=288))return {eligible:true,reason:'frontline',targets:alive.length};
+ if(alive.length>=9)return {eligible:true,reason:'crowd',targets:alive.length};
+ if(run.health<=run.maxHealth*.78||(aegis&&damaged))
+  return {eligible:true,reason:'repair',targets:alive.length};
+ return {eligible:false,reason:'hold',targets:alive.length};
+}
+function doctrineTacticEligible(){return doctrineTacticAssessment().eligible;}
+function doctrineCanCastNow(){
+ const enemies=run.enemies.filter(e=>e&&!e.dead);
+ if(!enemies.length)return false;
+ return chosenDoctrine().id!=='aegis'||run.health<run.maxHealth-1||enemies.some(e=>e.y>=245);
 }
 function renderDoctrineTactics(compact=false){
  const disabled=run.phase==='fighting'||run.phase==='intermission';
@@ -338,7 +355,21 @@ function castCombatDoctrine(){
 function advanceCombatDoctrine(dt){
  if(run.phase!=='fighting'||run.speed===0||!Number.isFinite(dt)||dt<=0)return false;
  run.doctrineClock=Math.max(0,(run.doctrineClock||0)-dt);
- if(run.doctrineClock>0||!doctrineTacticEligible()||!castCombatDoctrine())return false;
+ if(run.doctrineClock>0){run.doctrineHolding=false;return false;}
+ const decision=doctrineTacticAssessment();
+ if(!decision.eligible){
+  if(decision.reason==='hold'&&decision.targets>0){
+   if(!run.doctrineHolding){run.doctrineHoldEvents=(run.doctrineHoldEvents||0)+1;}
+   run.doctrineHolding=true;
+   // In-game battle seconds, not wall-clock time. Held time costs no resources.
+   run.doctrineHeldSeconds=(run.doctrineHeldSeconds||0)+dt;
+  }else run.doctrineHolding=false;
+  return false;
+ }
+ run.doctrineHolding=false;
+ if(!castCombatDoctrine())return false;
+ run.doctrineCastReasons??={};
+ run.doctrineCastReasons[decision.reason]=(run.doctrineCastReasons[decision.reason]||0)+1;
  run.doctrineClock=doctrineCooldown();
  return true;
 }
@@ -351,7 +382,9 @@ function refreshDoctrineHud(){
  const discipline=chosenDoctrine();
  const remaining=Math.max(0,run.doctrineClock||0);
  $('doctrineName').textContent=discipline.name;
- $('doctrineTimer').textContent=remaining>0?remaining.toFixed(1)+'s':doctrineTacticEligible()?'READY':'HELD';
+ const state=remaining>0?'cooldown':!doctrineCanCastNow()?'waiting':doctrineTacticEligible()?'ready':'held';
+ $('doctrineTimer').textContent=state==='cooldown'?remaining.toFixed(1)+'s':state.toUpperCase();
+ hud.dataset.status=state;
  hud.dataset.tactic=normalizeDoctrineTactic(p.doctrineTactic);
  hud.dataset.school=discipline.id;
  hud.dataset.ready=remaining===0?'true':'false';
@@ -927,7 +960,11 @@ function buildSiegeReport(reason){
   cleared:run.wavesCleared||0,enemies:run.enemiesDefeated||0,
   bossBreaks:run.totalBossBreaks||0,specialistBreaks:run.totalSpecialistBreaks||0,
   bosses:run.bossVictories||0,bossEscapes:run.bossEscapes||0,breaches:run.totalBreaches||0,
-  sabotage:run.sapperBlasts||0,doctrineCasts:run.doctrineCasts||0};
+  sabotage:run.sapperBlasts||0,doctrineCasts:run.doctrineCasts||0,
+  doctrineTactic:normalizeDoctrineTactic(p.doctrineTactic),
+  doctrineHeldSeconds:Math.max(0,Number(run.doctrineHeldSeconds)||0),
+  doctrineHoldEvents:run.doctrineHoldEvents||0,
+  doctrineCastReasons:{...(run.doctrineCastReasons||{})}};
 }
 function finishSiege(reason){
  lastSiegeReport=buildSiegeReport(reason);
@@ -949,13 +986,18 @@ function renderSiegeReport(){
   ['SPECIALISTS STOPPED',data.specialistBreaks],
   ['BOSSES DEFEATED',data.bosses],
   ['BOSSES BREACHED',data.bossEscapes],
-  ['TOTAL BREACHES',data.breaches]
+  ['TOTAL BREACHES',data.breaches],
+  ['SIGNATURE AUTO-CASTS',data.doctrineCasts||0],
+  ['CHARGE HOLDS',data.doctrineHoldEvents||0],
+  ['COMBAT TIME HELD',(data.doctrineHeldSeconds||0).toFixed(1)+'s']
  ];
  $('siegeReportMetrics').innerHTML=metrics.map(([name,value])=>
-  `<div class="siege-report-stat"><small>${name}</small><strong>${formatWave(value)}</strong></div>`).join('');
+  `<div class="siege-report-stat"><small>${name}</small><strong>${typeof value==='number'?formatWave(value):value}</strong></div>`).join('');
  $('siegeReportRange').textContent='TIER '+roman(data.tier)+' · STARTED WAVE '+formatWave(data.startWave)+' · LAST REACHED '+formatWave(data.lastWave)+
   (data.sabotage?' · '+formatWave(data.sabotage)+' SAPPER BLAST'+(data.sabotage===1?'':'S'):'')+
-  ' · '+formatWave(data.doctrineCasts||0)+' HERO AUTO-CASTS';
+  ' · '+formatWave(data.doctrineCasts||0)+' HERO AUTO-CASTS'+
+  ' · '+doctrineTacticModes[normalizeDoctrineTactic(data.doctrineTactic)].name+' TIMING'+
+  ((data.doctrineCastReasons?.urgent||0)?' · '+formatWave(data.doctrineCastReasons.urgent)+' URGENT CASTS':'');
 }
 function showLobby(summary=''){
  // The tier lobby belongs to Battle, not the progression chambers.
@@ -1160,9 +1202,9 @@ function randomGear(forceRarity=null){
 function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015;if(Math.random()<prob&&p.inventory.length<inventoryCap){let g=randomGear();p.inventory.push(g);notice('FOUND '+rarities[g.rarity].toUpperCase()+' EQUIPMENT');}if(p.runes.length<240&&Math.random()<.32+res('excavation')*.013){let types=Object.keys(runeNames),kind=types[Math.floor(Math.random()*types.length)];p.runes.push({type:kind,tier:1,id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)});}}
 function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.breaches=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;run.heroChill=0;run.encounter=null;run.reinforcementPhase=false;run.bossCounters=0;
  run.startWave=1;run.wavesCleared=0;run.enemiesDefeated=0;run.totalBossBreaks=0;
- run.totalSpecialistBreaks=0;run.totalBreaches=0;run.bossVictories=0;run.bossEscapes=0;run.bossesKilledThisWave=0;run.sapperBlasts=0;run.doctrineClock=3.5;run.doctrineCasts=0;
+ run.totalSpecialistBreaks=0;run.totalBreaches=0;run.bossVictories=0;run.bossEscapes=0;run.bossesKilledThisWave=0;run.sapperBlasts=0;run.doctrineClock=3.5;run.doctrineCasts=0;run.doctrineHeldSeconds=0;run.doctrineHoldEvents=0;run.doctrineHolding=false;run.doctrineCastReasons={};
 }
-function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.bossesKilledThisWave=0;run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;message(run.encounter.label+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
+function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.bossesKilledThisWave=0;run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;run.doctrineHolding=false;message(run.encounter.label+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
 function spawnEnemy(){
  const encounter=run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier);
  const isBoss=!!encounter.bossType&&run.wave%5===0&&!run.reinforcementPhase&&run.spawned===run.total-1;
@@ -2268,7 +2310,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.9 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.10 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -2514,5 +2556,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
