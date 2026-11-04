@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.11.7. Hero Combat Depth - Earned retries and Sigil Ledger: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.11.8. Hero Combat Depth - Cost-constrained War Chest: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -593,6 +593,58 @@ function renderCouncilRecovery(tier=chosenTier){
   '. Earned rewards stay yours. You currently have '+fmt(data.essence)+' Hero Essence.</p>'+
   '<div class="war-recovery-action"><span>'+note+' No purchases are automatic.</span>'+button+'</div></div>';
 }
+
+/* 0.11.8: cost-exact permanent Sigil preparation. No automatic spending. */
+function warChestOffers(tier=chosenTier,wave=useWaystone?waystoneForTier(tier):1){
+ const plan=warCouncilPlan(tier,wave);
+ const faction=plan.factionId,rush=['mire','night','rift'].includes(faction);
+ const armored=['iron','crown','thorn'].includes(faction);
+ const boss=['commander','chapterBoss'].includes(encounterDirector(plan.wave,plan.tier).kind);
+ const options=[];
+ for(const row of legacyPaths)if(p.legacyUnlocked&&lr(row[0])<row[4])options.push({kind:'legacy',id:row[0],name:row[1],rank:lr(row[0]),cap:row[4],cost:legacyCost(row)});
+ for(const row of ascensionPaths)if(ascUnlocked(row)&&ascRank(row[0])<row[4])options.push({kind:'ascension',id:row[0],name:row[1],rank:ascRank(row[0]),cap:row[4],cost:ascCost(row)});
+ for(const row of sovereignOaths)if(oathUnlocked(row)&&oathRank(row[0])<row[4])options.push({kind:'oath',id:row[0],name:row[1],rank:oathRank(row[0]),cap:row[4],cost:oathCost(row)});
+ const primary={siegebreaker:4,guardianOath:4,goldenTouch:2,vanguard:7,bastion:6,sunder:7,epoch:6,volley:7,sovereignBlade:8,sovereignAegis:7,sovereignTribute:3,sovereignJudgment:7};
+ for(const o of options){
+  o.affordable=p.sigils>=o.cost;
+  o.priority=(primary[o.id]||0)+(rush&&['bastion','guardianOath','sovereignAegis'].includes(o.id)?5:0)
+    +(armored&&o.id==='sunder'?7:0)+(boss&&['siegebreaker','sovereignJudgment','vanguard'].includes(o.id)?5:0);
+ }
+ options.sort((a,b)=>Number(b.affordable)-Number(a.affordable)||b.priority-a.priority||a.cost-b.cost||a.id.localeCompare(b.id));
+ const upcoming=tierMilestones(plan.tier).filter(w=>w>=plan.wave&&!p.milestones[milestoneKey(plan.tier,w)])
+  .map(w=>({wave:w,sigils:sigilMilestoneAmount(plan.tier,w)})).find(x=>x.sigils>0)||null;
+ return {tier:plan.tier,available:p.sigils,options:options.slice(0,3),totalUnlocked:options.length,
+  upcoming,reason:armored?'Armored enemy pressure':rush?'Fast breach pressure':boss?'Siege boss pressure':'General frontline preparation'};
+}
+function purchaseWarChest(kind,id){
+ if(run.phase==='fighting'||run.phase==='intermission'||typeof id!=='string')return false;
+ const rows=kind==='legacy'?legacyPaths:kind==='ascension'?ascensionPaths:kind==='oath'?sovereignOaths:null;
+ if(!rows)return false;
+ const row=rows.find(x=>x[0]===id);
+ if(!row)return false;
+ const isUnlocked=kind==='legacy'?p.legacyUnlocked:kind==='ascension'?ascUnlocked(row):oathUnlocked(row);
+ const rank=kind==='legacy'?lr(id):kind==='ascension'?ascRank(id):oathRank(id);
+ const cost=kind==='legacy'?legacyCost(row):kind==='ascension'?ascCost(row):oathCost(row);
+ if(!isUnlocked||rank>=row[4]||!Number.isSafeInteger(cost)||cost<=0||p.sigils<cost)return false;
+ const budget=p.sigils;
+ action(kind+':'+id); // Reuse actual Power purchase, autosave and upgrade effect.
+ const newRank=kind==='legacy'?lr(id):kind==='ascension'?ascRank(id):oathRank(id);
+ return newRank===rank+1&&p.sigils===budget-cost;
+}
+function renderWarChest(tier=chosenTier,wave=useWaystone?waystoneForTier(tier):1){
+ if(!p.legacyUnlocked&&p.sigils<=0&&p.unlockedTier<=2)return '';
+ const info=warChestOffers(tier,wave);
+ const preview=info.upcoming?'Next unclaimed Sigil milestone: wave '+formatWave(info.upcoming.wave)+' · +'+fmt(info.upcoming.sigils)+' once if cleared.':'No further unclaimed Sigil milestone at or after this starting wave.';
+ return `<details class="war-chest" aria-label="Permanent pre-siege Sigil planning">
+  <summary>💠 THE SOVEREIGN WAR CHEST <span>${fmt(info.available)} HELD SIGILS · ${info.totalUnlocked} UNLOCKED PATHS</span></summary>
+  <div class="war-chest-body"><p>Real permanently earned Sigils and rank prices. Order reflects ${info.reason.toLowerCase()}, not a predicted win rate. <b>No spending is automatic.</b></p>
+   <div class="war-chest-offers">${info.options.length?info.options.map((o,i)=>`<article class="war-chest-offer"><div>
+    <small>${i===0?'✦ FIRST SUGGESTION · ':''}${o.kind.toUpperCase()}</small><strong>${o.name}</strong>
+    <span>RANK ${o.rank} / ${o.cap} · ${fmt(o.cost)} SIGILS</span></div>
+    <button type="button" data-war-chest="${o.kind}:${o.id}" ${o.affordable?'':'disabled'}>${o.affordable?'BUY +1 · '+fmt(o.cost):'NEED '+fmt(o.cost)}</button></article>`).join(''):'<p>No masteries are unlocked yet, or all are mastered. Earn one-time milestones to unlock more.</p>'}</div>
+   <small>${preview} Future rewards are not yet spendable. See Power → Training → Primal Sigil Ledger for the complete finite supply.</small>
+  </div></details>`;
+}
 function renderWarCouncil(tier=chosenTier,wave=useWaystone?waystoneForTier(tier):1){
  const plan=warCouncilPlan(tier,wave),rec=plan.recommended;
  const same=p.combatDoctrine===rec.doctrine&&p.combatPassive===rec.passive;
@@ -612,6 +664,7 @@ function renderWarCouncil(tier=chosenTier,wave=useWaystone?waystoneForTier(tier)
   <div class="war-council-rune"><strong>◇ ${plan.guide.rune.toUpperCase()} RUNE</strong><span>${runeNote}</span></div>
   <p class="war-council-foot">The suggestion changes only your active doctrine and passive. Gear, rune sockets and saved presets stay yours. Compare your presets below before launching.</p>
   ${renderCouncilQuartermaster(plan)}
+  ${renderWarChest(plan.tier,plan.wave)}
  </section>`;
 }
 function encounterUnit(encounter,spawned=0){
@@ -2366,6 +2419,18 @@ $('milestoneList').addEventListener('click',e=>{
   return;
  }
 
+
+ const chest=e.target.closest('[data-war-chest]');
+ if(chest&&typeof chest.dataset?.warChest==='string'){
+  if(chest.disabled)return;
+  const [kind,id]=chest.dataset.warChest.split(':');
+  const list=$('milestoneList'),scroll=list.scrollTop,open=!!list.querySelector?.('details.war-chest')?.open;
+  const purchased=purchaseWarChest(kind,id);
+  notice(purchased?'WAR CHEST · PERMANENT RANK PURCHASED':'WAR CHEST · UPGRADE UNAVAILABLE');
+  renderTierLobby();list.scrollTop=scroll;
+  if(open){const section=list.querySelector?.('details.war-chest');if(section)section.open=true;}
+  return;
+ }
  const quartermaster=e.target.closest('[data-council-train]');
  if(quartermaster&&typeof quartermaster.dataset?.councilTrain==='string'){
   if(quartermaster.disabled)return;
@@ -2392,5 +2457,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
