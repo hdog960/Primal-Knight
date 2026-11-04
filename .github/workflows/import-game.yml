@@ -68,3 +68,4 @@ jobs:
           node tests/territory-preview.js
           node tests/territory-relics.js
           node tests/territory-heraldry.js
+          node tests/world-atlas.js
