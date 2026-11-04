@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.5. Living Territories - View-Only World Atlas: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.6. Living Territories - Fortress Art Alignment and Atlas Comparison: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1158,6 +1158,8 @@ function renderTierLobby(){
 function enterSiege(){
  if(chosenTier>p.unlockedTier)return;
  $('worldAtlas').hidden=true;
+ atlasCompareOriginal=false;
+ releaseWorldAtlasImages();
  p.selectedTier=chosenTier;initRun();lastSiegeReport=null;renderSiegeReport();
  run.speed=storedSpeed===2?2:1;syncBattleControls();
  run.wave=useWaystone?waystoneForTier(chosenTier):1;run.tier=chosenTier;run.startWave=run.wave;
@@ -1979,11 +1981,12 @@ function fortressHeraldrySvg(tier){
  const t=territoryVista(tier).tier,biome=terrainBiomes[t-1],pallet=terrainColors[biome];
  const silk=pallet.land[0],fold=pallet.land[1],gold=pallet.accent,edge=pallet.dark,light=pallet.light;
  const symbol=heraldrySigils[biome];
- // Two fixed banner positions measured from the original 960 × 540 foreground:
- // left x≈57–125, right x≈833–898, both starting below y=436.
+ // Measured against the *actual* foreground's cloth: its red banners begin
+ // near y=388 (not y=445), with pointed hems near y=513. Paint the entire
+ // fabric; otherwise the old red tops show through above the biome cloth.
  const banners=[
-  {cx:93,top:446,left:56,right:126,point:535},
-  {cx:864,top:445,left:831,right:898,point:534}
+  {cx:91,top:388,left:57,right:124,point:517},
+  {cx:864,top:390,left:834,right:894,point:513}
  ];
  const parts=['<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" shape-rendering="crispEdges">',
   '<defs><linearGradient id="cloth" x1="0" y1="0" x2="1" y2="0">',
@@ -2004,9 +2007,9 @@ function fortressHeraldrySvg(tier){
   parts.push('<path d="M'+left+' '+(top+1)+'L'+right+' '+(top+1)+
    '" fill="none" stroke="'+gold+'" stroke-width="4" opacity=".8"/>');
   // Heraldic symbol is all threadwork, not a UI icon pasted on scenery.
-  parts.push('<g transform="translate('+cx+' '+(top+34)+')" fill="none" stroke="'+gold+
+  parts.push('<g transform="translate('+cx+' '+(top+51)+')" fill="none" stroke="'+gold+
    '" stroke-width="3.3" stroke-linejoin="round" stroke-linecap="round"><path d="'+symbol+'"/></g>');
-  parts.push('<path d="M'+(cx-15)+' '+(top+54)+'Q'+cx+' '+(top+58)+' '+(cx+15)+' '+(top+54)+
+  parts.push('<path d="M'+(cx-15)+' '+(top+76)+'Q'+cx+' '+(top+80)+' '+(cx+15)+' '+(top+76)+
    '" fill="none" stroke="'+light+'" stroke-width="2" opacity=".57"/>');
   for(let j=0;j<11;j++){
    const x=left+6+((j*17+t*7+k*9)%(right-left-11));
@@ -2039,20 +2042,50 @@ function fortressHeraldryImage(tier){
 /* Alpha 0.12.5 — view-only realm atlas. Uses the identical terrain and banner
    generators, but NEVER alters chosenTier, unlockedTier, run or the game art cache.
    Only the currently visible atlas picture is decoded in the DOM. */
-let atlasCurrentTier=1;
+let atlasCurrentTier=1,atlasCompareOriginal=false;
+function releaseWorldAtlasImages(){
+ // Safari can keep very large percent-encoded SVG URLs alive while hidden.
+ // Drop only DOM preview references, never the battle's two live Image caches.
+ for(const id of ['atlasMatte','atlasHeraldry']){
+  const picture=$(id);
+  picture.hidden=true;
+  picture.removeAttribute?.('src');
+  picture.dataset.atlasTier='';
+ }
+}
+function updateAtlasComparison(){
+ const original=atlasCompareOriginal||atlasCurrentTier===1;
+ $('atlasMatte').hidden=original;
+ $('atlasHeraldry').hidden=original;
+ const button=$('atlasCompare');
+ button.disabled=atlasCurrentTier===1;
+ button.textContent=atlasCompareOriginal?'SHOW TERRITORY ART':'COMPARE ORIGINAL ART';
+ button.setAttribute?.('aria-pressed',String(atlasCompareOriginal));
+ return atlasCompareOriginal;
+}
+function toggleAtlasComparison(){
+ if($('worldAtlas').hidden||atlasCurrentTier===1)return false;
+ atlasCompareOriginal=!atlasCompareOriginal;
+ updateAtlasComparison();
+ return true;
+}
 function renderWorldAtlas(tier=atlasCurrentTier){
  const t=territoryVista(tier).tier;
+ if(t!==atlasCurrentTier)atlasCompareOriginal=false;
  atlasCurrentTier=t;
  const matte=$('atlasMatte'),cloth=$('atlasHeraldry');
  if(matte.dataset.atlasTier!==String(t)){
-  matte.hidden=t===1;cloth.hidden=t===1;
   if(t>1){
    matte.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(terrainSceneSvg(t));
    cloth.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(fortressHeraldrySvg(t));
+  }else{
+   // Release the previous large URL when returning to original Tier I.
+   matte.removeAttribute?.('src');cloth.removeAttribute?.('src');
   }
   matte.dataset.atlasTier=String(t);
   cloth.dataset.atlasTier=String(t);
  }
+ updateAtlasComparison();
  const scene=territoryVista(t);
  $('atlasHeading').textContent='TIER '+roman(t)+' — '+tierNames[t-1].toUpperCase();
  $('atlasAtmosphere').textContent=scene.name+' · '+scene.weather.toUpperCase()+' · '+scene.light.toUpperCase()+' LIGHT';
@@ -2067,6 +2100,7 @@ function openWorldAtlas(tier=chosenTier){
  if(run.phase==='fighting'||run.phase==='intermission')return false;
  const modal=$('worldAtlas');
  modal.hidden=false;
+ atlasCompareOriginal=false;
  renderWorldAtlas(tier);
  $('atlasClose').focus?.();
  return true;
@@ -2075,6 +2109,8 @@ function closeWorldAtlas(){
  const modal=$('worldAtlas');
  if(modal.hidden)return false;
  modal.hidden=true;
+ atlasCompareOriginal=false;
+ releaseWorldAtlasImages();
  $('openAtlasButton').focus?.();
  return true;
 }
@@ -2917,7 +2953,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.5 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.6 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -3105,6 +3141,7 @@ $('launchTierButton').onclick=enterSiege;
 $('exitRunButton').onclick=()=>{if(confirm('End this siege and return to the tier selection? Earned rewards and milestones are saved.'))retreatFromSiege()};
 $('openAtlasButton').addEventListener('click',()=>openWorldAtlas(chosenTier));
 $('atlasClose').addEventListener('click',closeWorldAtlas);
+$('atlasCompare').addEventListener('click',toggleAtlasComparison);
 $('atlasPrev').addEventListener('click',()=>stepWorldAtlas(-1));
 $('atlasNext').addEventListener('click',()=>stepWorldAtlas(1));
 document.addEventListener('keydown',event=>{
@@ -3173,5 +3210,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
