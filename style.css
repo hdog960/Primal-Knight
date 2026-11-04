@@ -2433,3 +2433,19 @@
  .atlas-meta p{font-size:10px}
  .atlas-controls button,.atlas-head button{min-height:40px;padding:5px 9px}
 }
+
+
+/* 0.12.6 — a compact before/after atlas control for artwork inspection. */
+.atlas-compare-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:center}
+.atlas-compare-row button{min-height:44px;min-width:168px;flex:none;
+ border-color:#d2aa69;background:linear-gradient(#52452f,#27313a);color:#ffe8b5}
+.atlas-compare-row button[aria-pressed="true"]{background:linear-gradient(#3c5360,#1d303d);
+ border-color:#9cc6ca;color:#ecfaff}
+.atlas-compare-row button:disabled{opacity:.45}
+.atlas-compare-row span{color:#bdcbbf;font:10px/1.35 Arial,sans-serif;max-width:400px}
+@media(max-width:430px){.atlas-compare-row{gap:4px}.atlas-compare-row span{font-size:9px;text-align:center}
+ .atlas-compare-row button{min-width:155px}}
+@media(orientation:landscape) and (max-height:460px){
+ .atlas-compare-row button{min-height:40px;padding:5px 9px}
+ .atlas-compare-row span{font-size:8px}
+}
