@@ -2119,7 +2119,7 @@ $('exitRunButton').onclick=()=>{if(confirm('End this siege and return to the tie
 $('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(!b||b.disabled)return;chosenTier=Number(b.dataset.tier);useWaystone=true;p.selectedTier=chosenTier;save();renderTierLobby();});
 $('milestoneList').addEventListener('click',e=>{
  const preset=e.target.closest('[data-action^="applyLoadout:"]');
- if(preset&&!preset.disabled){
+ if(preset&&!preset.disabled&&typeof preset.dataset?.action==='string'&&preset.dataset.action.startsWith('applyLoadout:')){
   const index=Number(preset.dataset.action.split(':')[1]),status=loadoutReadiness(index);
   if(applyCombatLoadout(index)){save();notice('BATTLE LOADOUT EQUIPPED');refreshHUD();}
   else notice('CANNOT EQUIP · '+status.reason);
