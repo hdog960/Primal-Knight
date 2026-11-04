@@ -2178,3 +2178,40 @@
  .war-council-choice button{min-height:42px}
 }
 @media(prefers-reduced-motion:reduce){.war-council-choice button{transition:none!important}}
+
+
+/* Alpha 0.11.5 — compact parchment Quartermaster within the War Council */
+.war-quartermaster{margin-top:12px;padding:10px 11px;border:1px solid #aa956d;
+ background:linear-gradient(145deg,#34423f,#22333c 58%,#1b2937);box-shadow:inset 0 1px #d7c09244;color:#e7e2cf}
+.war-quartermaster-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px 10px}
+.war-quartermaster-head strong{font:800 12px Georgia,serif;letter-spacing:.55px;color:#ffe4ab}
+.war-quartermaster-head span{font:800 10px Arial,sans-serif;color:#c9e5d9}
+.war-quartermaster>p{margin:7px 0 9px;font:11px/1.45 Arial,sans-serif;color:#d3d8ce}
+.war-quartermaster-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.war-quartermaster-entry{display:flex;flex-direction:column;justify-content:space-between;gap:8px;min-width:0;
+ padding:9px 8px;border:1px solid #8d8069;background:linear-gradient(#273944,#1c2b37)}
+.war-quartermaster-entry.suggested{border-color:#e7bd73;background:linear-gradient(#425044,#28383a);box-shadow:inset 0 0 0 1px #dcb76e33}
+.war-quartermaster-entry>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.war-quartermaster-entry small{font:800 9px Arial,sans-serif;color:#e8c48c;letter-spacing:.4px}
+.war-quartermaster-entry strong{font:700 13px/1.2 Georgia,serif;color:#f5e7cd}
+.war-quartermaster-entry span{font:10px/1.4 Arial,sans-serif;color:#c8d9d5}
+.war-quartermaster-entry button{width:100%;min-height:44px;padding:7px 5px;border:1px solid #e7bd78;
+ background:linear-gradient(#8a6742,#55452e 55%,#344144);font:800 10px/1.2 Arial,sans-serif;
+ color:#fff0c3;cursor:pointer;touch-action:manipulation}
+.war-quartermaster-entry button:disabled{opacity:.61;border-color:#8f9388;cursor:not-allowed}
+.war-quartermaster-entry button:focus-visible{outline:2px solid #fff0b4;outline-offset:2px}
+.war-quartermaster>small{display:block;margin-top:8px;font:10px/1.4 Arial,sans-serif;color:#c1cfbf}
+@media(max-width:750px),(orientation:portrait){.war-quartermaster{padding:9px}
+ .war-quartermaster-grid{grid-template-columns:1fr;gap:6px}
+ .war-quartermaster-entry{flex-direction:row;align-items:center;gap:9px;padding:8px}
+ .war-quartermaster-entry>div{flex:1}
+ .war-quartermaster-entry button{width:130px;flex:none;min-height:44px}
+ .war-quartermaster-head strong{font-size:11px}
+}
+@media(max-width:360px){.war-quartermaster-entry{flex-direction:column;align-items:stretch}
+ .war-quartermaster-entry button{width:100%}}
+@media(orientation:landscape) and (max-height:460px){.war-quartermaster{padding:6px 9px}
+ .war-quartermaster-grid{gap:5px}
+ .war-quartermaster-entry{padding:6px}
+ .war-quartermaster-entry button{min-height:42px;font-size:9px}
+}
