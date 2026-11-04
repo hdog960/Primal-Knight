@@ -25,7 +25,7 @@ function world(initialSeed){
  vm.runInNewContext(game,sandbox,{filename:'game.js'});
  const h=sandbox.window.__PK_TEST_TOOLS__;
  assert(h,'Game must expose actual combat/test hooks');
- return {h,store};
+ return {h,store,el};
 }
 const policies=[
  {id:'NO SPEND',training:[],station:false,skills:[],doctrine:'vanguard',passive:'hunter'},
@@ -36,7 +36,7 @@ const policies=[
 const seeds=[11601,11617,11633];
 const results=[];
 function play(policy,seed){
- const {h,store}=world(seed),p=h.p(),r=h.run();
+ const {h,store,el}=world(seed),p=h.p(),r=h.run();
  assert.equal(p.level,1);assert.equal(p.gold,520);assert.equal(p.essence,180);
  assert.equal(p.unlockedTier,1);assert.equal(p.highestWave,1);
  const initialItems=JSON.stringify(p.inventory.slice());
@@ -97,7 +97,15 @@ function play(policy,seed){
   assert(h.renderWarCouncil(1,1).includes('RALLY AFTER DEFEAT'),'The real Battle lobby shows the rally');
   if(advice.offer&&advice.offer.affordable){
    const offer=advice.offer,oldEssence=p.essence,rank=p.training[offer.id]||0;
-   assert.equal(h.purchaseCouncilTraining(offer.id),true,'Post-defeat reinvestment uses the real valid purchase path');
+   h.renderTierLobby();
+   el('milestoneList').scrollTop=173;
+   el('milestoneList').listeners.click({target:{closest(selector){
+    if(selector==='[data-council-train]')return {disabled:false,dataset:{councilTrain:offer.id}};
+    return null;
+   }}});
+   assert.equal(el('milestoneList').scrollTop,173,'Defeat rally preserves iPhone lobby scroll');
+   assert.equal(JSON.parse(store.primal_knight_onslaught_save_v1).training[offer.id],rank+1,
+    'Real rally tap saves a new permanent training rank in the original save key');
    assert.equal(p.essence,oldEssence-offer.cost,'The rally does not discount or create Essence');
    assert.equal(p.training[offer.id],rank+1,'Only one purchased permanent rank is granted');
    rallyPurchased=true;postRallyRank=offer.id;
