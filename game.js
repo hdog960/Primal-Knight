@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.11.5. Hero Combat Depth - Field Quartermaster: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.11.6. Hero Combat Depth - Earned First Watch and Rally: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -530,7 +530,8 @@ const councilTrainingDetails={
 function councilTrainingOffers(plan=warCouncilPlan()){
  const fast=['mire','night','rift'].includes(plan.factionId);
  const ward=plan.guide===bossCouncil.commander||plan.guide===bossCouncil.iron;
- const order=fast?['fort','haste','power']:ward?['power','fort','haste']:
+ const order=plan.tier===1&&plan.wave<=20?['power','haste','fort']:
+  fast?['fort','haste','power']:ward?['power','fort','haste']:
   ['ash','frostvein','cinder','gilded','thorn'].includes(plan.factionId)?['haste','power','fort']:['power','haste','fort'];
  return order.map((id,i)=>{
   const row=training.find(item=>item[0]===id),rank=t(id),cost=rank<row[5]?trainCost(row):null;
@@ -564,6 +565,34 @@ function renderCouncilQuartermaster(plan){
    '</button></div>').join('')+'</div>'+
   '<small>Same prices and ranks as Power → Training. Each tap buys one rank; no Sigils, items or runes spent.</small></div>';
 }
+// Alpha 0.11.6 — optional session-based recovery, never a grant or automated purchase.
+function councilRecoveryAdvice(tier=chosenTier){
+ const report=lastSiegeReport;
+ if(!report||report.reason!=='fallen'||report.tier!==tier)return null;
+ const early=report.tier===1&&report.lastWave<=20;
+ const preference=early?'power':report.breaches>=6?'fort':'haste';
+ const options=councilTrainingOffers(warCouncilPlan(tier,report.lastWave));
+ let next=options.find(o=>o.id===preference&&o.affordable);
+ if(!next)next=options.find(o=>o.affordable);
+ if(!next)next=options.find(o=>o.id===preference&&o.cost!==null);
+ if(!next)next=options.find(o=>o.cost!==null);
+ return {wave:report.lastWave,cleared:report.cleared,breaches:report.breaches,
+  bossEscapes:report.bossEscapes,essence:p.essence,offer:next||null};
+}
+function renderCouncilRecovery(tier=chosenTier){
+ const data=councilRecoveryAdvice(tier);
+ if(!data)return '';
+ const offered=data.offer;
+ const note=offered?'Strengthen '+offered.title+' with a permanent rank before retrying.':'All three Field Quartermaster training lines are at maximum rank.';
+ const button=offered?'<button type="button" data-council-train="'+offered.id+'" '+(offered.affordable?'':'disabled')+'>'+
+  (offered.affordable?'REINFORCE · '+fmt(offered.cost)+' ESSENCE':'NEED '+fmt(offered.cost)+' ESSENCE')+'</button>':'';
+ return '<div class="war-recovery" role="status" aria-label="Siege recovery and next training step">'+
+  '<div class="war-recovery-header"><strong>✦ RALLY AFTER DEFEAT</strong><span>WAVE '+formatWave(data.wave)+' REACHED</span></div>'+
+  '<p>Last siege: '+formatWave(data.cleared)+' waves cleared · '+formatWave(data.breaches)+
+  ' breaches'+(data.bossEscapes?' · '+formatWave(data.bossEscapes)+' bosses escaped':'')+
+  '. Earned rewards stay yours. You currently have '+fmt(data.essence)+' Hero Essence.</p>'+
+  '<div class="war-recovery-action"><span>'+note+' No purchases are automatic.</span>'+button+'</div></div>';
+}
 function renderWarCouncil(tier=chosenTier,wave=useWaystone?waystoneForTier(tier):1){
  const plan=warCouncilPlan(tier,wave),rec=plan.recommended;
  const same=p.combatDoctrine===rec.doctrine&&p.combatPassive===rec.passive;
@@ -575,6 +604,7 @@ function renderWarCouncil(tier=chosenTier,wave=useWaystone?waystoneForTier(tier)
   <span class="war-council-next">${upcoming}</span></div>
   <p class="war-council-risk">${plan.guide.risk}</p>
   <p class="war-council-tip">${plan.guide.tip}</p>
+  ${renderCouncilRecovery(plan.tier)}
   <div class="war-council-choice"><div><small>BEST AVAILABLE TACTICAL PAIR · HERO LV ${p.level}</small>
   <strong>${combatDoctrineData[rec.doctrine].name} + ${combatPassiveData[rec.passive].name}</strong>
   <span>CURRENT BUILD FIT ${plan.currentFit}/9 · SUGGESTED PAIR FIT ${rec.fit}/9 · Guidance only, not a simulated win rate</span></div>
@@ -2298,5 +2328,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
