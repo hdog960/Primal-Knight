@@ -35,7 +35,7 @@ assert.equal(p.level,1);
 assert.equal(h.warCouncilPlan(1,1).training,true,'Starter wave is correctly identified as an introductory encounter');
 assert.equal(h.warCouncilPlan(1,1).recommended.doctrine,'vanguard','Starter build uses the available Hunter’s Volley');
 assert.equal(h.warCouncilPlan(1,1).recommended.passive,'hunter','Starter passive is Predator’s Eye');
-assert.equal(h.warCouncilPlan(1,1).upcoming.wave,8,'Next event preview uses actual ambush wave from encounter director');
+assert.equal(h.warCouncilPlan(1,1).upcoming.wave,10,'Next event preview uses actual elite wave from encounter director');
 assert.equal(h.warCouncilPlan(1,1).guide.threat,'FIRST WATCH PATROLS','Early waves do not falsely imply faction specialists appear immediately');
 assert.equal(h.warCouncilPlan(2,20).recommended.doctrine,'vanguard','Level one does not recommend locked Arcane Chain');
 assert.equal(h.warCouncilPlan(2,20).recommended.passive,'hunter','Level one does not recommend locked passives');
