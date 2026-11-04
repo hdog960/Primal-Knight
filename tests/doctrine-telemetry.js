@@ -39,7 +39,7 @@ assert.equal(h.advanceCombatDoctrine(.05),true);assert.equal(r.doctrineCastReaso
 r.phase='ready';p.level=5;assert(h.chooseCombatDoctrine('aegis'));r.phase='fighting';r.health=r.maxHealth*.85;
 r.enemies=[makeEnemy()];r.doctrineClock=0;assert.equal(h.doctrineTacticAssessment().reason,'repair');
 const before=r.health;assert(h.advanceCombatDoctrine(.05));assert(r.health>before);assert.equal(r.doctrineCastReasons.repair,1);
-r.phase='ready';assert(h.chooseDoctrineTactic('horde'));r.phase='fighting';r.doctrineClock=0;r.health=r.maxHealth;
+r.phase='ready';assert(h.chooseCombatDoctrine('vanguard'));assert(h.chooseDoctrineTactic('horde'));r.phase='fighting';r.doctrineClock=0;r.health=r.maxHealth;
 r.enemies=[makeEnemy()];r.enemies[0].bossWardTimer=.7;
 assert.equal(h.doctrineTacticAssessment().reason,'urgent');
 assert(h.advanceCombatDoctrine(.05));assert.equal(r.doctrineCastReasons.urgent,1);
