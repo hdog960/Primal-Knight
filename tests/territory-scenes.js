@@ -61,7 +61,9 @@ const beforeLoaded=w.getImageCount(),a=h.territorySceneImage(2);
 assert(a.src.startsWith('data:image/svg+xml;charset=utf-8,'));
 assert.equal(w.getImageCount(),beforeLoaded+1,'A new tier image decodes once on first request');
 assert.equal(h.territorySceneImage(2),a,'Same-tier redraws reuse the same decoded image');
+r.phase='fighting';r.tier=2; // Actual run selection, not a merely preloaded image.
 for(let i=0;i<40;i++)h.draw();
+r.phase='ready';
 assert.equal(w.getImageCount(),beforeLoaded+1,'Forty canvas redraws do not rebuild the illustrated scene');
 const call=w.paint.images.find(x=>x.source.startsWith('data:image/svg+xml'));
 assert(call,'The real game canvas draws the generated territorial matte');
