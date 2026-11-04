@@ -85,6 +85,24 @@ function play(policy,seed){
   assert(Number.isFinite(p.essence)&&p.essence>=0&&Number.isFinite(p.gold)&&p.gold>=0,'Legal currencies');
  }
  firstLoss=r.phase==='fallen'?r.wave:0;
+ const postBattleEssence=p.essence;
+ let rallyPurchased=false,postRallyRank=null;
+ if(r.phase==='fallen'){
+  const advice=h.councilRecoveryAdvice(1);
+  assert(advice,'Genuinely fallen First Watch produces the optional recovery advice');
+  assert.equal(advice.wave,firstLoss,'Advice cites the actual defeat wave');
+  assert.equal(advice.cleared,r.wavesCleared,'Advice cites actual clear count');
+  assert.equal(advice.essence,p.essence,'Advice includes the currently earned Essence budget');
+  assert.equal(h.councilRecoveryAdvice(2),null,'Other tiers never inherit an unrelated defeat');
+  assert(h.renderWarCouncil(1,1).includes('RALLY AFTER DEFEAT'),'The real Battle lobby shows the rally');
+  if(advice.offer&&advice.offer.affordable){
+   const offer=advice.offer,oldEssence=p.essence,rank=p.training[offer.id]||0;
+   assert.equal(h.purchaseCouncilTraining(offer.id),true,'Post-defeat reinvestment uses the real valid purchase path');
+   assert.equal(p.essence,oldEssence-offer.cost,'The rally does not discount or create Essence');
+   assert.equal(p.training[offer.id],rank+1,'Only one purchased permanent rank is granted');
+   rallyPurchased=true;postRallyRank=offer.id;
+  }
+ }
  const saved=JSON.parse(store.primal_knight_onslaught_save_v1||'null');
  assert(saved,'Real battle persisted an iPhone player save');
  assert.equal(saved.unlockedTier,p.unlockedTier,'Actual tier unlock is persisted');
@@ -97,7 +115,8 @@ function play(policy,seed){
  return {policy:policy.id,seed,clears:r.wavesCleared,latestWave:r.wave,firstLoss,
   phase:r.phase,timedOut,level:p.level,active: p.combatDoctrine,passive:p.combatPassive,
   essenceSpent:spentEssence,goldSpent:spentGold,trainingRanks:trained,
-  earnedEssence:p.essence,earnedGold:p.gold,earnedSigils:p.sigils,
+  earnedEssence:postBattleEssence,postRallyEssence:p.essence,rallyPurchased,postRallyRank,
+  earnedGold:p.gold,earnedSigils:p.sigils,
   minutes:Number((p.battleSeconds/60).toFixed(2)),maxActors:enemyCap,maxShots:shotsCap};
 }
 for(const policy of policies)for(const seed of seeds)results.push(play(policy,seed));
