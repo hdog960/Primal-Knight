@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.11.5 (Hero Combat Depth, Slice 6)
+## Current release — Alpha 0.11.6 (Hero Combat Depth, Slice 7)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -42,9 +42,11 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 
 **New in 0.11.5:** The Field Quartermaster adds **three real permanent Hero Essence upgrades directly inside the War Council**. Buy one rank of Might, Reflexes, or Fortitude at the **same price and cap as Power → Training**, with faction-aware suggestions and one-tap iPhone controls. Purchases are blocked during an active siege, reject insufficient funds, preserve existing saves and scroll position, and never touch gear, runes or finite Sigils. A **sixteenth CI gate** tests the actual click, spending, persistence, and safety. Real gameplay values and all 30×10,000-wave progression are unchanged. See `docs/ALPHA_0115_FIELD_QUARTERMASTER.md`.
 
+**New in 0.11.6:** A real *earned-budget* First Watch regression now runs **12 continuous seeded starter sieges** using only initial resources, purchased upgrades, naturally earned XP, and true battle rewards. Its observations informed two live changes: the War Council's early Tier I Quartermaster now recommends **Might first**, and **Rally After Defeat** shows your actual last-siege wave/breaches and current Essence with an optional, correctly priced one-tap permanent Training purchase. No grants, altered combat numbers, fake progression, item duplication or save reset. The suite now has **17 required checks**. See `docs/ALPHA_0116_EARNED_FIRST_WATCH.md`.
+
 **Play:** https://hdog960.github.io/Primal-Knight/
 
-Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0113_COMBAT_BALANCE.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js && node tests/first-watch-vault.js && node tests/siege-chronicle.js && node tests/boss-fairness.js && node tests/hero-doctrines.js && node tests/combat-builds.js && node tests/war-council.js && node tests/combat-balance-matrix.js && node tests/progression-matched-builds.js && node tests/quartermaster.js` for the automated suite.
+Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0113_COMBAT_BALANCE.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js && node tests/first-watch-vault.js && node tests/siege-chronicle.js && node tests/boss-fairness.js && node tests/hero-doctrines.js && node tests/combat-builds.js && node tests/war-council.js && node tests/combat-balance-matrix.js && node tests/progression-matched-builds.js && node tests/quartermaster.js && node tests/earned-first-watch.js` for the automated suite.
 
 ---
 
