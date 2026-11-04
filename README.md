@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.10.14 (Living Onslaught, Slice 15)
+## Current release — Alpha 0.11.0 (Hero Combat Depth, Slice 1)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -30,9 +30,11 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 
 **New in 0.10.14:** The Siege Chronicle now distinguishes major bosses **defeated** from bosses **breaching** the fortress, instead of crediting a boss kill merely because the player survived its wave. Iron Tyrant's short Ward receives fair automatic focus, while urgent Sapper fuses still take priority. The live boss HUD shows actual damage-based `BREAK %` progress for ward/charge/step/crusher counterplay. All original rewards, persistent saves, and 30-tier combat balance remain intact. A tenth required regression suite tests real boss kills and escapes.
 
+**New in 0.11.0:** Playable **Hero Combat Depth** starts with three equipable automatic signature abilities in the illustrated Hero Hall: **Hunter's Volley** (three or four extra focused arrows), **Arcane Chain** (real three-target lightning and slow), and **Aegis Pulse** (bounded fortress healing and enemy pushback). Unlocked at levels 1, 3 and 5, they have meaningful live cooldowns, existing talent/rune synergies, an iPhone battle cooldown HUD and a session Chronicle cast tally. Save migration retains all previously earned progress. All eleven release checks include new real-auto-cast tests. Alpha 0.10 physical iPhone acceptance is still open.
+
 **Play:** https://hdog960.github.io/Primal-Knight/
 
-Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_01014_BOSS_FAIRNESS.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js && node tests/first-watch-vault.js && node tests/siege-chronicle.js && node tests/boss-fairness.js` for the automated suite.
+Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0110_COMBAT_DOCTRINES.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js && node tests/first-watch-vault.js && node tests/siege-chronicle.js && node tests/boss-fairness.js && node tests/hero-doctrines.js` for the automated suite.
 
 ---
 

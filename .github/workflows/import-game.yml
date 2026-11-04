@@ -49,3 +49,4 @@ jobs:
           node tests/first-watch-vault.js
           node tests/siege-chronicle.js
           node tests/boss-fairness.js
+          node tests/hero-doctrines.js
