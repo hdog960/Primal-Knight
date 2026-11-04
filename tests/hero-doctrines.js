@@ -93,7 +93,7 @@ r.phase='fighting';
 p.level=3;
 h.openTab('hero');
 let ui=world.el('panelContent').innerHTML;
-assert(ui.includes('data-action="doctrine:storm" aria-pressed="false"'),'Arcane discipline unlocks naturally at level 3');
+assert(/data-action="doctrine:storm"\s+aria-pressed="false"/.test(ui),'Arcane discipline unlocks naturally at level 3');
 h.action('doctrine:storm');
 assert.equal(p.combatDoctrine,'storm','Hero Hall action equips Arcane Chain in actual saved data');
 assert.equal(r.doctrineClock,3,'Changing disciplines cannot instantly cast a second ability');
@@ -116,7 +116,7 @@ assert(powered.every(x=>x.slow>1),'Hail skill deepens Arcane Chain slow effect')
 
 // The defensive discipline unlocks at level five and saves its choice.
 p.level=5;h.openTab('hero');ui=world.el('panelContent').innerHTML;
-assert(ui.includes('data-action="doctrine:aegis" aria-pressed="false"'),'Guardian ability unlocks at hero level 5');
+assert(/data-action="doctrine:aegis"\s+aria-pressed="false"/.test(ui),'Guardian ability unlocks at hero level 5');
 h.action('doctrine:aegis');
 assert.equal(p.combatDoctrine,'aegis','Selected defensive discipline is genuinely equipped');
 assert.equal(h.chosenDoctrine().school,'Guardian');
