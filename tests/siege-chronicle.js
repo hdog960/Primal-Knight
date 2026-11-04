@@ -41,8 +41,11 @@ const fallenEnemy={type:'goblin',x:340,y:230,hp:40,max:40,armor:0,speed:0,
 r.enemies=[fallenEnemy];h.hurt(fallenEnemy,80,'ballista');
 assert.equal(fallenEnemy.dead,true,'Real combat damage kills the enemy');
 assert.equal(r.enemiesDefeated,1,'Chronicle accumulates a genuine enemy kill');
-const iron={type:'warlord',x:410,y:225,max:1000,hp:850,bossWardTimer:2.2,bossExposedTimer:0,dead:false};
+const iron={type:'warlord',isBoss:true,x:410,y:225,max:1000,hp:850,armor:0,valued:65,slow:0,burn:0,buildup:0,bossWardTimer:2.2,bossExposedTimer:0,dead:false};
 assert.equal(h.bossCounterplay(iron,105),true,'Real boss ward shatter is registered');
+r.enemies=[iron];
+h.hurt(iron,1800,'ballista');
+assert.equal(iron.dead,true,'Real combat kills the chapter warlord before crediting its victory');
 const frost={type:'frostbinder',x:390,y:240,max:1000,hp:850,frostWindup:.7,spellBreakDamage:0,dead:false};
 assert.equal(h.specialistCounterplay(frost,190),true,'Real specialist cast break is registered');
 assert.equal(r.totalBossBreaks,1);
@@ -74,7 +77,7 @@ assert.equal(report.tier,1);
 assert.equal(report.startWave,100,'Start wave was preserved for an unlocked waystone');
 assert.equal(report.lastWave,102);
 assert.equal(report.cleared,2,'Run starting at wave 100 reports two clears, NOT 101');
-assert.equal(report.enemies,1,'Enemy kill count matches actual kills');
+assert.equal(report.enemies,2,'Enemy kill count includes the actual defeated major boss');
 assert.equal(report.bossBreaks,1,'Real interrupted boss cast is shown');
 assert.equal(report.specialistBreaks,1,'Real interrupted specialist attack is shown');
 assert.equal(report.bosses,1,'Real chapter victory is shown');
@@ -82,9 +85,9 @@ assert.equal(report.breaches,1,'Total breach count survives wave resets');
 assert.equal(w.el('siegeReport').hidden,false,'Report is actually visible in returned Battle lobby');
 assert(w.el('lobbySummary').textContent.includes('Cleared 2 this run'),'Fixed retreat summary does not confuse global wave with session clear count');
 assert(w.el('siegeReportTitle').textContent.includes('HONORABLE RETREAT'),'Visible Chronicle identifies actual run end');
-assert(w.el('siegeReportSummary').textContent.includes('2 WAVES · 1 FOES · 1 BREACHES'),'Compact Chronicle provides clear player feedback');
+assert(w.el('siegeReportSummary').textContent.includes('2 WAVES · 2 FOES · 1 BREACHES'),'Compact Chronicle provides clear player feedback');
 assert(w.el('siegeReportMetrics').innerHTML.includes('SPECIALISTS STOPPED'),'Expanded Chronicle shows specialist interrupts');
-assert(w.el('siegeReportMetrics').innerHTML.includes('BOSS VICTORIES'),'Expanded Chronicle shows boss victories');
+assert(w.el('siegeReportMetrics').innerHTML.includes('BOSSES DEFEATED'),'Expanded Chronicle shows boss victories');
 assert(w.el('siegeReportRange').textContent.includes('STARTED WAVE 100'),'Player can verify deep-waystone run baseline');
 const serialized=JSON.parse(w.store.primal_knight_onslaught_save_v1);
 for(const key of ['wavesCleared','enemiesDefeated','totalBossBreaks','totalSpecialistBreaks','totalBreaches']){
@@ -120,6 +123,10 @@ assert(fall.el('siegeReportTitle').textContent.includes('FORTRESS FALLEN'),'Defe
 const conquer=world(1513),ch=conquer.h,cr=ch.run();
 ch.enterSiege();
 cr.tier=30;cr.wave=10000;cr.startWave=10000;cr.phase='fighting';cr.encounter=ch.encounterDirector(10000,30);
+cr.enemies=[{type:'warlord',isBoss:true,x:480,y:240,max:100,hp:60,armor:0,valued:65,
+ dead:false,slow:0,burn:0,buildup:0,bossPhase:2,bossExposedTimer:0,bossWardTimer:0}];
+ch.hurt(cr.enemies[0],300,'ballista');
+assert.equal(cr.enemies[0].dead,true,'Final wave boss must truly die before Chronicle can count victory');
 ch.completeWave();
 assert.equal(cr.phase,'completed','Wave 10,000 still triggers original Eternal Victory behavior');
 assert.equal(ch.siegeReport().reason,'victory','Eternal Victory produces after-action report');
@@ -128,8 +135,8 @@ assert.equal(ch.siegeReport().bosses,1,'Final chapter victory included in boss c
 assert(conquer.el('siegeReportTitle').textContent.includes('ETERNAL VICTORY'),'Victory report uses correct tone');
 assert(conquer.el('siegeReportRange').textContent.includes('LAST REACHED 10,000'),'Deep-wave victory notation remains readable');
 
-assert(html.includes('ALPHA 0.10.13')&&html.includes('game.js?v=0.10.13'),'iPhone release uses fresh Safari asset URLs');
+assert(html.includes('ALPHA 0.10.14')&&html.includes('game.js?v=0.10.14'),'iPhone release uses fresh Safari asset URLs');
 assert(html.includes('id="siegeReport"')&&html.includes('id="siegeReportMetrics"'),'Battle lobby contains actual Chronicle UI');
-assert(css.includes('.siege-report[hidden]')&&css.includes('grid-template-columns:repeat(3,minmax(0,1fr))'),
- 'Responsive 3-column detail grid and hidden status are styled');
+assert(css.includes('.siege-report[hidden]')&&css.includes('grid-template-columns:repeat(2,minmax(0,1fr))'),
+ 'Responsive 2-column detail grid and hidden status are styled');
 console.log('PASS: Alpha 0.10.13 real waystone clear counts, per-run boss/specialist counters, defeats, breaches, 3 actual endings, after-action UI, reset, and unchanged permanent saves.');
