@@ -18,7 +18,9 @@ All three remain **fully automatic**. An ability on HOLD keeps its cooldown at z
 - UI controls are touch-safe in portrait and low-height landscape while preserving the illustrated Hero Hall and War Council.
 
 ## Acceptance
-Required new `tests/doctrine-tactics.js` covers Rapid baseline, four-enemy crowd threshold, crisis near-wall and dangerous cast triggers, hold-at-zero timer, actual Battle tap and unchanged scroll, no currency/item mutation, a saved-loadout round-trip, legacy saves without this setting, and old/malformed imported backups. The prior 21 scripts continue to run, for **22 CI quality scripts**.
+Required new `tests/doctrine-tactics.js` covers Rapid baseline, four-enemy crowd threshold, crisis near-wall and dangerous cast triggers, hold-at-zero timer, actual Battle tap and unchanged scroll, no currency/item mutation, a saved-loadout round-trip, legacy saves without this setting, and old/malformed imported backups. The prior 21 scripts continue to run, for **23 CI quality scripts**.
+
+A second required check, `tests/doctrine-tactic-battles.js`, simulates **54 real battle slices** (three strategies × three doctrines × three battle depths × two seeds) and validates finite combat, genuine held charges and no loss of permanent investments. These are controlled synthetic low-level scenarios, not population win rates.
 
 The release does **not** change ability damage/healing, enemy patterns, wave rewards, equipment rarity, 30-tier progression, 10,000 waves per tier, Primal Sigil economy, or the 1,250-hour *design target*. Different casting preferences can change real battles, but no comparative win rate is claimed.
 
