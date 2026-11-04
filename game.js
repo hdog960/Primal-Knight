@@ -2176,9 +2176,9 @@ function renderPanel(){
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
  const panelContentEl=$('panelContent');
- const ledgerOpen=tab==='training'&&!!panelContentEl.querySelector('details.sigil-ledger')?.open;
+ const ledgerOpen=tab==='training'&&!!panelContentEl.querySelector?.('details.sigil-ledger')?.open;
  panelContentEl.innerHTML=html;
- if(ledgerOpen){const ledger=panelContentEl.querySelector('details.sigil-ledger');if(ledger)ledger.open=true;}
+ if(ledgerOpen){const ledger=panelContentEl.querySelector?.('details.sigil-ledger');if(ledger)ledger.open=true;}
  if(tab==='equipment')renderArmoryDrawer();else{const drawer=$('armoryDrawer');if(drawer){drawer.hidden=true;drawer.innerHTML='';}}
  const imp=$('importFile');if(imp)imp.onchange=async ev=>{
   const file=ev.target.files?.[0];if(!file)return;
