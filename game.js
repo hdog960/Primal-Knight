@@ -1627,6 +1627,7 @@ function terrainSeeded(tier){
 function terrainSceneSvg(tier){
  const scene=territoryVista(tier),biome=terrainBiomes[scene.tier-1],colors=terrainColors[biome],rand=terrainSeeded(scene.tier);
  const pieces=[],choose=list=>list[Math.floor(rand()*list.length)],n=(low,high)=>Math.round(low+rand()*(high-low));
+ const alpha=(low,high)=>Number((low+rand()*(high-low)).toFixed(2));
  const patch=(x,y,w,h,color,opacity=1)=>pieces.push('<rect x="'+x+'" y="'+y+'" width="'+Math.max(1,w)+'" height="'+Math.max(1,h)+'" fill="'+color+'" opacity="'+opacity+'"/>');
  const poly=(points,color,opacity=1)=>pieces.push('<polygon points="'+points+'" fill="'+color+'" opacity="'+opacity+'"/>');
  const line=(x1,y1,x2,y2,color,width=2,opacity=1)=>pieces.push('<path d="M'+x1+' '+y1+'L'+x2+' '+y2+'" fill="none" stroke="'+color+'" stroke-width="'+width+'" opacity="'+opacity+'"/>');
@@ -1641,7 +1642,7 @@ function terrainSceneSvg(tier){
  pieces.push('<ellipse cx="'+n(520,740)+'" cy="'+n(13,55)+'" rx="'+n(34,57)+'" ry="'+n(20,38)+'" fill="'+colors.accent+'" opacity=".16"/>');
  pieces.push('<circle cx="'+n(560,745)+'" cy="'+n(17,49)+'" r="'+n(16,25)+'" fill="'+colors.accent+'" opacity=".64"/>');
  if(['astral','crystal','frost','obsidian'].includes(biome)){
-  for(let i=0;i<46;i++)patch(n(8,949),n(3,93),choose([1,2,2,3]),choose([1,1,2]),colors.light,n(.27,.75));
+  for(let i=0;i<46;i++)patch(n(8,949),n(3,93),choose([1,2,2,3]),choose([1,1,2]),colors.light,alpha(.27,.75));
  }
  // Far mountains use overlapping faceted silhouettes and intermittent light on cliffs.
  for(let layer=0;layer<3;layer++){
@@ -1673,7 +1674,7 @@ function terrainSceneSvg(tier){
   const x=n(1,956),y=n(116,345);
   if(x>395-(y-130)*.36&&x<565+(y-130)*.48)continue;
   const w=n(2,y>235?10:6),h=n(1,3),color=choose([colors.light,colors.dark,land[0],land[1],colors.accent]);
-  patch(x,y,w,h,color,n(.18,.52));
+  patch(x,y,w,h,color,alpha(.18,.52));
   if(i%18===0)line(x,y+2,x+n(-2,2),y-n(3,7),colors.dark,1,.36);
  }
  // Flat, natural readable marching road is intentionally free from permanent landmarks.
@@ -1686,7 +1687,7 @@ function terrainSceneSvg(tier){
   const offset=row%2?step*.53:0;
   for(let x=300+offset;x<663;x+=step){
    const w=n(10,Math.max(12,Math.round(step-2)));
-   patch(Math.round(x+n(-2,2)),Math.round(y),w,n(2,Math.max(3,Math.round(step*.31))),choose([colors.road[0],colors.road[1],colors.light]),n(.16,.48));
+   patch(Math.round(x+n(-2,2)),Math.round(y),w,n(2,Math.max(3,Math.round(step*.31))),choose([colors.road[0],colors.road[1],colors.light]),alpha(.16,.48));
   }
  }
  for(let i=0;i<120;i++)patch(n(310,648),n(113,344),n(2,9),n(1,3),choose([colors.road[0],colors.road[1],colors.dark]),.27);
@@ -1757,25 +1758,25 @@ function terrainSceneSvg(tier){
  const leftX=n(92,205),rightX=n(758,870),nearY=n(243,273);
  if(['verdant','grove','thorn'].includes(biome)){
   oak(leftX,nearY,1.05);pine(rightX,nearY+8,.9);
-  for(let k=0;k<4;k++)pine(n(0,285),n(182,263),n(.35,.72));
+  for(let k=0;k<4;k++)pine(n(0,285),n(182,263),alpha(.35,.72));
   if(biome==='thorn')for(let k=0;k<8;k++)line(n(0,305),n(233,341),n(0,305),n(208,231),colors.dark,2,.55);
  }else if(['frost','crystal','astral'].includes(biome)){
-  crystal(leftX,nearY,n(.8,1.3));crystal(rightX,nearY,n(.7,1.2));
-  for(let k=0;k<5;k++)crystal(n(0,955),n(175,267),n(.28,.65));
+  crystal(leftX,nearY,alpha(.8,1.3));crystal(rightX,nearY,alpha(.7,1.2));
+  for(let k=0;k<5;k++)crystal(n(0,955),n(175,267),alpha(.28,.65));
   if(biome==='astral')ruinArch(n(700,820),n(196,230),.62);
  }else if(['ruin','obsidian'].includes(biome)){
-  tower(leftX,nearY,n(.78,1.25),biome==='obsidian');
-  ruinArch(rightX,nearY,n(.77,1.06));
-  for(let k=0;k<4;k++)basalt(n(30,930),n(208,280),n(.27,.68));
+  tower(leftX,nearY,alpha(.78,1.25),biome==='obsidian');
+  ruinArch(rightX,nearY,alpha(.77,1.06));
+  for(let k=0;k<4;k++)basalt(n(30,930),n(208,280),alpha(.27,.68));
  }else if(['ember','ash','storm'].includes(biome)){
-  basalt(leftX,nearY,n(.85,1.2));tower(rightX,nearY,n(.8,1.22),true);
-  for(let k=0;k<6;k++)basalt(n(0,960),n(179,265),n(.27,.7));
+  basalt(leftX,nearY,alpha(.85,1.2));tower(rightX,nearY,n(.8,1.22),true);
+  for(let k=0;k<6;k++)basalt(n(0,960),n(179,265),alpha(.27,.7));
   if(biome==='storm')for(let k=0;k<4;k++)line(n(0,960),n(68,128),n(0,960),n(134,168),colors.accent,2,.38);
  }else if(biome==='marsh'){
-  oak(leftX,nearY,n(.8,1.12));ruinArch(rightX,nearY,.7);
+  oak(leftX,nearY,alpha(.8,1.12));ruinArch(rightX,nearY,.7);
   for(let k=0;k<9;k++)patch(n(0,950),n(222,333),n(15,40),n(2,5),colors.light,.14);
  }else if(biome==='desert'){
-  tower(leftX,nearY,n(.65,.95));basalt(rightX,nearY,n(.9,1.16));
+  tower(leftX,nearY,alpha(.65,.95));basalt(rightX,nearY,alpha(.9,1.16));
   for(let k=0;k<5;k++)poly(n(0,945)+','+n(251,278)+' '+n(0,940)+','+n(214,244)+' '+n(0,960)+','+n(249,274),colors.road[0],.5);
  }
  // Near-field sparse tuft and rock texture; never over the road marching lane.
