@@ -464,6 +464,16 @@ const factionWarCouncil={
 };
 const trainingCouncil={threat:'FIRST WATCH PATROLS',risk:'The first seven waves use introductory goblins, skeletons and wargs, regardless of the later chapter faction.',tip:'Hunter’s Volley is a reliable starter option. Keep early rewards for useful training rather than chasing a locked build.',rune:'frost',
  doctrine:{vanguard:4,storm:2,aegis:2},passive:{hunter:4,conductor:2,sentinel:2}};
+const bossCouncil={
+ iron:{threat:'IRON WARD COUNTERPLAY',risk:'The Iron Tyrant briefly shields itself before it can be shattered by focused damage.',tip:'Hunter’s Volley and Predator’s Eye focus the active ward. Aegis or Rampart Oath remains a valid defensive alternative if your wall is struggling.',rune:'storm',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}},
+ ember:{threat:'EMBER CHARGE COUNTERPLAY',risk:'The Cinder Regent telegraphs a charge that focused damage can interrupt.',tip:'Burst arrows and Predator’s Eye create break pressure during the short charge windup; Ember runes add damage over time to arrows.',rune:'ember',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}},
+ rift:{threat:'VOID STEP COUNTERPLAY',risk:'The Void Monarch telegraphs a blink toward your wall.',tip:'Focused arrow bursts can break the windup, while Frost runes can slow targets if they survive.',rune:'frost',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}},
+ commander:{threat:'SIEGE BEAST CRUSHER',risk:'The Siege Beast prepares a crushing strike; it can be interrupted by focused damage.',tip:'Predator’s Eye empowers focused arrows against the boss. Aegis or Sentinel may be preferable when fortress health is low.',rune:'ember',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}}
+};
 function warCouncilFit(doctrine,passive,tactics,sockets={}){
  if(!combatDoctrineData[doctrine]||!combatPassiveData[passive]||!tactics)return 0;
  const synergy=Object.values(sockets||{}).some(id=>p.runes.some(r=>r&&r.id===id&&r.type===tactics.rune))?1:0;
@@ -473,7 +483,7 @@ function warCouncilPlan(tier=chosenTier,wave=useWaystone?waystoneForTier(tier):1
  const selectedTier=clamp(Math.floor(Number(tier)||1),1,MAX_TIER);
  const start=clamp(Math.floor(Number(wave)||1),1,MAX_WAVE);
  const encounter=encounterDirector(start,selectedTier);
- const training=start<=7,guide=training?trainingCouncil:factionWarCouncil[encounter.factionId];
+ const training=start<=7,guide=training?trainingCouncil:encounter.kind==='chapterBoss'?bossCouncil[encounter.bossStyle]:encounter.kind==='commander'?bossCouncil.commander:factionWarCouncil[encounter.factionId];
  const options=[];
  for(const doctrine of Object.keys(combatDoctrineData)){
   if(p.level<combatDoctrineData[doctrine].level)continue;
