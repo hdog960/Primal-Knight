@@ -67,6 +67,11 @@ const stages=[
   sovereignOaths:{sovereignBlade:58,sovereignAegis:58,sovereignTribute:58,sovereignJudgment:58},
   crests:true,duration:45}
 ];
+// Additional return-visit and endgame pressure cases distinguish effortless entry
+// waves from deep milestone aspirations under the SAME investment assumptions.
+stages.push({...stages[1],id:'FRONTIER MASTERY',wave:3000,duration:45});
+stages.push({...stages[2],id:'OUTER MASTERY',wave:5000,duration:45});
+stages.push({...stages[3],id:'ENDGAME BEFORE CRESTS',crests:false,duration:45});
 function prepare(h,stage,doctrine,passive){
  const p=h.p();
  p.level=stage.level;
@@ -152,6 +157,7 @@ for(const stage of stages){
     ' kills='+String(sum('killed')/2).padStart(5)+
     ' breach='+String(sum('breaches')/2).padStart(5)+
     ' wall='+String((sum('remaining')/2).toFixed(3)).padStart(5)+
+    ' sec='+String((sum('seconds')/2).toFixed(1)).padStart(5)+
     ' casts='+sum('casts'));
    totalCasts+=sum('casts');
   }
@@ -162,6 +168,6 @@ for(const stage of stages){
  if(allClear)console.log('DIAGNOSTIC: Every build cleared; this stage alone cannot identify a dominant build.');
 }
 assert(totalCasts>0,'At least one realistic wave produces a real hero ability cast');
-console.log('\nPASS: '+rows.length+' progression-matched, seed-paired real combat slices across 4 investment profiles.');
+console.log('\nPASS: '+rows.length+' progression-matched, seed-paired real combat slices across 4 invested profiles + 3 deeper pressure checkpoints.');
 console.log('LIMIT: These authored investment fixtures are NOT earned player saves, full waves-to-10k runs,');
 console.log('      measured win probabilities, iPhone visual QA, or proof of 1,250-hour endgame pacing.');
