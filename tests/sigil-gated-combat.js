@@ -99,34 +99,35 @@ function equipAssumedNonSigilInvestments(h,s,doctrine,passive){
  assert.equal(new Set(Object.values(p.equipped)).size,11,'Gear fixture contains unique owned IDs');
 }
 const rows=[];
-for(const s of scenarios)for(const policy of policies)for(const seed of seeds){
+for(const s of scenarios)for(const policy of policies)for(const seed of seeds)
+for(const doctrine of doctrines)for(const passive of passives){
+ // Each battle starts from an INDEPENDENT assumed milestone career; clearing the
+ // benchmark itself may award Sigils or a Crest and must not contaminate another build.
  const h=world(seed+s.tier*37),p=h.p(),r=h.run();
  const income=grantAssumedMilestones(h,s),budget=h.sigilLedgerSummary().eventualCapacity;
  const spending=invest(h,policy);
  assert.equal(h.sigilLedgerSummary().eventualCapacity,budget-spending.cost,
   'Sigil Ledger tracks each legal mastery purchase exactly');
  assert(p.sigils>=0,'No fabricated endgame resource balance');
- for(const doctrine of doctrines)for(const passive of passives){
-  // Pair all nine builds on identical *purchased Sigil investments* and genuine
-  // earned crest ranks. Restore the investment fixture between each battle.
-  const rankSnapshot=JSON.stringify({legacy:p.legacy,ascension:p.ascension,sovereignOaths:p.sovereignOaths,dominionCrests:p.dominionCrests});
-  equipAssumedNonSigilInvestments(h,s,doctrine,passive);
-  r.phase='ready';r.tier=s.tier;r.wave=s.wave;r.speed=1;r.maxHealth=h.maxWall();r.health=r.maxHealth;
-  r.enemies=[];r.shots=[];r.particles=[];r.floats=[];r.time=0;r.shotClock=0;r.stationClock=0;r.doctrineClock=3.5;r.doctrineCasts=0;
-  h.beginWave();const start=r.time;
-  for(let i=0;i<900&&r.phase==='fighting';i++){
-   h.tick(.05);
-   assert(r.enemies.length<=24&&r.shots.length<=48,'Mobile combat actor limits hold');
-   assert(Number.isFinite(r.health)&&Number.isFinite(r.maxHealth),'Late combat does not overflow numeric state');
-  }
-  assert.equal(JSON.stringify({legacy:p.legacy,ascension:p.ascension,sovereignOaths:p.sovereignOaths,dominionCrests:p.dominionCrests}),rankSnapshot,
-   'A wave must not remove paid ranks or earned Crests');
-  rows.push({stage:s.id,policy:policy.id,seed,tier:s.tier,wave:s.wave,doctrine,passive,
-   availableSigils:income.awards,spentSigils:spending.cost,bankedSigils:spending.remaining,
-   boughtRanks:spending.count,earnedCrests:income.crests,
-   phase:r.phase,seconds:Number((r.time-start).toFixed(1)),remainingWall:Number((r.health/r.maxHealth).toFixed(3)),
-   enemyKills:r.kills||0});
+ const rankSnapshot=JSON.stringify({legacy:p.legacy,ascension:p.ascension,sovereignOaths:p.sovereignOaths});
+ equipAssumedNonSigilInvestments(h,s,doctrine,passive);
+ r.phase='ready';r.tier=s.tier;r.wave=s.wave;r.speed=1;r.maxHealth=h.maxWall();r.health=r.maxHealth;
+ h.beginWave();const start=r.time,startingCrests={...p.dominionCrests},startingItems=JSON.stringify(p.inventory);
+ for(let i=0;i<900&&r.phase==='fighting';i++){
+  h.tick(.05);
+  assert(r.enemies.length<=24&&r.shots.length<=48,'Mobile combat actor limits hold');
+  assert(Number.isFinite(r.health)&&Number.isFinite(r.maxHealth),'Late combat remains finite');
  }
+ assert.equal(JSON.stringify({legacy:p.legacy,ascension:p.ascension,sovereignOaths:p.sovereignOaths}),rankSnapshot,
+  'Battle never mutates paid permanent rank investments');
+ for(const [tier,rank] of Object.entries(startingCrests))
+  assert(p.dominionCrests[tier]>=rank,'Legitimate wave rewards may increase but never remove earned Crests');
+ assert.equal(JSON.stringify(p.inventory.slice(0,11)),startingItems,'No previously owned gear item is modified by combat');
+ rows.push({stage:s.id,policy:policy.id,seed,tier:s.tier,wave:s.wave,doctrine,passive,
+  availableSigils:income.awards,spentSigils:spending.cost,bankedSigils:spending.remaining,
+  boughtRanks:spending.count,earnedCrests:income.crests,
+  phase:r.phase,seconds:Number((r.time-start).toFixed(1)),remainingWall:Number((r.health/r.maxHealth).toFixed(3)),
+  enemyKills:r.kills||0});
 }
 assert.equal(rows.length,scenarios.length*policies.length*seeds.length*9);
 for(const s of scenarios){
