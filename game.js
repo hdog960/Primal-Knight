@@ -1434,6 +1434,18 @@ function renderHeroHall(){
         <div class="hall-bonus-line"><span class="hall-bonus-label">BONUSES</span>${bonuses.map(([title,value])=>`<span class="hall-bonus"><small>${title}</small> <strong>${value}</strong></span>`).join('')}</div>
       </div>
     </section>
+    <section class="hall-doctrines" aria-label="Auto-cast combat disciplines">
+      <div class="hall-doctrine-head"><div><small>⚔ HERO COMBAT DEPTH · ONE ACTIVE DISCIPLINE</small><h2>Battle Doctrines</h2><p>Choose one battle style. Your champion automatically casts its signature ability whenever an eligible target is on the field. Free to switch and no new currency required.</p></div><strong>✦ ${chosenDoctrine().school.toUpperCase()} ACTIVE</strong></div>
+      <div class="hall-doctrine-grid">${Object.values(combatDoctrineData).map(d=>{
+       const locked=p.level<d.level,selected=p.combatDoctrine===d.id;
+       return `<button class="hall-doctrine-choice hall-doctrine-${d.id}${selected?' selected':''}${locked?' locked':''}" type="button" data-action="doctrine:${d.id}" ${locked?'disabled':''} aria-pressed="${selected}" aria-label="${d.name}, ${locked?'requires hero level '+d.level:selected?'active combat doctrine':'select this combat doctrine'}">
+         <span class="hall-doctrine-etching" aria-hidden="true"></span>
+         <span class="hall-doctrine-copy"><small>${d.school.toUpperCase()} · ${d.cooldown}s BASE COOLDOWN</small><strong>${d.name}</strong><em>${d.short}</em><span>${d.description}</span></span>
+         <span class="hall-doctrine-state">${locked?'LEVEL '+d.level+' UNLOCK':selected?'EQUIPPED':'EQUIP'}</span>
+       </button>`;
+      }).join('')}</div>
+      <p class="hall-doctrine-footnote">Abilities scale from existing training, talents and rune sockets. An active siege has its own cooldown; changing disciplines does not instantly trigger another ability.</p>
+    </section>
     <section class="hall-cosmetics" aria-label="Cosmetic banners">
       <div class="hall-cosmetics-title"><span>♛ THE BANNER WARDROBE</span><small>Collected cosmetics · tap a standard to equip it</small></div>
       <div class="hall-banner-rack">${bannerOptions}</div>
