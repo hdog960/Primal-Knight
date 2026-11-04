@@ -88,6 +88,7 @@ function playPolicy(policy,seed){
   const newBest=p.bestByTier[1]||0;
   assert(newBest>=highest,'Permanent best wave never regresses');highest=newBest;
   assert(p.uniqueClears>=lastUnique,'Unique clears cannot decrease');lastUnique=p.uniqueClears;
+  assert.equal(p.uniqueClears,newBest,'Repeated Tier I victories never count a previously cleared wave as new');
   assert(p.level>=lastLevel,'Earned level cannot decrease');lastLevel=p.level;
   assert(p.sigils>=lastSigils,'No Sigil spending occurs during this early test');lastSigils=p.sigils;
   for(const key of priorMilestones)assert(p.milestones[key],'A claimed milestone remains permanently claimed');
@@ -96,6 +97,10 @@ function playPolicy(policy,seed){
   assert.equal(JSON.stringify(p.runes.slice(0,2)),starterRunes,'Original runes persist across retries');
   assert.equal(JSON.parse(storage.primal_knight_onslaught_save_v1).uniqueClears,p.uniqueClears,'iPhone save stores exact unique clears');
   assert(p.gold>=0&&p.essence>=0,'Progression never creates debt');
+  assert.equal(new Set(p.firstWatchClaimed).size,p.firstWatchClaimed.length,'First Watch chapters cannot be claimed twice');
+  const budget=h.sigilLedgerSummary();
+  assert.equal(p.sigils,budget.claimed+budget.earnedWatch,'All Sigils in this no-Sigil-spending test come from earned one-time awards');
+  assert.equal(budget.held+budget.future,budget.claimed+budget.unclaimed+budget.earnedWatch+budget.unclaimedWatch,'Ledger conservation holds after every repeat');
   attempts.push({attempt,wavesCleared:run.wavesCleared,earnedBest:newBest,
    essenceBefore,goldBefore,essenceAfter:p.essence,goldAfter:p.gold,
    level:p.level,uniqueClears:p.uniqueClears,sigils:p.sigils,
