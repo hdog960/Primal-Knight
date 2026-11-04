@@ -44,6 +44,7 @@ assert.equal(start.unclaimedWatch,h.earlyWatchChapters.reduce((n,row)=>n+row[5],
  'All remaining First Watch Sigils use actual chapter amounts');
 assert.equal(start.future,start.unclaimed+start.unclaimedWatch,'Total future grants count each reward once');
 assert.equal(start.eventualCapacity,start.held+start.future,'No Sigil purchasing power is invented');
+assert(start.future>=start.remainingCosts,'Full finite reward schedule must cover all current Legacy, Ascension and Oath ranks');
 assert(start.remainingCosts>0&&start.legacyRequired>0&&start.ascensionRequired>0&&start.oathRequired>0,
  'All three permanent Sigil-consuming progression categories are audited');
 let markup=h.renderSigilLedger();
