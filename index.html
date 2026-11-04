@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#10151d"><meta name="description" content="Primal KnIght – Onslaught. One hero, endless growth, one fortress to defend."><title>Primal KnIght – Onslaught</title><link rel="icon" href="assets/icon.png"><link rel="apple-touch-icon" href="assets/icon.png"><link rel="stylesheet" href="style.css?v=0.12.4"></head>
+<html lang="en"><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#10151d"><meta name="description" content="Primal KnIght – Onslaught. One hero, endless growth, one fortress to defend."><title>Primal KnIght – Onslaught</title><link rel="icon" href="assets/icon.png"><link rel="apple-touch-icon" href="assets/icon.png"><link rel="stylesheet" href="style.css?v=0.12.5"></head>
 <body><div id="app">
 <header class="top">
- <div class="branding"><div class="crest-icon"><img src="assets/icon.png" alt=""></div><div class="wordmark"><strong>PRIMAL KNIGHT</strong><span>✦ ONSLAUGHT <em>ALPHA 0.12.4</em> ✦</span></div></div>
+ <div class="branding"><div class="crest-icon"><img src="assets/icon.png" alt=""></div><div class="wordmark"><strong>PRIMAL KNIGHT</strong><span>✦ ONSLAUGHT <em>ALPHA 0.12.5</em> ✦</span></div></div>
  <div class="resources" id="resources" aria-label="Your currencies"></div>
  <button class="utility-button" id="settingsButton" aria-label="Settings and save backup" title="Settings and save backup">⚙</button>
 </header>
@@ -27,6 +27,7 @@
       <div class="tier-vista-caption"><span>THE LAND AHEAD</span><strong id="tierVistaName">VERDANT DAWN</strong><small id="tierVistaWeather">MIST · DAWN LIGHT</small></div>
      </div>
      <p id="tierVistaLore" class="tier-vista-lore">The first watchfires still burn along the orchard road.</p>
+     <button id="openAtlasButton" class="atlas-open-button" type="button" aria-haspopup="dialog">✦ WORLD ATLAS · VIEW ALL 30 TERRITORIES</button>
      <p id="tierDescription"></p></div><div class="milestone-scroll" id="milestoneList"></div></div></div>
    <div class="lobby-footer"><span>Milestones pay once per tier · Normal enemy rewards pay every run</span><button id="launchTierButton" class="action-primary">⚔ START TIER I • ENDLESS SIEGE</button></div>
   </section>
@@ -59,4 +60,28 @@
  <button class="nav-item" data-hub="fortress"><span class="pixel-symbol pixel-symbol-fortress" aria-hidden="true"></span><b>FORTRESS</b><small>Build &amp; weaken</small></button>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-</div><script src="game.js?v=0.12.4"></script></body></html>
+<div id="worldAtlas" class="world-atlas" role="dialog" aria-modal="true" aria-labelledby="atlasHeading" hidden>
+ <div class="atlas-inner">
+  <header class="atlas-head">
+   <div><small>THE KINGDOM OF AETHRA · ILLUSTRATED WORLD ATLAS</small><h2 id="atlasHeading">TIER I — VERDANT MARCH</h2></div>
+   <button id="atlasClose" type="button" aria-label="Close the world atlas">✕ CLOSE</button>
+  </header>
+  <div class="atlas-scene" aria-label="Battlefield artwork preview without enemies or combat">
+   <img class="atlas-base" src="assets/battlefield.png" alt="" draggable="false">
+   <img id="atlasMatte" class="atlas-matte" alt="" draggable="false" hidden>
+   <img class="atlas-foreground" src="assets/foreground.png" alt="" draggable="false">
+   <img id="atlasHeraldry" class="atlas-heraldry" alt="" draggable="false" hidden>
+  </div>
+  <div class="atlas-meta">
+   <div><span id="atlasAtmosphere">VERDANT DAWN · MIST</span><strong id="atlasLock">UNLOCKED</strong></div>
+   <p id="atlasLore">The first watchfires still burn along the orchard road.</p>
+  </div>
+  <nav class="atlas-controls" aria-label="Browse territory illustrations">
+   <button type="button" id="atlasPrev" aria-label="Previous territory">← PREVIOUS</button>
+   <span id="atlasCount">1 / 30</span>
+   <button type="button" id="atlasNext" aria-label="Next territory">NEXT →</button>
+  </nav>
+  <small class="atlas-disclaimer">ART PREVIEW ONLY · Locked realms can be viewed, not played or unlocked here. Browsing never changes your saved tier.</small>
+ </div>
+</div>
+</div><script src="game.js?v=0.12.5"></script></body></html>
