@@ -25,6 +25,28 @@ Each scene is limited to up to **19 seconds of actual combat**. The test records
 
 Separate exact-damage tests verify 35% magic armor piercing, real Storm Conductor interaction and the absence of a station crest leak into hero spells, while preserving the real station bonus.
 
+## Results from the 306-scenario CI run
+
+The first successful paired run on November 3, 2026 produced these **descriptive means across 34 fixed-level-20, up-to-19-second scenes per build**. They are not global performance rankings; those scenes deliberately include high-tier enemies that substantially outscale the chosen fixed hero profile.
+
+| Active + passive | Auto-casts | Mean kills | Mean breaches | Mean wall HP fraction | Full wave clears | Defeats |
+|---|---:|---:|---:|---:|---:|---:|
+| Volley + Predator | 51 | 5.65 | 5.94 | 0.301 | 0 | 20 |
+| Volley + Conductor | 51 | 5.82 | 5.94 | 0.299 | 0 | 20 |
+| Volley + Rampart | 51 | 5.68 | 6.41 | 0.311 | 0 | 19 |
+| Chain + Predator | 48 | 5.82 | 5.97 | 0.299 | 1 | 20 |
+| Chain + Conductor | 49 | 5.76 | 5.94 | 0.301 | 0 | 19 |
+| Chain + Rampart | 48 | 5.68 | 6.32 | 0.312 | 0 | 20 |
+| Aegis + Predator | 35 | 5.47 | 5.97 | 0.302 | 0 | 20 |
+| Aegis + Conductor | 34 | 5.68 | 5.85 | 0.307 | 0 | 20 |
+| Aegis + Rampart | 37 | 5.38 | 6.47 | 0.309 | 0 | 20 |
+
+**Important result:** These nearly identical averages and large defeat counts are a warning about the limitations of a fixed level-20 build at high-tier checkpoints. They do *not* validate long-run progression tuning, prove that every build is equally viable, or establish an optimal nine-build meta.
+
+A separate **pre-wave-reward**, matched pressure check showed the expected defensive niche: Hunter's Volley + Predator's Eye ended at **4,891 HP**, while Aegis Pulse + Rampart Oath ended at **5,080 HP**, with three breaches for both, the exact same spawned attackers and one successful auto-cast each. This comparison deliberately prevents earlier wave completion from awarding passive post-wave healing to either side.
+
+**Next useful step:** evaluate appropriately progressed heroes at tier-specific investment profiles and player-facing defeat/clear rates, then investigate builds that underperform at matched gear/training rather than flattening their unique strengths.
+
 ### Important interpretation limits
 
 The matrix provides repeatable **relative controlled-combat evidence**, not proof that any particular build is mathematically optimal or that all nine combinations should have identical win rates. An offensive build might kill more, a defensive build might preserve more fortress health, and a caster build should counter armor better. Those are meaningful differences.
