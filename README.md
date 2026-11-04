@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.11.8 (Hero Combat Depth, Slice 9)
+## Current release — Alpha 0.11.9 (Hero Combat Depth, Slice 10)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -48,9 +48,11 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 
 **New in 0.11.8:** **Sovereign War Chest** in Battle → War Council: a collapsible, touch-friendly way to invest your *actually held* one-time Primal Sigils in genuinely unlocked permanent Legacy, Ascension or Sovereign Oath ranks. Costs and caps are identical to Power → Training; next unclaimed Sigil milestone is shown honestly; buttons cannot spend during live siege or fabricate resources. The **21-script CI suite** adds a real click/save regression and **162 milestone-Sigil-budget-constrained late combat slices**. Those comparisons all cleared under *hypothetical*, probably powerful non-Sigil equipment/training assumptions—not verified live endgame balance. The save key, currency rules and progression stay unchanged. See `docs/ALPHA_0118_EARNED_SIGIL_WAR_CHEST.md`.
 
+**New in 0.11.9:** **Fully automatic hero signature ability strategy** in Hero Hall and Battle War Council. Choose **RAPID** (the unchanged legacy auto-cast default), **HORDE** (wait for crowds/urgent threats) or **CRISIS** (save your charge for near-wall danger, boss windups or a damaged fortress). Zero additional taps during battle: cooldowns keep their old values, a held ability stays ready until its trigger occurs, and swapping strategy is blocked during live combat. Saved build presets also remember timing choices. All original and imported saves missing the optional setting safely default to Rapid. New regression tests preserve the 23-script CI suite, existing gear, currencies, achievements and 30 × 10,000 waves. See `docs/ALPHA_0119_DOCTRINE_AUTO_TACTICS.md`.
+
 **Play:** https://hdog960.github.io/Primal-Knight/
 
-Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0113_COMBAT_BALANCE.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js && node tests/first-watch-vault.js && node tests/siege-chronicle.js && node tests/boss-fairness.js && node tests/hero-doctrines.js && node tests/combat-builds.js && node tests/war-council.js && node tests/combat-balance-matrix.js && node tests/progression-matched-builds.js && node tests/quartermaster.js && node tests/earned-first-watch.js && node tests/earned-retries.js && node tests/sigil-ledger.js && node tests/war-chest.js && node tests/sigil-gated-combat.js` for the automated suite.
+Development priorities and QA notes: `docs/LOCKED_ROADMAP_010_TO_015.md`, `docs/ALPHA_0113_COMBAT_BALANCE.md`. Physical iPhone visual approval is still outstanding. Run `node --check game.js && node tests/smoke.js && node tests/balance.js && node tests/encounters.js && node tests/deepwave.js && node tests/mobile-render.js && node tests/reward-integrity.js && node tests/first-watch-vault.js && node tests/siege-chronicle.js && node tests/boss-fairness.js && node tests/hero-doctrines.js && node tests/combat-builds.js && node tests/war-council.js && node tests/combat-balance-matrix.js && node tests/progression-matched-builds.js && node tests/quartermaster.js && node tests/earned-first-watch.js && node tests/earned-retries.js && node tests/sigil-ledger.js && node tests/war-chest.js && node tests/sigil-gated-combat.js && node tests/doctrine-tactics.js && node tests/doctrine-tactic-battles.js` for the automated suite.
 
 ---
 

@@ -2302,3 +2302,33 @@
 @media(max-width:350px){.war-chest-offer{flex-direction:column;align-items:stretch}
  .war-chest-offer button{width:100%}}
 @media(orientation:landscape) and (max-height:460px){.war-chest-body{padding:7px 9px}.war-chest-offer{padding:7px}.war-chest-offer button{min-height:42px}}
+
+
+/* Alpha 0.11.9 — three fully automatic doctrine timing tactics. */
+.doctrine-tactics{margin:12px 0;padding:12px;border:1px solid #aa9168;background:linear-gradient(135deg,#304147,#1d303d 70%);color:#eee6d5}
+.doctrine-tactics-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px}
+.doctrine-tactics-head strong{font:800 12px Georgia,serif;letter-spacing:.4px;color:#ffe2a8}
+.doctrine-tactics-head span{font:800 10px Arial,sans-serif;color:#c5e2d9}
+.doctrine-tactics>p{margin:7px 0 11px;font:11px/1.5 Arial,sans-serif;color:#d9e1d7}
+.doctrine-tactics-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.doctrine-tactics-choice{min-height:78px;padding:9px;border:1px solid #958565;
+ background:linear-gradient(#293c45,#20303c);text-align:left;color:#e8e3d8;cursor:pointer;
+ display:flex;flex-direction:column;gap:6px;touch-action:manipulation}
+.doctrine-tactics-choice strong{font:800 12px Georgia,serif;color:#efd4a4;letter-spacing:.5px}
+.doctrine-tactics-choice small{font:10px/1.45 Arial,sans-serif;color:#d6dbd5}
+.doctrine-tactics-choice.selected{border-color:#f4d295;box-shadow:inset 0 0 0 1px #f4d29566;background:linear-gradient(#425047,#2e3e45)}
+.doctrine-tactics-choice:disabled{opacity:.65;cursor:not-allowed}
+.doctrine-tactics-choice:focus-visible{outline:2px solid #fff0b2;outline-offset:2px}
+.doctrine-tactics>small{display:block;margin-top:9px;color:#bdcfc4;font:10px/1.45 Arial,sans-serif}
+.doctrine-tactics-compact{padding:9px 10px;margin-top:10px}
+.doctrine-tactics-compact .doctrine-tactics-choice{min-height:64px;padding:8px}
+@media(max-width:720px),(orientation:portrait){.doctrine-tactics-options{grid-template-columns:1fr;gap:6px}
+ .doctrine-tactics-choice,.doctrine-tactics-compact .doctrine-tactics-choice{min-height:48px}
+ .doctrine-tactics{padding:9px}
+ .doctrine-tactics-choice{flex-direction:row;align-items:center;gap:10px}
+ .doctrine-tactics-choice strong{min-width:66px}
+}
+@media(orientation:landscape) and (max-height:460px){.doctrine-tactics{margin:8px 0;padding:8px}
+ .doctrine-tactics-choice{min-height:48px;padding:6px}
+ .doctrine-tactics-compact .doctrine-tactics-choice{min-height:45px}
+ .doctrine-tactics>p{margin:5px 0 7px}}

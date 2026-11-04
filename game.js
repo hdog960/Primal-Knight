@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.11.8. Hero Combat Depth - Cost-constrained War Chest: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.11.9. Hero Combat Depth - Automatic tactical cast timing: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -45,8 +45,8 @@ const gearNames={
  charm:['Copper Locket','Hunter Sigil','Wolfsbane Charm','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone'],
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
-function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';
+function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',doctrineTactic:'rapid',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -111,6 +111,7 @@ function normalizeRestoredProgress(){
  p.legacyUnlocked=!!p.legacyUnlocked;
  p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';
  p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';
+ p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
  p.combatLoadouts=normalizeCombatLoadouts(p.combatLoadouts);
 }
 function restoreProgressBackup(data,keepRecoveryCopy=false){
@@ -159,6 +160,46 @@ const combatPassiveData={
  sentinel:{id:'sentinel',name:'RAMPART OATH',school:'Guardian',level:5,
   short:'Reduce wall-impact and Sapper blast damage by 10%.',detail:'Passive protection does not raise damage or improve Gold rewards.'}
 };
+
+/* Alpha 0.11.9 — player-controlled, fully automatic cast timing policies.
+   Rapid is the original unchanged behavior for every existing iPhone save. */
+const doctrineTacticModes={
+ rapid:{name:'RAPID',detail:'Use your signature ability whenever its cooldown ends and a valid target is present.'},
+ horde:{name:'HORDE',detail:'Hold it for four enemies, a dangerous special cast, or damage that needs Aegis healing.'},
+ crisis:{name:'CRISIS',detail:'Save it for attackers near the wall, dangerous windups, crowded battlefields, or a damaged fortress.'}
+};
+function normalizeDoctrineTactic(id){return Object.prototype.hasOwnProperty.call(doctrineTacticModes,id)?id:'rapid';}
+function chooseDoctrineTactic(id){
+ if(run.phase==='fighting'||run.phase==='intermission'||!Object.prototype.hasOwnProperty.call(doctrineTacticModes,id))return false;
+ p.doctrineTactic=id;return true;
+}
+function doctrineTacticEligible(){
+ const mode=normalizeDoctrineTactic(p.doctrineTactic);
+ if(mode==='rapid')return true; // This exactly preserves previous auto-casting.
+ const alive=run.enemies.filter(e=>e&&!e.dead);
+ if(!alive.length)return false;
+ const damaged=run.health<=run.maxHealth*.91;
+ const urgent=alive.some(e=>e.bossWardTimer>0||e.crushWindup>0||e.bossFuryWindup>0||
+   e.bossBlinkWindup>0||e.type==='sapper'&&e.y>=220||
+   e.type==='shaman'&&e.ritualClock<=1.4);
+ const aegis=chosenDoctrine().id==='aegis';
+ if(mode==='horde')return alive.length>=4||urgent||(aegis&&damaged);
+ return urgent||alive.some(e=>e.y>=288)||alive.length>=9||
+   run.health<=run.maxHealth*.78||(aegis&&run.health<=run.maxHealth*.91);
+}
+function renderDoctrineTactics(compact=false){
+ const disabled=run.phase==='fighting'||run.phase==='intermission';
+ return `<section class="doctrine-tactics ${compact?'doctrine-tactics-compact':''}" aria-label="Automatic signature ability cast timing">
+   <div class="doctrine-tactics-head"><strong>✦ AUTOMATIC ABILITY STRATEGY</strong>
+   <span>${doctrineTacticModes[normalizeDoctrineTactic(p.doctrineTactic)].name} MODE</span></div>
+   <p>All choices stay fully automatic. RAPID preserves the original behavior; more selective timing can help with crowded or dangerous encounters.</p>
+   <div class="doctrine-tactics-options">${Object.entries(doctrineTacticModes).map(([id,mode])=>
+    `<button type="button" ${compact?'data-doctrine-tactic':'data-action'}="${compact?id:'tactic:'+id}"
+    class="doctrine-tactics-choice ${p.doctrineTactic===id?'selected':''}" aria-pressed="${p.doctrineTactic===id}"
+    ${disabled?'disabled':''}><strong>${mode.name}</strong><small>${mode.detail}</small></button>`).join('')}</div>
+   <small>Changing strategy is free between sieges, saves on your device, and does not restart a cooldown or alter your earned items.</small>
+  </section>`;
+}
 const combatLoadoutNames=['SCOUT','TEMPEST','BASTION'];
 function passiveTrait(){return combatPassiveData[p.combatPassive]||combatPassiveData.hunter;}
 function chooseCombatPassive(id){
@@ -182,14 +223,14 @@ function normalizeCombatLoadouts(slots){
    return out;
   };
   const equipped=acceptMap(item.equipped),socketed=acceptMap(item.socketed);
-  return equipped&&socketed?{doctrine:item.doctrine,passive:item.passive,equipped,socketed}:null;
+  return equipped&&socketed?{doctrine:item.doctrine,passive:item.passive,tactic:normalizeDoctrineTactic(item.tactic),equipped,socketed}:null;
  });
 }
 p.combatLoadouts=normalizeCombatLoadouts(p.combatLoadouts);
 function saveCombatLoadout(index){
  if(!Number.isInteger(index)||index<0||index>=combatLoadoutNames.length)return false;
  p.combatLoadouts[index]={
-  doctrine:p.combatDoctrine,passive:p.combatPassive,
+  doctrine:p.combatDoctrine,passive:p.combatPassive,tactic:normalizeDoctrineTactic(p.doctrineTactic),
   equipped:Object.fromEntries(Object.entries(p.equipped).filter(([slot,id])=>gearSlots.includes(slot)&&typeof id==='string'&&id)),
   socketed:Object.fromEntries(Object.entries(p.socketed).filter(([slot,id])=>gearSlots.includes(slot)&&typeof id==='string'&&id))
  };
@@ -222,7 +263,7 @@ function applyCombatLoadout(index){
  if(!status.ready)return false;
  const selected=p.combatLoadouts[index];
  // All validation happens before any mutation. Broken or sold-item builds cannot partially equip.
- p.combatDoctrine=selected.doctrine;p.combatPassive=selected.passive;
+ p.combatDoctrine=selected.doctrine;p.combatPassive=selected.passive;p.doctrineTactic=normalizeDoctrineTactic(selected.tactic);
  p.equipped={...selected.equipped};
  p.socketed={...selected.socketed};
  run.maxHealth=maxWall();run.health=Math.min(run.health,run.maxHealth);
@@ -232,10 +273,10 @@ function renderCombatLoadouts(compact=false){
  const counsel=compact?warCouncilPlan(chosenTier,useWaystone?waystoneForTier(chosenTier):1):null;
  const cards=combatLoadoutNames.map((name,index)=>{
   const saved=p.combatLoadouts[index],state=loadoutReadiness(index),active=saved&&
-   saved.doctrine===p.combatDoctrine&&saved.passive===p.combatPassive&&
+   saved.doctrine===p.combatDoctrine&&saved.passive===p.combatPassive&&normalizeDoctrineTactic(saved.tactic)===p.doctrineTactic&&
    JSON.stringify(saved.equipped)===JSON.stringify(p.equipped)&&
    JSON.stringify(saved.socketed)===JSON.stringify(p.socketed);
-  return `<div class="build-preset${active?' active':''}"><div class="build-preset-copy"><small>SLOT ${index+1} · ${name}</small><strong>${saved?combatDoctrineData[saved.doctrine].name+' / '+combatPassiveData[saved.passive].name:'EMPTY LOADOUT'}</strong><span>${saved?(compact&&state.ready?'TACTICAL MATCH '+warCouncilFit(saved.doctrine,saved.passive,counsel.guide,saved.socketed)+'/9 · '+state.reason:state.reason):'Save your current equipment, runes and abilities here.'}</span></div><div class="build-preset-actions">${compact?'':`<button type="button" data-action="saveLoadout:${index}" aria-label="Save current build into preset ${name}">SAVE</button>`}<button type="button" data-action="applyLoadout:${index}" ${state.ready?'':'disabled'} aria-label="Apply preset ${name}">${active?'EQUIPPED':state.ready?'EQUIP':'UNAVAILABLE'}</button></div></div>`;
+  return `<div class="build-preset${active?' active':''}"><div class="build-preset-copy"><small>SLOT ${index+1} · ${name}</small><strong>${saved?combatDoctrineData[saved.doctrine].name+' / '+combatPassiveData[saved.passive].name+' · '+doctrineTacticModes[normalizeDoctrineTactic(saved.tactic)].name:'EMPTY LOADOUT'}</strong><span>${saved?(compact&&state.ready?'TACTICAL MATCH '+warCouncilFit(saved.doctrine,saved.passive,counsel.guide,saved.socketed)+'/9 · '+state.reason:state.reason):'Save your current equipment, runes and abilities here.'}</span></div><div class="build-preset-actions">${compact?'':`<button type="button" data-action="saveLoadout:${index}" aria-label="Save current build into preset ${name}">SAVE</button>`}<button type="button" data-action="applyLoadout:${index}" ${state.ready?'':'disabled'} aria-label="Apply preset ${name}">${active?'EQUIPPED':state.ready?'EQUIP':'UNAVAILABLE'}</button></div></div>`;
  }).join('');
  return `<section class="combat-build-presets" aria-label="Saved combat loadout presets"><div class="combat-build-head"><strong>✦ ${compact?'QUICK PREPARATION':'THREE BATTLE LOADOUTS'}</strong><small>${compact?'Equip a saved build before the siege':'Three free presets · equipment and runes are referenced, never copied'}</small></div><div class="combat-build-grid">${cards}</div></section>`;
 }
@@ -297,7 +338,7 @@ function castCombatDoctrine(){
 function advanceCombatDoctrine(dt){
  if(run.phase!=='fighting'||run.speed===0||!Number.isFinite(dt)||dt<=0)return false;
  run.doctrineClock=Math.max(0,(run.doctrineClock||0)-dt);
- if(run.doctrineClock>0||!castCombatDoctrine())return false;
+ if(run.doctrineClock>0||!doctrineTacticEligible()||!castCombatDoctrine())return false;
  run.doctrineClock=doctrineCooldown();
  return true;
 }
@@ -310,7 +351,8 @@ function refreshDoctrineHud(){
  const discipline=chosenDoctrine();
  const remaining=Math.max(0,run.doctrineClock||0);
  $('doctrineName').textContent=discipline.name;
- $('doctrineTimer').textContent=remaining>0?remaining.toFixed(1)+'s':'READY';
+ $('doctrineTimer').textContent=remaining>0?remaining.toFixed(1)+'s':doctrineTacticEligible()?'READY':'HELD';
+ hud.dataset.tactic=normalizeDoctrineTactic(p.doctrineTactic);
  hud.dataset.school=discipline.id;
  hud.dataset.ready=remaining===0?'true':'false';
 }
@@ -664,6 +706,7 @@ function renderWarCouncil(tier=chosenTier,wave=useWaystone?waystoneForTier(tier)
   <div class="war-council-rune"><strong>◇ ${plan.guide.rune.toUpperCase()} RUNE</strong><span>${runeNote}</span></div>
   <p class="war-council-foot">The suggestion changes only your active doctrine and passive. Gear, rune sockets and saved presets stay yours. Compare your presets below before launching.</p>
   ${renderCouncilQuartermaster(plan)}
+  ${renderDoctrineTactics(true)}
   ${renderWarChest(plan.tier,plan.wave)}
  </section>`;
 }
@@ -1758,7 +1801,7 @@ function renderHeroHall(){
       </div>
     </section>
     <section class="hall-doctrines" aria-label="Auto-cast combat disciplines">
-      <div class="hall-doctrine-head"><div><small>⚔ HERO COMBAT DEPTH · ONE ACTIVE DISCIPLINE</small><h2>Battle Doctrines</h2><p>Choose one battle style. Your champion automatically casts its signature ability whenever an eligible target is on the field. Free to switch and no new currency required.</p></div><strong>✦ ${chosenDoctrine().school.toUpperCase()} ACTIVE</strong></div>
+      <div class="hall-doctrine-head"><div><small>⚔ HERO COMBAT DEPTH · ONE ACTIVE DISCIPLINE</small><h2>Battle Doctrines</h2><p>Choose one battle style and set when your champion automatically casts below. The original Rapid timing remains the default; all strategies use existing cooldowns and cost no additional currency.</p></div><strong>✦ ${chosenDoctrine().school.toUpperCase()} ACTIVE</strong></div>
       <div class="hall-doctrine-grid">${Object.values(combatDoctrineData).map(d=>{
        const locked=p.level<d.level,selected=p.combatDoctrine===d.id;
        return `<button class="hall-doctrine-choice hall-doctrine-${d.id}${selected?' selected':''}${locked?' locked':''}" type="button" data-action="doctrine:${d.id}" ${locked?'disabled':''} aria-pressed="${selected}" aria-label="${d.name}, ${locked?'requires hero level '+d.level:selected?'active combat doctrine':'select this combat doctrine'}">
@@ -1767,7 +1810,8 @@ function renderHeroHall(){
          <span class="hall-doctrine-state">${locked?'LEVEL '+d.level+' UNLOCK':selected?'EQUIPPED':'EQUIP'}</span>
        </button>`;
       }).join('')}</div>
-      <p class="hall-doctrine-footnote">Abilities scale from existing training, talents and rune sockets. An active siege has its own cooldown; changing disciplines does not instantly trigger another ability.</p>
+      <p class="hall-doctrine-footnote">Abilities scale from existing training, talents and rune sockets. Cast timing is configurable below; changing disciplines never instantly triggers another ability.</p>
+      ${renderDoctrineTactics()}
     </section>
     <section class="hall-passives" aria-label="Choose one passive combat ability">
       <div class="combat-build-head"><strong>✧ PASSIVE COMBAT TRAIT · ONE ACTIVE</strong><small>Free to switch · one passive only</small></div>
@@ -2224,7 +2268,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.8 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.9 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -2295,6 +2339,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
   }
  }
  else if(type==='doctrine'){if(chooseCombatDoctrine(id)){notice(chosenDoctrine().name+' SELECTED');refreshDoctrineHud();}else notice('DISCIPLINE LOCKED · RAISE HERO LEVEL');}
+ else if(type==='tactic'){if(chooseDoctrineTactic(id))notice('AUTO CAST · '+doctrineTacticModes[id].name);else notice('AUTO CAST · CHANGE BETWEEN SIEGES ONLY');}
  else if(type==='passive'){if(chooseCombatPassive(id))notice(passiveTrait().name+' EQUIPPED');else notice('PASSIVE LOCKED · RAISE HERO LEVEL');}
  else if(type==='saveLoadout'){const ok=saveCombatLoadout(Number(id));notice(ok?'BATTLE LOADOUT SAVED':'INVALID LOADOUT SLOT');}
  else if(type==='applyLoadout'){
@@ -2331,7 +2376,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  else if(type==='export'){let blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='primal-knight-onslaught-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return;}
  const scrollPane=$('panelContent'),keepScroll=scrollPane.scrollTop;
  save();refreshHUD();renderPanel();
- if(['train','trainBatch','legacy','ascension','oath','research'].includes(type))scrollPane.scrollTop=keepScroll;
+ if(['train','trainBatch','legacy','ascension','oath','research','tactic'].includes(type))scrollPane.scrollTop=keepScroll;
 }
 // A ProMotion iPhone may request 120+ RAF callbacks/sec. Keep combat physics responsive
 // but avoid re-painting the large layered pixel-art canvas more than 60 times/sec.
@@ -2420,6 +2465,18 @@ $('milestoneList').addEventListener('click',e=>{
  }
 
 
+
+ const tactic=e.target.closest('[data-doctrine-tactic]');
+ if(tactic&&typeof tactic.dataset?.doctrineTactic==='string'){
+  if(tactic.disabled)return;
+  const list=$('milestoneList'),scroll=list.scrollTop,chestOpen=!!list.querySelector?.('details.war-chest')?.open;
+  const applied=chooseDoctrineTactic(tactic.dataset.doctrineTactic);
+  if(applied){save();notice('AUTO CAST · '+doctrineTacticModes[p.doctrineTactic].name+' STRATEGY SELECTED');}
+  else notice('AUTO CAST · CHANGE BLOCKED');
+  renderTierLobby();list.scrollTop=scroll;
+  if(chestOpen){const chestView=list.querySelector?.('details.war-chest');if(chestView)chestView.open=true;}
+  return;
+ }
  const chest=e.target.closest('[data-war-chest]');
  if(chest&&typeof chest.dataset?.warChest==='string'){
   if(chest.disabled)return;
@@ -2457,5 +2514,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
