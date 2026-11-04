@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.11.1. Hero Combat Depth phase 2: single-slot passive traits, safe three-slot presets and fast siege preparation and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.11.2. Hero Combat Depth phase 3: faction-aware War Council, actionable prep and safe comparative loadout advice and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -229,12 +229,13 @@ function applyCombatLoadout(index){
  return true;
 }
 function renderCombatLoadouts(compact=false){
+ const counsel=compact?warCouncilPlan(chosenTier,useWaystone?waystoneForTier(chosenTier):1):null;
  const cards=combatLoadoutNames.map((name,index)=>{
   const saved=p.combatLoadouts[index],state=loadoutReadiness(index),active=saved&&
    saved.doctrine===p.combatDoctrine&&saved.passive===p.combatPassive&&
    JSON.stringify(saved.equipped)===JSON.stringify(p.equipped)&&
    JSON.stringify(saved.socketed)===JSON.stringify(p.socketed);
-  return `<div class="build-preset${active?' active':''}"><div class="build-preset-copy"><small>SLOT ${index+1} · ${name}</small><strong>${saved?combatDoctrineData[saved.doctrine].name+' / '+combatPassiveData[saved.passive].name:'EMPTY LOADOUT'}</strong><span>${saved?state.reason:'Save your current equipment, runes and abilities here.'}</span></div><div class="build-preset-actions">${compact?'':`<button type="button" data-action="saveLoadout:${index}" aria-label="Save current build into preset ${name}">SAVE</button>`}<button type="button" data-action="applyLoadout:${index}" ${state.ready?'':'disabled'} aria-label="Apply preset ${name}">${active?'EQUIPPED':state.ready?'EQUIP':'UNAVAILABLE'}</button></div></div>`;
+  return `<div class="build-preset${active?' active':''}"><div class="build-preset-copy"><small>SLOT ${index+1} · ${name}</small><strong>${saved?combatDoctrineData[saved.doctrine].name+' / '+combatPassiveData[saved.passive].name:'EMPTY LOADOUT'}</strong><span>${saved?(compact&&state.ready?'TACTICAL MATCH '+warCouncilFit(saved.doctrine,saved.passive,counsel.guide,saved.socketed)+'/9 · '+state.reason:state.reason):'Save your current equipment, runes and abilities here.'}</span></div><div class="build-preset-actions">${compact?'':`<button type="button" data-action="saveLoadout:${index}" aria-label="Save current build into preset ${name}">SAVE</button>`}<button type="button" data-action="applyLoadout:${index}" ${state.ready?'':'disabled'} aria-label="Apply preset ${name}">${active?'EQUIPPED':state.ready?'EQUIP':'UNAVAILABLE'}</button></div></div>`;
  }).join('');
  return `<section class="combat-build-presets" aria-label="Saved combat loadout presets"><div class="combat-build-head"><strong>✦ ${compact?'QUICK PREPARATION':'THREE BATTLE LOADOUTS'}</strong><small>${compact?'Equip a saved build before the siege':'Three free presets · equipment and runes are referenced, never copied'}</small></div><div class="combat-build-grid">${cards}</div></section>`;
 }
@@ -437,6 +438,106 @@ function encounterDirector(wave,tier=1){
  const bossStyle=['iron','ember','rift'][(chapter-1)%3];
  const bossName={iron:'IRON TYRANT',ember:'CINDER REGENT',rift:'VOID MONARCH'}[bossStyle];
  return {wave:w,tier:t,chapter,factionId:faction.id,faction:faction.name,color:faction.color,units:faction.units,kind,bossType,bossStyle,bossName,label:kind==='chapterBoss'?bossName:encounterLabels[kind]};
+}
+// The War Council uses the real chapter/faction director, rather than a guessed
+// enemy roster. The values are tactical match weights, NOT simulated win rates.
+const factionWarCouncil={
+ mire:{threat:'FAST FLANKS',risk:'Wargs and raiders can reach the fortress before slower volleys finish.',tip:'Pushback and wall protection help control a rush; Frost runes can slow arrow targets.',rune:'frost',
+  doctrine:{vanguard:2,storm:3,aegis:4},passive:{hunter:2,conductor:2,sentinel:4}},
+ iron:{threat:'SHIELD FORMATIONS',risk:'Guardian units shelter other infantry while they press toward the wall.',tip:'Arcane Chain can strike several targets; Storm runes improve its chain damage and arrow lightning.',rune:'storm',
+  doctrine:{vanguard:3,storm:4,aegis:1},passive:{hunter:3,conductor:4,sentinel:1}},
+ ash:{threat:'REAR-LINE RITUALS',risk:'Shamans can heal damaged enemies while raiders advance.',tip:'Focused arrows and Predator’s Eye damage help remove support casters; Ember runes add burn on arrows.',rune:'ember',
+  doctrine:{vanguard:4,storm:3,aegis:1},passive:{hunter:4,conductor:3,sentinel:1}},
+ night:{threat:'RUSHING RAIDERS',risk:'Fast raiders and wargs may breach if the defense cannot stall them.',tip:'Aegis knockback and Rampart Oath protect the wall; Frost runes can slow arrow hits.',rune:'frost',
+  doctrine:{vanguard:2,storm:3,aegis:4},passive:{hunter:2,conductor:2,sentinel:4}},
+ crown:{threat:'MIXED ELITE SUPPORT',risk:'Shield guards and shamans combine protection, healing and approaching troops.',tip:'Arcane Chain hits several targets, while focused volleys remain useful for shaman removal.',rune:'storm',
+  doctrine:{vanguard:3,storm:4,aegis:2},passive:{hunter:3,conductor:4,sentinel:2}},
+ frostvein:{threat:'FROST SPELL WINDUPS',risk:'Frostbinders telegraph rites that slow the hero’s firing rhythm.',tip:'Focused arrows and Predator’s Eye can break the Frostbinder windup before chill activates.',rune:'ember',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}},
+ cinder:{threat:'SAPPER EXPLOSIVES',risk:'Sappers light fuses that directly damage fortress health if they finish.',tip:'Burst arrows and Predator’s Eye help disarm a fuse; Rampart Oath can mitigate damage if one explodes.',rune:'frost',
+  doctrine:{vanguard:4,storm:2,aegis:3},passive:{hunter:4,conductor:1,sentinel:3}},
+ gilded:{threat:'BANNER & HEAL SUPPORT',risk:'Bannerets accelerate nearby soldiers while shamans heal them.',tip:'Predator’s Eye boosts focused arrows against both support roles; Storm runes help additional targets.',rune:'storm',
+  doctrine:{vanguard:4,storm:3,aegis:1},passive:{hunter:4,conductor:3,sentinel:1}},
+ thorn:{threat:'THORN WARD CASTERS',risk:'Thornweavers create temporary protection around approaching enemies.',tip:'Focused arrows and Predator’s Eye can break the Ward windup before protection activates.',rune:'ember',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}},
+ rift:{threat:'TELEPORT WINDUPS',risk:'Riftstalkers can blink toward the wall unless their cast is interrupted.',tip:'Predator’s Eye and focused arrows help disrupt the blink; Frost runes can slow survivors.',rune:'frost',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}}
+};
+const trainingCouncil={threat:'FIRST WATCH PATROLS',risk:'The first seven waves use introductory goblins, skeletons and wargs, regardless of the later chapter faction.',tip:'Hunter’s Volley is a reliable starter option. Keep early rewards for useful training rather than chasing a locked build.',rune:'frost',
+ doctrine:{vanguard:4,storm:2,aegis:2},passive:{hunter:4,conductor:2,sentinel:2}};
+const bossCouncil={
+ iron:{threat:'IRON WARD COUNTERPLAY',risk:'The Iron Tyrant briefly shields itself before it can be shattered by focused damage.',tip:'Hunter’s Volley and Predator’s Eye focus the active ward. Aegis or Rampart Oath remains a valid defensive alternative if your wall is struggling.',rune:'storm',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}},
+ ember:{threat:'EMBER CHARGE COUNTERPLAY',risk:'The Cinder Regent telegraphs a charge that focused damage can interrupt.',tip:'Burst arrows and Predator’s Eye create break pressure during the short charge windup; Ember runes add damage over time to arrows.',rune:'ember',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}},
+ rift:{threat:'VOID STEP COUNTERPLAY',risk:'The Void Monarch telegraphs a blink toward your wall.',tip:'Focused arrow bursts can break the windup, while Frost runes can slow targets if they survive.',rune:'frost',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}},
+ commander:{threat:'SIEGE BEAST CRUSHER',risk:'The Siege Beast prepares a crushing strike; it can be interrupted by focused damage.',tip:'Predator’s Eye empowers focused arrows against the boss. Aegis or Sentinel may be preferable when fortress health is low.',rune:'ember',
+  doctrine:{vanguard:4,storm:3,aegis:2},passive:{hunter:4,conductor:3,sentinel:2}}
+};
+function warCouncilFit(doctrine,passive,tactics,sockets={}){
+ if(!combatDoctrineData[doctrine]||!combatPassiveData[passive]||!tactics)return 0;
+ const synergy=Object.values(sockets||{}).some(id=>p.runes.some(r=>r&&r.id===id&&r.type===tactics.rune))?1:0;
+ return (tactics.doctrine[doctrine]||0)+(tactics.passive[passive]||0)+synergy;
+}
+function warCouncilPlan(tier=chosenTier,wave=useWaystone?waystoneForTier(tier):1){
+ const selectedTier=clamp(Math.floor(Number(tier)||1),1,MAX_TIER);
+ const start=clamp(Math.floor(Number(wave)||1),1,MAX_WAVE);
+ const encounter=encounterDirector(start,selectedTier);
+ const training=start<=7,guide=training?trainingCouncil:encounter.kind==='chapterBoss'?bossCouncil[encounter.bossStyle]:encounter.kind==='commander'?bossCouncil.commander:factionWarCouncil[encounter.factionId];
+ const options=[];
+ for(const doctrine of Object.keys(combatDoctrineData)){
+  if(p.level<combatDoctrineData[doctrine].level)continue;
+  for(const passive of Object.keys(combatPassiveData)){
+   if(p.level<combatPassiveData[passive].level)continue;
+   options.push({doctrine,passive,fit:warCouncilFit(doctrine,passive,guide,p.socketed)});
+  }
+ }
+ options.sort((a,b)=>b.fit-a.fit||a.doctrine.localeCompare(b.doctrine)||a.passive.localeCompare(b.passive));
+ const recommended=options[0]||{doctrine:'vanguard',passive:'hunter',fit:0};
+ let upcoming=null;
+ for(let w=start;w<=Math.min(MAX_WAVE,start+100);w++){
+  const e=encounterDirector(w,selectedTier);
+  if(['chapterBoss','commander','relic','arcane','bannerAssault','ambush','elite'].includes(e.kind)){
+   upcoming={wave:e.wave,kind:e.kind,label:e.label,bossStyle:e.bossStyle};
+   break;
+  }
+ }
+ return {tier:selectedTier,wave:start,chapter:encounter.chapter,factionId:encounter.factionId,
+  faction:encounter.faction,training,guide,upcoming,recommended,
+  currentFit:warCouncilFit(p.combatDoctrine,p.combatPassive,guide,p.socketed),
+  runeEquipped:Object.values(p.socketed).some(id=>p.runes.some(r=>r&&r.id===id&&r.type===guide.rune)),
+  runeOwned:p.runes.filter(r=>r&&r.type===guide.rune).length};
+}
+function applyWarCouncil(){
+ if(run.phase==='fighting'||run.phase==='intermission')return false;
+ const rec=warCouncilPlan().recommended;
+ if(!combatDoctrineData[rec.doctrine]||p.level<combatDoctrineData[rec.doctrine].level||
+    !combatPassiveData[rec.passive]||p.level<combatPassiveData[rec.passive].level)return false;
+ const changed=p.combatDoctrine!==rec.doctrine||p.combatPassive!==rec.passive;
+ if(!changed)return true;
+ p.combatDoctrine=rec.doctrine;p.combatPassive=rec.passive;
+ run.doctrineClock=Math.max(3,Number(run.doctrineClock)||0);
+ return true;
+}
+function renderWarCouncil(tier=chosenTier,wave=useWaystone?waystoneForTier(tier):1){
+ const plan=warCouncilPlan(tier,wave),rec=plan.recommended;
+ const same=p.combatDoctrine===rec.doctrine&&p.combatPassive===rec.passive;
+ const runeNote=plan.runeEquipped?'SOCKETED AND READY':plan.runeOwned?'OWNED · EQUIP IN RUNE WORKSHOP':'NOT OWNED · OPTIONAL';
+ const upcoming=plan.upcoming?`NEXT ${plan.upcoming.label} · WAVE ${formatWave(plan.upcoming.wave)}`:'NO FURTHER EVENTS';
+ return `<section class="war-council" aria-label="Faction-aware battle preparation">
+  <div class="war-council-heading"><div><small>⚔ THE WAR COUNCIL · TIER ${roman(plan.tier)} · WAVE ${formatWave(plan.wave)}</small>
+  <strong>${plan.guide.threat}</strong><span>${plan.faction} · Chapter ${roman(plan.chapter)}${plan.training?' · INTRODUCTORY WAVES':''}</span></div>
+  <span class="war-council-next">${upcoming}</span></div>
+  <p class="war-council-risk">${plan.guide.risk}</p>
+  <p class="war-council-tip">${plan.guide.tip}</p>
+  <div class="war-council-choice"><div><small>BEST AVAILABLE TACTICAL PAIR · HERO LV ${p.level}</small>
+  <strong>${combatDoctrineData[rec.doctrine].name} + ${combatPassiveData[rec.passive].name}</strong>
+  <span>CURRENT BUILD FIT ${plan.currentFit}/9 · SUGGESTED PAIR FIT ${rec.fit}/9 · Guidance only, not a simulated win rate</span></div>
+  <button type="button" data-war-council="apply" ${same?'disabled':''}>${same?'PAIR EQUIPPED':'EQUIP SUGGESTED PAIR'}</button></div>
+  <div class="war-council-rune"><strong>◇ ${plan.guide.rune.toUpperCase()} RUNE</strong><span>${runeNote}</span></div>
+  <p class="war-council-foot">The suggestion changes only your active doctrine and passive. Gear, rune sockets and saved presets stay yours. Compare your presets below before launching.</p>
+ </section>`;
 }
 function encounterUnit(encounter,spawned=0){
  if(encounter.wave<=3)return spawned%3===0?'skeleton':'goblin';
@@ -835,7 +936,7 @@ function renderTierLobby(){
  }).join('');
  const gearNotice=p.pendingGear.length?`<div class="rune-vault-notice" role="status"><strong>⚒ ${p.pendingGear.length} EARNED EQUIPMENT REWARD${p.pendingGear.length===1?'':'S'} RESERVED</strong><small>Your equipment bag was full when First Watch granted gear. Go to <b>Gear → Equipment</b>, free a slot, and claim the saved items.</small></div>`:'';
  const vaultNotice=p.pendingRelics.length?`<div class="rune-vault-notice" role="status"><strong>✦ ${p.pendingRelics.length} EARNED RUNE${p.pendingRelics.length===1?'':'S'} RESERVED</strong><small>Your rune pouch was full. Nothing was lost. Go to <b>Gear → Rune Workshop</b>, free a rune slot, then claim your reward.</small></div>`:'';
- $('milestoneList').innerHTML=renderCombatLoadouts(true)+gearNotice+vaultNotice+renderFirstWatch()+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
+ $('milestoneList').innerHTML=renderWarCouncil(tier,useWaystone?stone:1)+renderCombatLoadouts(true)+gearNotice+vaultNotice+renderFirstWatch()+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
  $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(useWaystone?stone:1)+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
@@ -1936,7 +2037,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.1 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.11.2 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  $('panelContent').innerHTML=html;
  if(tab==='equipment')renderArmoryDrawer();else{const drawer=$('armoryDrawer');if(drawer){drawer.hidden=true;drawer.innerHTML='';}}
@@ -2118,6 +2219,13 @@ $('launchTierButton').onclick=enterSiege;
 $('exitRunButton').onclick=()=>{if(confirm('End this siege and return to the tier selection? Earned rewards and milestones are saved.'))retreatFromSiege()};
 $('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(!b||b.disabled)return;chosenTier=Number(b.dataset.tier);useWaystone=true;p.selectedTier=chosenTier;save();renderTierLobby();});
 $('milestoneList').addEventListener('click',e=>{
+ const council=e.target.closest('[data-war-council]');
+ if(council&&!council.disabled&&council.dataset?.warCouncil==='apply'){
+  const result=applyWarCouncil();
+  notice(result?'WAR COUNCIL · COMBAT PAIR EQUIPPED':'WAR COUNCIL · CHANGE BLOCKED');
+  const scroll=$('milestoneList').scrollTop;save();renderTierLobby();$('milestoneList').scrollTop=scroll;
+  return;
+ }
  const preset=e.target.closest('[data-action^="applyLoadout:"]');
  if(preset&&!preset.disabled&&typeof preset.dataset?.action==='string'&&preset.dataset.action.startsWith('applyLoadout:')){
   const index=Number(preset.dataset.action.split(':')[1]),status=loadoutReadiness(index);
@@ -2134,5 +2242,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();

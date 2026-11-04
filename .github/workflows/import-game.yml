@@ -51,3 +51,4 @@ jobs:
           node tests/boss-fairness.js
           node tests/hero-doctrines.js
           node tests/combat-builds.js
+          node tests/war-council.js
