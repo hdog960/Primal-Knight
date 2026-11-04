@@ -75,7 +75,7 @@ assert(firstMatte<firstFortress,'Terrains are composited behind hero, boss teleg
 const b=h.territorySceneImage(17);
 assert.notEqual(a,b,'New territory selection discards the previous decoded matte');
 assert(b.src.startsWith('data:image/svg+xml;charset=utf-8,'));
-assert(!b.src.includes('http'),'No hidden network asset requests');
+assert.equal(b.src.split(',')[0],'data:image/svg+xml;charset=utf-8','Selected picture uses a local encoded image instead of a network URL');
 assert.equal(h.territorySceneImage(17),b);
 p.unlockedTier=30;
 w.el('tierGrid').listeners.click({target:{closest(sel){
