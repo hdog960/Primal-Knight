@@ -55,6 +55,7 @@ function play(policy,seed){
  r.tier=1;r.wave=1;r.phase='ready';r.maxHealth=h.maxWall();r.health=r.maxHealth;
  h.beginWave();
  let lastClears=0,frames=0,firstLoss=0,timedOut=false,enemyCap=0,shotsCap=0;
+ let measuredWave=0,measuredStart=0;
  function investEarnedPoints(){
   for(const id of policy.skills){
    if(p.points<=0)break;
@@ -75,9 +76,9 @@ function play(policy,seed){
   if(r.phase==='intermission'&&r.wavesCleared!==lastClears){
    lastClears=r.wavesCleared;investEarnedPoints();
   }
-  const waveStartTime=r.time,waveStart=r.wave;
+  if(r.phase==='fighting'&&measuredWave!==r.wave){measuredWave=r.wave;measuredStart=r.time;}
   h.tick(.05);frames++;
-  if(r.phase==='fighting'&&r.wave===waveStart&&r.time-waveStartTime>90){timedOut=true;break;}
+  if(r.phase==='fighting'&&r.wave===measuredWave&&r.time-measuredStart>90){timedOut=true;break;}
   enemyCap=Math.max(enemyCap,r.enemies.length);shotsCap=Math.max(shotsCap,r.shots.length);
   assert(r.enemies.length<=24&&r.shots.length<=48,'Mobile actor caps');
   assert(Number.isFinite(r.health)&&r.health>=0&&r.health<=r.maxHealth,'Legal wall HP');
