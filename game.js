@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.1. Living Territories - Illustrated Terrain Mattes: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.2. Living Territories - Illustrated Tier Preview and Lore: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1129,6 +1129,7 @@ function renderTierLobby(){
  const tier=chosenTier,best=Math.min(MAX_WAVE,p.bestByTier[tier]||0),stone=waystoneForTier(tier);
  $('tierHeading').textContent='TIER '+roman(tier)+' — '+tierNames[tier-1].toUpperCase();
  $('tierDescription').textContent=`Enemy strength ×${tierThreat(tier).toFixed(2)} · Gold & XP ×${(1+(tier-1)*.32).toFixed(2)} · Record ${formatWave(best)} / ${formatWave(MAX_WAVE)} · ${best>=MAX_WAVE?'ETERNALLY CONQUERED':'Continue your legacy'} · ${territoryVista(tier).name}`;
+  updateTerritoryPreview(tier);
  const waystone=stone>1?`<div class="milestone-waystone" role="group" aria-label="Siege starting checkpoint"><div><strong>✦ UNLOCKED WAYSTONE · WAVE ${formatWave(stone)}</strong><small>Resume an earlier tier without replaying its first ${formatWave(stone-1)} waves. Milestone rewards are earned once per tier.</small></div>
   <div class="milestone-waystone-choices">
    <button type="button" data-start-mode="fresh" ${useWaystone?'':'aria-pressed="true"'} class="${useWaystone?'':'selected'}">WAVE 1</button>
@@ -1600,6 +1601,39 @@ function drawTerritoryAtmosphere(context,seconds=run.time,tier=run.tier,still=re
    The original Tier I painted battlefield remains unchanged. The other tiers
    use reproducible, offline-composable SVG landscape art, decoded once per
    selected tier; no network calls, per-frame geometry builds, or save changes. */
+/* Each tier carries a short piece of grounded local history, not a generated reward. */
+const territoryLore=[
+ 'The first watchfires still burn along the orchard road.',
+ 'Old frontier braziers glow beneath cliffs blackened by war.',
+ 'Frozen wardstones mark the pass that no caravan crosses twice.',
+ 'The drowned sentries keep vigil in waterlogged ruins.',
+ 'Storm-lashed watchposts stand against the thunder beyond the ridge.',
+ "A forgotten kingdom's towers lean toward the last pale horizon.",
+ 'Cinders drift across the homes the mountain swallowed.',
+ 'Black citadel stones drink what little daylight remains.',
+ 'The oldest groves shelter ruins older than the crown.',
+ 'Stars hang unnaturally low above the broken descent.',
+ 'Shattered battlements remember the oaths of fallen kings.',
+ 'A primordial furnace still burns beneath the battered road.',
+ 'The Cinder Throne casts its red shadow over every approach.',
+ 'Obsidian cliffs bear the scars of ancient siege engines.',
+ 'Rift-born monuments hover where the world once fractured.',
+ 'The last banners of the kingdom hang above shattered gates.',
+ 'Glassheart spires ring like bells before the approaching storm.',
+ 'Moonlit catacombs hold the memory of vanished sentinels.',
+ 'The Sunforged Divide glows with buried golden veins.',
+ 'Ancient roots have grown through the stones of the Thorned Crown.',
+ 'Gloamwater floods the ruins no king could reclaim.',
+ 'At the Zenith, frost gathers on the relics of falling stars.',
+ 'Dreadroot trees guard the buried road to forgotten dominions.',
+ 'The Hollow Star is reflected in the ruins of its own temple.',
+ 'Blackglass choir towers echo with long-silent hymns.',
+ 'Thundergrave pillars spark above the restless storm plains.',
+ 'The Golden Abyss has claimed every empire that sought its riches.',
+ 'Broken divine arches frame the silence of the fallen pantheon.',
+ 'The last scar across the world still burns beneath its surface.',
+ 'Beyond the Origin Gate, the beginning and the ending meet.'
+];
 const terrainBiomes=[
  'verdant','ash','frost','marsh','storm','ruin','ember','obsidian','grove','astral',
  'ruin','ember','ember','obsidian','astral','ruin','crystal','astral','desert','thorn',
@@ -1804,6 +1838,23 @@ function territorySceneImage(tier){
  image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(terrainSceneSvg(normalized));
  terrainCachedImage=image;
  return image;
+}
+function updateTerritoryPreview(tier=chosenTier){
+ const image=$('tierVistaPreview'),card=$('tierVistaCard');
+ if(!image||!card)return false;
+ const profile=territoryVista(tier),newScene=territorySceneImage(profile.tier);
+ const src=newScene?newScene.src:'assets/battlefield.png';
+ // Never reassign a long SVG image URL while the player upgrades/scrolls.
+ if(image.dataset.previewTier!==String(profile.tier)){
+  image.src=src;
+  image.dataset.previewTier=String(profile.tier);
+ }
+ image.alt='Illustrated battlefield for Tier '+roman(profile.tier)+' — '+tierNames[profile.tier-1];
+ card.dataset.biome=terrainBiomes[profile.tier-1];
+ $('tierVistaName').textContent=profile.name;
+ $('tierVistaWeather').textContent=profile.weather.toUpperCase()+' · '+profile.light.toUpperCase()+' LIGHT';
+ $('tierVistaLore').textContent=territoryLore[profile.tier-1];
+ return true;
 }
 function visibleTerritoryTier(){
  return run.phase==='fighting'||run.phase==='intermission'?run.tier:chosenTier;
@@ -2598,7 +2649,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.1 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.2 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -2844,5 +2895,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainSceneSvg,territorySceneImage,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainSceneSvg,territorySceneImage,territoryLore,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();

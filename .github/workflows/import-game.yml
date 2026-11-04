@@ -65,3 +65,4 @@ jobs:
           node tests/doctrine-telemetry.js
           node tests/territory-atmosphere.js
           node tests/territory-scenes.js
+          node tests/territory-preview.js
