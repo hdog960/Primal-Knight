@@ -2273,7 +2273,7 @@ $('milestoneList').addEventListener('click',e=>{
  }
 
  const quartermaster=e.target.closest('[data-council-train]');
- if(quartermaster){
+ if(quartermaster&&typeof quartermaster.dataset?.councilTrain==='string'){
   if(quartermaster.disabled)return;
   const id=quartermaster.dataset?.councilTrain,scroll=$('milestoneList').scrollTop;
   const bought=purchaseCouncilTraining(id);
