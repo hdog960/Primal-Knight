@@ -2376,7 +2376,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
  else if(type==='export'){let blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='primal-knight-onslaught-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return;}
  const scrollPane=$('panelContent'),keepScroll=scrollPane.scrollTop;
  save();refreshHUD();renderPanel();
- if(['train','trainBatch','legacy','ascension','oath','research'].includes(type))scrollPane.scrollTop=keepScroll;
+ if(['train','trainBatch','legacy','ascension','oath','research','tactic'].includes(type))scrollPane.scrollTop=keepScroll;
 }
 // A ProMotion iPhone may request 120+ RAF callbacks/sec. Keep combat physics responsive
 // but avoid re-painting the large layered pixel-art canvas more than 60 times/sec.
@@ -2469,11 +2469,12 @@ $('milestoneList').addEventListener('click',e=>{
  const tactic=e.target.closest('[data-doctrine-tactic]');
  if(tactic&&typeof tactic.dataset?.doctrineTactic==='string'){
   if(tactic.disabled)return;
-  const scroll=$('milestoneList').scrollTop;
+  const list=$('milestoneList'),scroll=list.scrollTop,chestOpen=!!list.querySelector?.('details.war-chest')?.open;
   const applied=chooseDoctrineTactic(tactic.dataset.doctrineTactic);
   if(applied){save();notice('AUTO CAST · '+doctrineTacticModes[p.doctrineTactic].name+' STRATEGY SELECTED');}
   else notice('AUTO CAST · CHANGE BLOCKED');
-  renderTierLobby();$('milestoneList').scrollTop=scroll;
+  renderTierLobby();list.scrollTop=scroll;
+  if(chestOpen){const chestView=list.querySelector?.('details.war-chest');if(chestView)chestView.open=true;}
   return;
  }
  const chest=e.target.closest('[data-war-chest]');
