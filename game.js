@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.2. Living Territories - Illustrated Tier Preview and Lore: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.3. Living Territories - Region Relics and Boss Staging: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1634,6 +1634,15 @@ const territoryLore=[
  'The last scar across the world still burns beneath its surface.',
  'Beyond the Origin Gate, the beginning and the ending meet.'
 ];
+/* Alpha 0.12.3 — regional landmark relics. Names follow local territory lore,
+   but the silhouettes stay consistent with the painted pixel terrain. */
+const terrainRelicMotifs=[
+ 'beacon','monolith','wardstone','lantern','conduit','arch',
+ 'brazier','obelisk','roots','stargate','crown','furnace',
+ 'throne','obelisk','stargate','banner','glass','crypt',
+ 'solar','thorn','floodgate','mirror','roots','stargate',
+ 'obelisk','conduit','solar','arch','brazier','stargate'
+];
 const terrainBiomes=[
  'verdant','ash','frost','marsh','storm','ruin','ember','obsidian','grove','astral',
  'ruin','ember','ember','obsidian','astral','ruin','crystal','astral','desert','thorn',
@@ -1788,6 +1797,114 @@ function terrainSceneSvg(tier){
   for(let k=0;k<8;k++)line(left+n(0,w),top+n(24,h),left+n(0,w),top+n(24,h),colors.light,1,.3);
   patch(left-7,base-8,w+14,8,colors.dark);
  }
+ // Painted artifacts, one signature architectural subject per territory.
+ // Located outside the 310–660 road lane; static inside the already-cached SVG.
+ const relicType=terrainRelicMotifs[scene.tier-1];
+ function paintRelic(cx,base,scale,subject){
+  const h=n(54,85)*scale,w=n(20,32)*scale;
+  const x=Math.round(cx),y=Math.round(base),top=Math.round(y-h);
+  const dark=colors.dark,stone=colors.mount[1],sun=colors.accent,shine=colors.light;
+  const block=(a,b,ww,hh,col,op=1)=>patch(Math.round(a),Math.round(b),Math.round(ww),Math.round(hh),col,op);
+  const shape=(pts,col,op=1)=>poly(pts.map(pt=>Math.round(pt[0])+','+Math.round(pt[1])).join(' '),col,op);
+  if(['beacon','brazier','furnace'].includes(subject)){
+   // Forged stone well with visible molten core, not a floating icon.
+   shape([[x-w,y],[x-w*.77,y-17*scale],[x+w*.77,y-17*scale],[x+w,y]],dark);
+   block(x-w*.63,y-31*scale,w*1.26,15*scale,stone);
+   block(x-w*.78,y-32*scale,w*1.56,6*scale,shine,.36);
+   for(let k=0;k<4;k++)block(x-w*.46+k*w*.31,y-15*scale,w*.19,10*scale,stone,.9);
+   const flame=subject==='furnace'?1.35:1;
+   shape([[x-8*scale,y-34*scale],[x-13*scale,y-48*scale*flame],
+    [x-2*scale,y-43*scale*flame],[x+3*scale,y-70*scale*flame],
+    [x+12*scale,y-45*scale*flame],[x+7*scale,y-34*scale]],sun,.91);
+   shape([[x-3*scale,y-35*scale],[x,y-55*scale*flame],[x+6*scale,y-38*scale]],shine,.9);
+   for(let k=0;k<7;k++)block(x+n(-22,22)*scale,y-n(34,75)*scale,2*scale,2*scale,sun,.48);
+  }else if(['monolith','wardstone','obelisk'].includes(subject)){
+   shape([[x-w,y],[x-w*.9,top+18*scale],[x-7*scale,top],
+    [x+w*.6,top+12*scale],[x+w,y]],dark);
+   shape([[x-w*.82,y-5*scale],[x-w*.7,top+18*scale],[x-5*scale,top+8*scale],
+    [x+1*scale,y-7*scale]],stone);
+   line(x-7*scale,top+17*scale,x+7*scale,top+18*scale,sun,2*scale,.5);
+   line(x,top+23*scale,x-4*scale,top+39*scale,sun,2*scale,.7);
+   for(let k=0;k<3;k++)line(x+n(-16,17)*scale,top+n(29,49)*scale,
+    x+n(-17,16)*scale,top+n(48,64)*scale,shine,1,.26);
+   shape([[x-w-9*scale,y],[x-w,y-16*scale],[x-w*.65,y]],stone,.74);
+  }else if(['lantern','conduit','floodgate'].includes(subject)){
+   block(x-4*scale,top,7*scale,h,dark);
+   block(x-13*scale,top+8*scale,29*scale,7*scale,stone);
+   shape([[x-19*scale,top+13*scale],[x,top-5*scale],
+    [x+20*scale,top+13*scale]],dark);
+   block(x-13*scale,top+17*scale,25*scale,23*scale,stone);
+   block(x-9*scale,top+21*scale,17*scale,14*scale,sun,.78);
+   line(x-5*scale,top+21*scale,x+6*scale,top+34*scale,shine,2*scale,.7);
+   if(subject==='conduit')for(let k=0;k<4;k++)line(x-24*scale+k*13*scale,
+    top-11*scale,x-17*scale+k*13*scale,top+3*scale,shine,2*scale,.38);
+   if(subject==='floodgate')for(let k=0;k<4;k++)block(x-36*scale,
+    y-(4+k*5)*scale,72*scale,2*scale,shine,.21);
+   block(x-18*scale,y-6*scale,38*scale,6*scale,dark);
+  }else if(['arch','crypt','stargate','throne'].includes(subject)){
+   block(x-w*1.13,top+13*scale,12*scale,h-8*scale,dark);
+   block(x+w*.56,top+13*scale,12*scale,h-8*scale,dark);
+   shape([[x-w*1.3,top+21*scale],[x-w*1.1,top],
+    [x+w*1.11,top],[x+w*1.31,top+21*scale]],stone);
+   block(x-w,top+6*scale,w*1.97,7*scale,shine,.25);
+   if(subject==='stargate'){
+    shape([[x-13*scale,top+31*scale],[x,top+20*scale],
+     [x+13*scale,top+31*scale],[x+10*scale,y-7*scale],
+     [x-11*scale,y-7*scale]],sun,.65);
+    block(x-2*scale,top+37*scale,4*scale,h*.4,shine,.64);
+   }
+   if(subject==='crypt')for(let k=0;k<3;k++)block(x-13*scale+k*8*scale,y-13*scale,5*scale,17*scale,dark);
+   if(subject==='throne')block(x-16*scale,y-29*scale,32*scale,29*scale,stone);
+   for(let k=0;k<8;k++)block(x+n(-w,w)*scale,y-n(4,30)*scale,n(1,5)*scale,2*scale,shine,.25);
+  }else if(['roots','thorn'].includes(subject)){
+   shape([[x-10*scale,y],[x-8*scale,top+30*scale],[x-14*scale,top+10*scale],
+    [x-1*scale,top],[x+16*scale,top+10*scale],
+    [x+7*scale,top+33*scale],[x+12*scale,y]],dark);
+   for(let k=0;k<7;k++){
+    const dx=n(-44,44)*scale,dy=n(-21,24)*scale;
+    line(x+(dx>0?4:-5)*scale,top+28*scale,x+dx,top+dy,stone,n(2,5)*scale,.84);
+    block(x+dx-5*scale,top+dy-4*scale,n(9,19)*scale,
+     n(6,10)*scale,k%2?colors.land[0]:colors.mount[1],.82);
+   }
+   if(subject==='thorn')for(let k=0;k<6;k++)
+    shape([[x+n(-43,43)*scale,top+n(3,53)*scale],[x+n(-45,45)*scale,top+n(0,54)*scale],
+     [x+n(-46,44)*scale,top+n(-7,49)*scale]],shine,.58);
+   for(let k=0;k<4;k++)line(x+n(-13,13)*scale,y-15*scale,x+n(-27,27)*scale,y,
+    shine,2*scale,.32);
+  }else if(['glass','solar','mirror','crown'].includes(subject)){
+   shape([[x-24*scale,y],[x-12*scale,top+23*scale],[x,top],
+    [x+20*scale,top+16*scale],[x+24*scale,y]],dark);
+   shape([[x-11*scale,y-8*scale],[x,top+11*scale],
+    [x+8*scale,y-8*scale]],sun,.74);
+   shape([[x+12*scale,y],[x+25*scale,top+36*scale],
+    [x+39*scale,y]],shine,.36);
+   if(subject==='solar'){
+    for(let k=0;k<8;k++){
+     const angle=k*Math.PI/4;
+     line(x+Math.cos(angle)*24*scale,top+36*scale+Math.sin(angle)*24*scale,
+      x+Math.cos(angle)*35*scale,top+36*scale+Math.sin(angle)*35*scale,sun,2*scale,.62);
+    }
+   }
+   if(subject==='crown')for(let k=0;k<3;k++)
+    shape([[x+(k*13-19)*scale,y-13*scale],[x+(k*13-14)*scale,y-33*scale],
+     [x+(k*13-6)*scale,y-14*scale]],sun,.6);
+   line(x-6*scale,top+20*scale,x+9*scale,y-6*scale,shine,2*scale,.7);
+  }else if(subject==='banner'){
+   block(x-3*scale,top-8*scale,5*scale,h+8*scale,dark);
+   shape([[x+2*scale,top-5*scale],[x+45*scale,top+1*scale],
+    [x+35*scale,top+25*scale],[x+4*scale,top+35*scale]],colors.land[1]);
+   shape([[x+5*scale,top-1*scale],[x+34*scale,top+5*scale],
+    [x+16*scale,top+29*scale],[x+3*scale,top+31*scale]],sun,.38);
+   for(let k=0;k<4;k++)line(x+4*scale,top+(k*8+3)*scale,
+    x+29*scale,top+(k*8+7)*scale,shine,1,.33);
+   block(x-12*scale,y-5*scale,27*scale,7*scale,stone);
+  }
+  // Tiny painted edge chips give each relic material depth.
+  for(let k=0;k<9;k++)block(x+n(-w,w)*scale,y-n(2,h*.6)*scale,
+   n(1,4)*scale,n(1,3)*scale,k%2?shine:stone,.3);
+ }
+ paintRelic(n(103,161),n(235,263),alpha(.74,.98),relicType);
+ if(scene.tier>=10||scene.tier%4===0)paintRelic(n(790,865),n(225,256),alpha(.45,.68),relicType);
  // Landmark pair placement stays to field edges so it cannot confuse combat.
  const leftX=n(92,205),rightX=n(758,870),nearY=n(243,273);
  if(['verdant','grove','thorn'].includes(biome)){
@@ -1860,10 +1977,33 @@ function visibleTerritoryTier(){
  return run.phase==='fighting'||run.phase==='intermission'?run.tier:chosenTier;
 }
 
+/* Boss staging is a background-only, eight-pixel-column light response.
+   No screen flashes, simulated physics side effects, or new DOM allocations. */
+function territoryBossStaging(context,tier=run.tier,state=run,still=reduceMotion){
+ const normalized=territoryVista(tier).tier;
+ const boss=state.phase==='fighting'&&
+  ['commander','chapterBoss'].includes(state.encounter?.kind)&&
+  state.enemies?.some(e=>e&&!e.dead&&isSiegeBoss(e));
+ if(!boss)return {active:false,tier:normalized,marks:0};
+ const colors=terrainColors[terrainBiomes[normalized-1]];
+ const time=Number(state.time)||0;
+ const alpha=still?.14:.12+.035*Math.sin(time*1.1);
+ const edges=[18,46,82,112,846,878,918,944];
+ context.save();
+ context.globalAlpha=alpha;
+ context.fillStyle=colors.accent;
+ for(let i=0;i<edges.length;i++){
+  const x=edges[i],h=(i%3===0?18:12)+(still?0:Math.round(3*Math.sin(time*.9+i)));
+  context.fillRect(x,120+(i%3)*37,3,Math.max(6,h));
+ }
+ context.restore();
+ return {active:true,tier:normalized,marks:edges.length};
+}
 function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0&&!reduceMotion){ctx.translate(rnd(-2,2),rnd(-2,2));}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}const sceneTier=visibleTerritoryTier(),matte=territorySceneImage(sceneTier);if(matte&&matte.complete&&matte.naturalWidth)ctx.drawImage(matte,0,0,960,346);
  // Subtle animated fog and light make the illustrated environment breathe.
  const time=performance.now()/1000;let gd=ctx.createLinearGradient(0,96,0,415);gd.addColorStop(0,'rgba(5,25,39,.08)');gd.addColorStop(1,'rgba(18,10,21,.13)');ctx.fillStyle=gd;ctx.fillRect(0,90,960,350);
  drawTerritoryAtmosphere(ctx,run.time,sceneTier,reduceMotion);
+ territoryBossStaging(ctx,sceneTier,run,reduceMotion);
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
  for(const e of [...run.enemies].filter(e=>!e.dead).sort((a,b)=>a.y-b.y)){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'||e.type==='banneret'?1.18:1);let im=sprites[e.type==='warlord'&&e.bossStyle?'warlord_'+e.bossStyle:e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;ctx.drawImage(im,e.x-sw/2,py,sw,sh);ctx.restore();
  if(e.relicGuardian){
@@ -2649,7 +2789,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.2 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.3 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -2895,5 +3035,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainSceneSvg,territorySceneImage,territoryLore,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
