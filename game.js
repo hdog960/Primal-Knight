@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.11.0. Hero Combat Depth phase 1: three selective auto-cast combat disciplines and live skill synergy and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.11.1. Hero Combat Depth phase 2: single-slot passive traits, safe three-slot presets and fast siege preparation and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -45,8 +45,8 @@ const gearNames={
  charm:['Copper Locket','Hunter Sigil','Wolfsbane Charm','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone'],
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
-function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';
+function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -87,7 +87,7 @@ function validateProgressBackup(data){
  for(const key of ['equipped','training','skills','stations','research','suppression','socketed','bestByTier','milestones','chapterChallenges','relicHunts','ascension','dominionCrests','sovereignOaths','legacy']){
   if(data[key]!==undefined&&!validSaveObject(data[key]))throw Error('Invalid '+key);
  }
- for(const key of ['runes','pendingRelics','pendingGear','firstWatchClaimed','banners']){
+ for(const key of ['runes','pendingRelics','pendingGear','firstWatchClaimed','banners','combatLoadouts']){
   if(data[key]!==undefined&&!Array.isArray(data[key]))throw Error('Invalid '+key);
  }
  if(data.unlockedTier!==undefined&&!Number.isFinite(Number(data.unlockedTier)))throw Error('Invalid tier');
@@ -110,6 +110,8 @@ function normalizeRestoredProgress(){
  p.activeBanner=typeof p.activeBanner==='string'&&p.activeBanner?p.activeBanner:'Crimson Standard';
  p.legacyUnlocked=!!p.legacyUnlocked;
  p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';
+ p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';
+ p.combatLoadouts=normalizeCombatLoadouts(p.combatLoadouts);
 }
 function restoreProgressBackup(data,keepRecoveryCopy=false){
  validateProgressBackup(data);
@@ -149,6 +151,93 @@ const combatDoctrineData={
  aegis:{id:'aegis',name:'AEGIS PULSE',school:'Guardian',level:5,cooldown:14,
   short:'Recover the wall and repel advancing threats.',description:'Restores a small fraction of wall health and repels up to three approaching foes. Stone and Bulwark training improve the pulse.'}
 };
+const combatPassiveData={
+ hunter:{id:'hunter',name:"PREDATOR'S EYE",school:'Marksman',level:1,
+  short:'Focused arrows deal +8% damage to bosses and specialist casters.',detail:'Single-target precision · helps break major-boss abilities and caster windups.'},
+ conductor:{id:'conductor',name:'STORM CONDUCTOR',school:'Arcanist',level:3,
+  short:'Lightning attacks deal +10% damage and chill targets briefly.',detail:'Works with Arcane Chain and lightning stations, not physical arrows.'},
+ sentinel:{id:'sentinel',name:'RAMPART OATH',school:'Guardian',level:5,
+  short:'Reduce wall-impact and Sapper blast damage by 10%.',detail:'Passive protection does not raise damage or improve Gold rewards.'}
+};
+const combatLoadoutNames=['SCOUT','TEMPEST','BASTION'];
+function passiveTrait(){return combatPassiveData[p.combatPassive]||combatPassiveData.hunter;}
+function chooseCombatPassive(id){
+ const passive=combatPassiveData[id];
+ if(!passive||p.level<passive.level)return false;
+ p.combatPassive=id;return true;
+}
+// A preset is a reference-only recipe. Never clone, fabricate, sell or modify gear.
+function normalizeCombatLoadouts(slots){
+ if(!Array.isArray(slots))return [null,null,null];
+ return combatLoadoutNames.map((_,i)=>{
+  const item=slots[i];
+  if(!item||!validSaveObject(item)||!combatDoctrineData[item.doctrine]||!combatPassiveData[item.passive]||
+     !validSaveObject(item.equipped)||!validSaveObject(item.socketed))return null;
+  const acceptMap=map=>{
+   const out={};const seen=new Set();
+   for(const [slot,id] of Object.entries(map)){
+    if(!gearSlots.includes(slot)||typeof id!=='string'||id.length>128||!id||seen.has(id))return null;
+    seen.add(id);out[slot]=id;
+   }
+   return out;
+  };
+  const equipped=acceptMap(item.equipped),socketed=acceptMap(item.socketed);
+  return equipped&&socketed?{doctrine:item.doctrine,passive:item.passive,equipped,socketed}:null;
+ });
+}
+p.combatLoadouts=normalizeCombatLoadouts(p.combatLoadouts);
+function saveCombatLoadout(index){
+ if(!Number.isInteger(index)||index<0||index>=combatLoadoutNames.length)return false;
+ p.combatLoadouts[index]={
+  doctrine:p.combatDoctrine,passive:p.combatPassive,
+  equipped:Object.fromEntries(Object.entries(p.equipped).filter(([slot,id])=>gearSlots.includes(slot)&&typeof id==='string'&&id)),
+  socketed:Object.fromEntries(Object.entries(p.socketed).filter(([slot,id])=>gearSlots.includes(slot)&&typeof id==='string'&&id))
+ };
+ return true;
+}
+function loadoutReadiness(index){
+ const selected=p.combatLoadouts[index];
+ if(!selected)return {ready:false,reason:'EMPTY'};
+ if(run.phase==='fighting'||run.phase==='intermission')return {ready:false,reason:'BETWEEN SIEGES ONLY'};
+ if(!combatDoctrineData[selected.doctrine]||p.level<combatDoctrineData[selected.doctrine].level||
+    !combatPassiveData[selected.passive]||p.level<combatPassiveData[selected.passive].level)
+  return {ready:false,reason:'HERO LEVEL LOCKED'};
+ const seenGear=new Set(),seenRune=new Set();
+ for(const [slot,id] of Object.entries(selected.equipped)){
+  const item=p.inventory.find(g=>g.id===id);
+  if(!item||seenGear.has(id)||(ringSlots.includes(slot)?item.slot!=='ring':item.slot!==slot))
+   return {ready:false,reason:'EQUIPMENT MISSING'};
+  seenGear.add(id);
+ }
+ for(const [slot,id] of Object.entries(selected.socketed)){
+  if(!p.runes.some(r=>r.id===id)||seenRune.has(id))
+   return {ready:false,reason:'RUNE MISSING'};
+  seenRune.add(id);
+ }
+ return {ready:true,reason:'READY'};
+}
+function applyCombatLoadout(index){
+ if(!Number.isInteger(index)||index<0||index>=combatLoadoutNames.length)return false;
+ const status=loadoutReadiness(index);
+ if(!status.ready)return false;
+ const selected=p.combatLoadouts[index];
+ // All validation happens before any mutation. Broken or sold-item builds cannot partially equip.
+ p.combatDoctrine=selected.doctrine;p.combatPassive=selected.passive;
+ p.equipped={...selected.equipped};
+ p.socketed={...selected.socketed};
+ run.maxHealth=maxWall();run.health=Math.min(run.health,run.maxHealth);
+ return true;
+}
+function renderCombatLoadouts(compact=false){
+ const cards=combatLoadoutNames.map((name,index)=>{
+  const saved=p.combatLoadouts[index],state=loadoutReadiness(index),active=saved&&
+   saved.doctrine===p.combatDoctrine&&saved.passive===p.combatPassive&&
+   JSON.stringify(saved.equipped)===JSON.stringify(p.equipped)&&
+   JSON.stringify(saved.socketed)===JSON.stringify(p.socketed);
+  return `<div class="build-preset${active?' active':''}"><div class="build-preset-copy"><small>SLOT ${index+1} · ${name}</small><strong>${saved?combatDoctrineData[saved.doctrine].name+' / '+combatPassiveData[saved.passive].name:'EMPTY LOADOUT'}</strong><span>${saved?state.reason:'Save your current equipment, runes and abilities here.'}</span></div><div class="build-preset-actions">${compact?'':`<button type="button" data-action="saveLoadout:${index}" aria-label="Save current build into preset ${name}">SAVE</button>`}<button type="button" data-action="applyLoadout:${index}" ${state.ready?'':'disabled'} aria-label="Apply preset ${name}">${active?'EQUIPPED':state.ready?'EQUIP':'UNAVAILABLE'}</button></div></div>`;
+ }).join('');
+ return `<section class="combat-build-presets" aria-label="Saved combat loadout presets"><div class="combat-build-head"><strong>✦ ${compact?'QUICK PREPARATION':'THREE BATTLE LOADOUTS'}</strong><small>${compact?'Equip a saved build before the siege':'Three free presets · equipment and runes are referenced, never copied'}</small></div><div class="combat-build-grid">${cards}</div></section>`;
+}
 function chosenDoctrine(){return combatDoctrineData[p.combatDoctrine]||combatDoctrineData.vanguard;}
 function doctrineCooldown(){
  const id=chosenDoctrine().id;
