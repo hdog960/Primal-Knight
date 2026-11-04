@@ -54,3 +54,4 @@ jobs:
           node tests/war-council.js
           node tests/combat-balance-matrix.js
           node tests/progression-matched-builds.js
+          node tests/quartermaster.js
