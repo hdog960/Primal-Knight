@@ -67,3 +67,4 @@ jobs:
           node tests/territory-scenes.js
           node tests/territory-preview.js
           node tests/territory-relics.js
+          node tests/territory-heraldry.js

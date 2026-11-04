@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.3. Living Territories - Region Relics and Boss Staging: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.4. Living Territories - Biome Heraldry and Battlements: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1956,6 +1956,85 @@ function territorySceneImage(tier){
  terrainCachedImage=image;
  return image;
 }
+/* Alpha 0.12.4 — heraldry is applied to the TWO painted cloth banners,
+   never to the center hero, combat projectiles or underlying battlement art.
+   A second, tiny transparent SVG is decoded only when the selected tier changes. */
+const heraldrySigils={
+ verdant:'M0 -16V15M0 -4L-8 -13M0 3L9 -8M0 9L-7 4',
+ ash:'M-9 13Q-14 2-4-9L1-18Q4-5 11 0Q15 10 5 15M-3 12Q-4 3 3-3',
+ frost:'M0 -17V17M-15 0H15M-11-11L11 11M11 -11L-11 11',
+ marsh:'M-11 14Q-15-3 1-12Q18-3 11 14M-9 2Q0 9 9 2',
+ storm:'M4 -17L-9 2H1L-4 17L12-3H3Z',
+ ruin:'M-15-3L-10-14H10L16-3M-12-1V14M12-1V14M-16 14H16',
+ ember:'M0-19Q16-7 8 6Q4 17-2 15Q-16 5-5-5M0 5Q9 1 3 12',
+ obsidian:'M0-17L14-1L0 17L-14-1ZM0-16V17',
+ grove:'M0 -16V15M0-6Q-15-17-13-4Q-12 3 0 2M0-3Q14-17 13-4Q12 4 0 3',
+ astral:'M0-19L5-5L18 0L5 5L0 18L-5 5L-18 0L-5-5ZM0-11V11M-11 0H11',
+ crystal:'M0-18L11-5L7 10L0 18L-9 5L-11-6ZM0-18V18',
+ desert:'M0-17L15 13H-15ZM-8 5H8M-4-2H4',
+ thorn:'M0-17L-7-7L0-3L-12 4L-2 8L-8 16L8 8L12-3L4-5Z'
+};
+function fortressHeraldrySvg(tier){
+ const t=territoryVista(tier).tier,biome=terrainBiomes[t-1],pallet=terrainColors[biome];
+ const silk=pallet.land[0],fold=pallet.land[1],gold=pallet.accent,edge=pallet.dark,light=pallet.light;
+ const symbol=heraldrySigils[biome];
+ // Two fixed banner positions measured from the original 960 × 540 foreground:
+ // left x≈57–125, right x≈833–898, both starting below y=436.
+ const banners=[
+  {cx:93,top:446,left:56,right:126,point:535},
+  {cx:864,top:445,left:831,right:898,point:534}
+ ];
+ const parts=['<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" shape-rendering="crispEdges">',
+  '<defs><linearGradient id="cloth" x1="0" y1="0" x2="1" y2="0">',
+  '<stop stop-color="'+edge+'"/><stop offset=".17" stop-color="'+silk+'"/>',
+  '<stop offset=".55" stop-color="'+fold+'"/><stop offset=".84" stop-color="'+silk+'"/>',
+  '<stop offset="1" stop-color="'+edge+'"/></linearGradient></defs>'];
+ for(let k=0;k<banners.length;k++){
+  const b=banners[k],cx=b.cx,left=b.left,right=b.right,top=b.top,point=b.point;
+  const base=point-20;
+  const tip=point-(t%4)*2;
+  const bannerPath='M'+left+' '+top+'L'+right+' '+top+'L'+(right-3)+' '+base+
+   'L'+cx+' '+tip+'L'+(left+3)+' '+base+'Z';
+  parts.push('<path d="'+bannerPath+'" fill="url(#cloth)" stroke="'+gold+'" stroke-width="3"/>');
+  parts.push('<path d="M'+(left+7)+' '+(top+5)+'V'+(base-8)+'L'+cx+' '+(tip-11)+
+   '" fill="none" stroke="'+light+'" stroke-width="2" opacity=".26"/>');
+  parts.push('<path d="M'+(right-8)+' '+(top+5)+'V'+(base-8)+'" fill="none" stroke="'+edge+
+   '" stroke-width="4" opacity=".55"/>');
+  parts.push('<path d="M'+left+' '+(top+1)+'L'+right+' '+(top+1)+
+   '" fill="none" stroke="'+gold+'" stroke-width="4" opacity=".8"/>');
+  // Heraldic symbol is all threadwork, not a UI icon pasted on scenery.
+  parts.push('<g transform="translate('+cx+' '+(top+34)+')" fill="none" stroke="'+gold+
+   '" stroke-width="3.3" stroke-linejoin="round" stroke-linecap="round"><path d="'+symbol+'"/></g>');
+  parts.push('<path d="M'+(cx-15)+' '+(top+54)+'Q'+cx+' '+(top+58)+' '+(cx+15)+' '+(top+54)+
+   '" fill="none" stroke="'+light+'" stroke-width="2" opacity=".57"/>');
+  for(let j=0;j<11;j++){
+   const x=left+6+((j*17+t*7+k*9)%(right-left-11));
+   const y=top+7+((j*29+t*3)%(point-top-26));
+   parts.push('<rect x="'+x+'" y="'+y+'" width="'+(j%3+1)+'" height="'+(j%2+2)+
+    '" fill="'+(j%2?gold:light)+'" opacity=".2"/>');
+  }
+  // Delicate gold fringe on the tattered lower hem; no new sprites or particles.
+  for(let j=0;j<7;j++){
+   const x=left+8+j*(right-left-16)/6;
+   const lower=base+((j%3)===1?8:3);
+   parts.push('<path d="M'+Math.round(x)+' '+lower+'l0 4" stroke="'+gold+
+    '" stroke-width="2" opacity=".6"/>');
+  }
+ }
+ parts.push('</svg>');
+ return parts.join('');
+}
+let heraldryCachedTier=0,heraldryCachedImage=null;
+function fortressHeraldryImage(tier){
+ const t=territoryVista(tier).tier;
+ if(t===heraldryCachedTier)return heraldryCachedImage;
+ heraldryCachedTier=t;
+ if(t===1){heraldryCachedImage=null;return null;} // Respect original Verdant March painting.
+ const im=new Image();
+ im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(fortressHeraldrySvg(t));
+ heraldryCachedImage=im;
+ return im;
+}
 function updateTerritoryPreview(tier=chosenTier){
  const image=$('tierVistaPreview'),card=$('tierVistaCard');
  if(!image||!card)return false;
@@ -2074,7 +2153,7 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  if(e.slow>0){ctx.strokeStyle='#91f1f9';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.36,6*s,0,0,7);ctx.stroke();}if(e.burn>0){ctx.fillStyle='#ffa554';ctx.fillRect(e.x-6,e.y-sh*.45-4,5,8);}let barW=clamp(26*s,20,64);ctx.fillStyle='#1e1b25';ctx.fillRect(e.x-barW/2,py-7,barW,4);ctx.fillStyle=isSiegeBoss(e)?'#ed796e':e.type==='guardian'?'#9bd6dd':e.type==='shaman'?'#c1a4ef':'#a8d675';ctx.fillRect(e.x-barW/2,py-7,barW*clamp(e.hp/e.max,0,1),4);}
  // Fortress battlements and hero are their own painted foreground layer.
  // Draw AFTER enemies: attackers remain behind the wall, never over it.
- if(foreground.complete&&foreground.naturalWidth){ctx.drawImage(foreground,0,0,w,h);}
+ if(foreground.complete&&foreground.naturalWidth){ctx.drawImage(foreground,0,0,w,h);}const heraldry=fortressHeraldryImage(sceneTier);if(heraldry&&heraldry.complete&&heraldry.naturalWidth)ctx.drawImage(heraldry,0,0,w,h);
  for(const s of run.shots){ctx.beginPath();ctx.lineWidth=s.kind==='lightning'?3:2;ctx.strokeStyle=s.kind==='lightning'?'#90f2ff':s.kind==='ballista'?'#ffd285':'#ffe8a9';ctx.moveTo(s.x,s.y);let tail=s.trail[0]||[s.x-7,s.y+6];ctx.lineTo(tail[0],tail[1]);ctx.stroke();ctx.fillStyle='#fff5b9';ctx.fillRect(s.x-2,s.y-2,4,4);}
  for(const t of run.particles){ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.fillRect(t.x,t.y,t.size,t.size)}ctx.globalAlpha=1;
  for(const f of run.floats){ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y)}ctx.globalAlpha=1;
@@ -2789,7 +2868,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.3 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.4 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -3035,5 +3114,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();

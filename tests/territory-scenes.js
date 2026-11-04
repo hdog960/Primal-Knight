@@ -64,7 +64,7 @@ assert.equal(h.territorySceneImage(2),a,'Same-tier redraws reuse the same decode
 r.phase='fighting';r.tier=2; // Actual run selection, not a merely preloaded image.
 for(let i=0;i<40;i++)h.draw();
 r.phase='ready';
-assert.equal(w.getImageCount(),beforeLoaded+1,'Forty canvas redraws do not rebuild the illustrated scene');
+assert.equal(w.getImageCount(),beforeLoaded+2,'One terrain and one heraldry image are decoded; forty canvas redraws never allocate more');
 const call=w.paint.images.find(x=>x.source.startsWith('data:image/svg+xml'));
 assert(call,'The real game canvas draws the generated territorial matte');
 assert.equal(JSON.stringify(call.args),JSON.stringify([0,0,960,346]),'Scene sits behind combat on precisely the top 346 pixels');
@@ -94,7 +94,7 @@ assert.equal(JSON.stringify({inventory:p.inventory,runes:p.runes,essence:p.essen
  gold:JSON.parse(original).gold,sigils:JSON.parse(original).sigils
 }),'Changing background scenery never edits existing resources or equipment');
 assert(!Object.keys(w.store).some(key=>key.includes('terrain')),'Territory art creates no new persistent save keys');
-assert(html.includes('ALPHA 0.12.3')&&html.includes('game.js?v=0.12.3')&&html.includes('style.css?v=0.12.3'),'iPhone Safari Home Screen cache keys are updated');
-console.log('PASS: 30 unique landscape compositions, 13 regional palettes, original Tier I retained, textured perspective causeway, one image decode per selected tier, genuine canvas depth order and no economy mutations.');
+assert(html.includes('ALPHA 0.12.4')&&html.includes('game.js?v=0.12.4')&&html.includes('style.css?v=0.12.4'),'iPhone Safari Home Screen cache keys are updated');
+console.log('PASS: 30 unique landscape compositions, 13 regional palettes, original Tier I retained, textured perspective causeway, one terrain plus one banner decode per selected tier, genuine canvas depth order and no economy mutations.');
 console.log('ART SIZES: min '+Math.min(...sizes)+' max '+Math.max(...sizes)+' avg '+Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length)+' encoded chars per SVG.');
 console.log('LIMIT: generated painterly pixel mattes require human visual review on actual Safari iPhones; no physical thermal test performed.');
