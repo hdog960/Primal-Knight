@@ -167,6 +167,17 @@ for(const stage of stages){
  if(noClear===stageRows.length)console.log('DIAGNOSTIC: No build cleared in allotted time; do NOT infer all nine builds are weak.');
  if(allClear)console.log('DIAGNOSTIC: Every build cleared; this stage alone cannot identify a dominant build.');
 }
+// Crest value still matters even when an exceptionally over-invested hero wins
+// both matches. Use a paired group-level duration check, not a fabricated win rate.
+const crestPrepared=rows.filter(x=>x.stage==='CREST PREPARED ENDGAME');
+const beforeCrests=rows.filter(x=>x.stage==='ENDGAME BEFORE CRESTS');
+const avgSeconds=items=>items.reduce((sum,x)=>sum+x.seconds,0)/items.length;
+assert.equal(crestPrepared.length,beforeCrests.length,'Crest comparison has equal paired builds and seeds');
+const crestTime=avgSeconds(crestPrepared),unpreparedTime=avgSeconds(beforeCrests);
+assert(crestTime<unpreparedTime*.9,
+ 'Earned Dominion Crests must offer a measurable endgame combat-time advantage at identical training and gear');
+console.log('CREST ADVANTAGE AT MATCHED FULL OATHS: '+crestTime.toFixed(2)+'s with Crests vs '+
+ unpreparedTime.toFixed(2)+'s without; both may still clear (this is NOT a crest-gate proof).');
 assert(totalCasts>0,'At least one realistic wave produces a real hero ability cast');
 console.log('\nPASS: '+rows.length+' progression-matched, seed-paired real combat slices across 4 invested profiles + 3 deeper pressure checkpoints.');
 console.log('LIMIT: These authored investment fixtures are NOT earned player saves, full waves-to-10k runs,');
