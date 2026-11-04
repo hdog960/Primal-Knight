@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.10.14. Living Onslaught phase 15: truthful boss defeats, Iron Ward target focus and readable cast breaks and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.11.0. Hero Combat Depth phase 1: three selective auto-cast combat disciplines and live skill synergy and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -45,8 +45,8 @@ const gearNames={
  charm:['Copper Locket','Hunter Sigil','Wolfsbane Charm','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone'],
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
-function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;
+function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)?p.combatDoctrine:'vanguard';
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -109,6 +109,7 @@ function normalizeRestoredProgress(){
  p.selectedTier=clamp(Math.floor(Number(p.selectedTier)||1),1,p.unlockedTier);
  p.activeBanner=typeof p.activeBanner==='string'&&p.activeBanner?p.activeBanner:'Crimson Standard';
  p.legacyUnlocked=!!p.legacyUnlocked;
+ p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)?p.combatDoctrine:'vanguard';
 }
 function restoreProgressBackup(data,keepRecoveryCopy=false){
  validateProgressBackup(data);
@@ -138,6 +139,92 @@ function undoProgressImport(){
 
 let ctx=$('game').getContext('2d'),c=$('game'),background=new Image();background.src='assets/battlefield.png';const foreground=new Image();foreground.src='assets/foreground.png';let sprites={};for(const type of ['hero','goblin','skeleton','warg','imp','ogre','guardian','raider','shaman','siegebeast','warlord','warlord_iron','warlord_ember','warlord_rift','frostbinder','sapper','banneret','thornweaver','riftstalker']){const i=new Image();i.src='assets/'+type+(['guardian','raider','shaman','siegebeast','warlord','warlord_iron','warlord_ember','warlord_rift','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type)?'.svg':'.png');sprites[type]=i;}
 let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,heroChill:0,rewardTimer:0,shakes:0,flashes:0,encounter:null,reinforcementPhase:false,bossCounters:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0,lastSiegeReport=null;
+// The first Hero Combat Depth layer: one active, automatically casting doctrine.
+// Disciplines are earned at low hero levels, not via additional paid currencies.
+const combatDoctrineData={
+ vanguard:{id:'vanguard',name:"HUNTER'S VOLLEY",school:'Marksman',level:1,cooldown:10,
+  short:'Focus-fire up to three bonus arrows.',description:'Automatic burst fire · +1 arrow at Quiver rank III. Scales with hero damage.'},
+ storm:{id:'storm',name:'ARCANE CHAIN',school:'Arcanist',level:3,cooldown:12,
+  short:'Chain lightning across up to three foes.',description:'Deals focused lightning damage and briefly slows targets. Spark talents and socketed Storm runes strengthen the chain.'},
+ aegis:{id:'aegis',name:'AEGIS PULSE',school:'Guardian',level:5,cooldown:14,
+  short:'Recover the wall and repel advancing threats.',description:'Restores a small fraction of wall health and repels up to three approaching foes. Stone and Bulwark training improve the pulse.'}
+};
+function chosenDoctrine(){return combatDoctrineData[p.combatDoctrine]||combatDoctrineData.vanguard;}
+function doctrineCooldown(){
+ const id=chosenDoctrine().id;
+ if(id==='vanguard')return 10-Math.min(.8,skill('quiver')*.15);
+ if(id==='storm')return 12-Math.min(1,skill('spark')*.18);
+ return 14-Math.min(1.2,skill('bulwark')*.22);
+}
+function chooseCombatDoctrine(id){
+ const selected=combatDoctrineData[id];
+ if(!selected||p.level<selected.level)return false;
+ if(p.combatDoctrine===id)return true;
+ p.combatDoctrine=id;
+ // Switching disciplines in a live battle cannot instantly reset an ability.
+ run.doctrineClock=Math.max(3,Number(run.doctrineClock)||0);
+ return true;
+}
+function castCombatDoctrine(){
+ if(run.phase!=='fighting')return false;
+ const targets=run.enemies.filter(e=>!e.dead).sort((a,b)=>threatPriority(b)-threatPriority(a));
+ if(!targets.length)return false;
+ const discipline=chosenDoctrine();
+ if(p.level<discipline.level)return false;
+ if(discipline.id==='vanguard'){
+  const count=Math.min(skill('quiver')>=3?4:3,48-run.shots.length);
+  if(count<=0)return false;
+  const power=damage()*(.53+Math.min(.12,skill('aim')*.018));
+  for(let i=0;i<count;i++)shoot(targets[i%targets.length],power,'arrow',478+(i%2)*28,385);
+  effect(490,374,'#ffd18d',9);
+  float(490,335,'HUNTER’S VOLLEY','#ffdfa2');
+ }else if(discipline.id==='storm'){
+  const power=damage()*(.42+Math.min(.10,skill('spark')*.014)+Math.min(.10,socketValue('storm')*2.5));
+  for(const enemy of targets.slice(0,3)){
+   hurt(enemy,power,'lightning');
+   if(!enemy.dead)enemy.slow=Math.max(enemy.slow||0,.85+Math.min(.45,skill('hail')*.1));
+   effect(enemy.x,enemy.y-6,'#90eaff',7);
+  }
+  float(480,337,'ARCANE CHAIN','#a0edff');
+ }else{
+  const frontline=targets.filter(e=>e.y>=245).slice(0,3);
+  if(run.health>=run.maxHealth-1&&!frontline.length)return false;
+  const healed=Math.max(0,Math.min(run.maxHealth-run.health,
+    Math.round(run.maxHealth*(.018+Math.min(.012,skill('stone')*.002)))));
+  run.health=Math.min(run.maxHealth,run.health+healed);
+  for(const enemy of frontline){
+   enemy.y=Math.max(120,enemy.y-(14+Math.min(12,skill('bulwark')*2)));
+   enemy.slow=Math.max(enemy.slow||0,.65);
+   effect(enemy.x,enemy.y,'#b9eccb',5);
+  }
+  effect(490,389,'#b9e6c7',11);
+  float(485,355,'AEGIS PULSE · +'+formatWave(healed),'#bcebd3');
+ }
+ run.doctrineCasts=(run.doctrineCasts||0)+1;
+ message(discipline.name+' · AUTO-CAST');
+ return true;
+}
+function advanceCombatDoctrine(dt){
+ if(run.phase!=='fighting'||run.speed===0||!Number.isFinite(dt)||dt<=0)return false;
+ run.doctrineClock=Math.max(0,(run.doctrineClock||0)-dt);
+ if(run.doctrineClock>0||!castCombatDoctrine())return false;
+ run.doctrineClock=doctrineCooldown();
+ return true;
+}
+function refreshDoctrineHud(){
+ const hud=$('doctrineHud');
+ if(!hud)return;
+ const active=run.phase==='fighting'||run.phase==='intermission';
+ hud.hidden=!active;
+ if(!active)return;
+ const discipline=chosenDoctrine();
+ const remaining=Math.max(0,run.doctrineClock||0);
+ $('doctrineName').textContent=discipline.name;
+ $('doctrineTimer').textContent=remaining>0?remaining.toFixed(1)+'s':'READY';
+ hud.dataset.school=discipline.id;
+ hud.dataset.ready=remaining===0?'true':'false';
+}
+
 // The Tower-inspired structure: difficulty is chosen once, then every wave
 // automatically follows the previous one until the fortress falls or player retreats.
 const tierNames=['Verdant March','Ashen Frontier','Frostbound Pass','Sunken Dominion','Stormscar Reach','Hollow Kingdom','Emberfall Vale','Eclipse Bastion','Ancient Wilds','Astral Descent','Shattered Crown','Primordial Siege','Cinder Throne','Obsidian Expanse','Eternal Rift','Last Kingdom','Bloodglass Frontier','Moonveil Catacombs','Sunforged Divide','Thorned Crown','Gloamwater Depths','Shattered Zenith','Dreadroot Wilds','The Hollow Star','Obsidian Choir','Thundergrave Expanse','The Golden Abyss','The Fallen Pantheon','Worldscar Dominion','The Origin Gate'];
@@ -479,7 +566,7 @@ function buildSiegeReport(reason){
   cleared:run.wavesCleared||0,enemies:run.enemiesDefeated||0,
   bossBreaks:run.totalBossBreaks||0,specialistBreaks:run.totalSpecialistBreaks||0,
   bosses:run.bossVictories||0,bossEscapes:run.bossEscapes||0,breaches:run.totalBreaches||0,
-  sabotage:run.sapperBlasts||0};
+  sabotage:run.sapperBlasts||0,doctrineCasts:run.doctrineCasts||0};
 }
 function finishSiege(reason){
  lastSiegeReport=buildSiegeReport(reason);
@@ -506,7 +593,8 @@ function renderSiegeReport(){
  $('siegeReportMetrics').innerHTML=metrics.map(([name,value])=>
   `<div class="siege-report-stat"><small>${name}</small><strong>${formatWave(value)}</strong></div>`).join('');
  $('siegeReportRange').textContent='TIER '+roman(data.tier)+' · STARTED WAVE '+formatWave(data.startWave)+' · LAST REACHED '+formatWave(data.lastWave)+
-  (data.sabotage?' · '+formatWave(data.sabotage)+' SAPPER BLAST'+(data.sabotage===1?'':'S'):'');
+  (data.sabotage?' · '+formatWave(data.sabotage)+' SAPPER BLAST'+(data.sabotage===1?'':'S'):'')+
+  ' · '+formatWave(data.doctrineCasts||0)+' HERO AUTO-CASTS';
 }
 function showLobby(summary=''){
  // The tier lobby belongs to Battle, not the progression chambers.
@@ -710,7 +798,7 @@ function randomGear(forceRarity=null){
 function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015;if(Math.random()<prob&&p.inventory.length<inventoryCap){let g=randomGear();p.inventory.push(g);notice('FOUND '+rarities[g.rarity].toUpperCase()+' EQUIPMENT');}if(p.runes.length<240&&Math.random()<.32+res('excavation')*.013){let types=Object.keys(runeNames),kind=types[Math.floor(Math.random()*types.length)];p.runes.push({type:kind,tier:1,id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)});}}
 function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.breaches=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;run.heroChill=0;run.encounter=null;run.reinforcementPhase=false;run.bossCounters=0;
  run.startWave=1;run.wavesCleared=0;run.enemiesDefeated=0;run.totalBossBreaks=0;
- run.totalSpecialistBreaks=0;run.totalBreaches=0;run.bossVictories=0;run.bossEscapes=0;run.bossesKilledThisWave=0;run.sapperBlasts=0;
+ run.totalSpecialistBreaks=0;run.totalBreaches=0;run.bossVictories=0;run.bossEscapes=0;run.bossesKilledThisWave=0;run.sapperBlasts=0;run.doctrineClock=3.5;run.doctrineCasts=0;
 }
 function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.bossesKilledThisWave=0;run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;message(run.encounter.label+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
 function spawnEnemy(){
@@ -954,6 +1042,7 @@ function tick(dt){
    notice('MAJOR BOSS BREACHED THE FORTRESS');
   }let pressure=1+Math.min(2.4,run.breaches*(.015+.09*Math.min(1,run.wave/1000)));let attack=Math.ceil(pressure*(isSiegeBoss(e)?36:13)*(e.type==='siegebeast'?2.0*(e.crushSurge>0?1.18:1):e.type==='warlord'&&e.bossPhase===2?1.4:1)*(1+run.wave*.055)*(1+(run.tier-1)*.25)*(dominionTrial(run.tier)?.trait==='crushing'?1.22:1)*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04)));run.health-=attack;run.shakes=.18;float(750,450,'BREACH '+run.breaches+' · -'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);}}
  if(run.health<=0){run.health=0;run.phase='fallen';finishSiege('fallen');message('THE FORTRESS HAS FALLEN');notice('Tier '+roman(run.tier)+' · Wave '+run.wave+' • Permanent progress saved');save();showLobby('FORTRESS FALLEN · Tier '+roman(run.tier)+' · Reached Wave '+run.wave+' · Select a tier to fight again');refreshHUD();return;}
+ advanceCombatDoctrine(dt);
  if(run.shotClock<=0&&run.enemies.some(e=>!e.dead)){const targets=run.enemies.filter(e=>!e.dead).sort((a,b)=>threatPriority(b)-threatPriority(a));let count=projectileCount();for(let i=0;i<count;i++){const tar=targets[i%targets.length];shoot(tar);if(Math.random()<skill('double')*.08)shoot(tar,damage()*.65,'arrow',476,390);}run.shotClock=attackInterval();}
  if(run.stationClock<=0){let targets=run.enemies.filter(e=>!e.dead).sort((a,b)=>threatPriority(b)-threatPriority(a));if(targets.length){if(station('ballista'))shoot(targets[0],damage()*(.6+station('ballista')*.22),'ballista',240,360);if(station('thunder'))shoot(targets[Math.min(1,targets.length-1)],damage()*(.4+station('thunder')*.15),'lightning',760,360);}run.stationClock=Math.max(.48,2.9/(1+station('ballista')*.06+station('thunder')*.05));}
  for(let i=run.shots.length-1;i>=0;i--){let s=run.shots[i];if(s.target.dead){run.shots.splice(i,1);continue}let dx=s.target.x-s.x,dy=s.target.y-s.y,dist=Math.hypot(dx,dy),speed=(s.kind==='lightning'?1100:820)*(1+t('range')*.017);s.trail.push([s.x,s.y]);if(s.trail.length>7)s.trail.shift();s.x+=dx/(dist||1)*dt*speed;s.y+=dy/(dist||1)*dt*speed;s.life-=dt;if(dist<dt*speed+8){hurt(s.target,s.power,s.kind);effect(s.x,s.y,s.kind==='lightning'?'#97f4ff':'#ffe07c',7);run.shots.splice(i,1);}else if(s.life<=0)run.shots.splice(i,1);}
@@ -1198,6 +1287,7 @@ function refreshHUD(){
  $('wallText').textContent=Math.ceil(run.health)+' / '+run.maxHealth;
  $('wallFill').style.width=(100*run.health/(run.maxHealth||1))+'%';
  $('heroTag').innerHTML='✦ LEVEL '+p.level+' <span>'+fmt(p.xp)+' / '+fmt(lvlNeed())+' XP</span>';
+ refreshDoctrineHud();
  const next=nextMilestone(run.tier,run.wave);$('milestoneHint').textContent=next?'✦ NEXT MILESTONE · WAVE '+formatWave(next)+' · '+tierMilestone(run.tier,next).name:'✦ ALL MILESTONES CLEARED · PUSH YOUR RECORD';
  syncBattleControls();
 }
@@ -1796,6 +1886,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
    }
   }
  }
+ else if(type==='doctrine'){if(chooseCombatDoctrine(id)){notice(chosenDoctrine().name+' SELECTED');refreshDoctrineHud();}else notice('DISCIPLINE LOCKED · RAISE HERO LEVEL');}
  else if(type==='skill'){let found=Object.values(skills).flat().find(x=>x[0]===id);if(found&&p.points>0&&skill(id)<5){p.points--;p.skills[id]=skill(id)+1;run.maxHealth=maxWall();}}
  else if(type==='station'){let row=stationData.find(x=>x[0]===id),cost=stationCost(row);if(row&&p.gold>=cost&&station(id)<row[6]){p.gold-=cost;p.stations[id]=station(id)+1;}}
  else if(type==='research'){let row=research.find(x=>x[0]===id);if(row){const cost=researchCost(row,p.research);if(p.knowledge>=cost&&res(id)<row[5]){const oldMax=run.maxHealth;p.knowledge-=cost;p.research[id]=res(id)+1;if(id==='masonry'){run.maxHealth=maxWall();run.health=Math.min(run.maxHealth,run.health+Math.max(0,run.maxHealth-oldMax));}}}}
@@ -1909,5 +2000,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
