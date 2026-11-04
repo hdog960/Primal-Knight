@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.0. Living Territories - Atmospheric Battlefield Slice 1: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.1. Living Territories - Illustrated Terrain Mattes: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1595,10 +1595,224 @@ function drawTerritoryAtmosphere(context,seconds=run.time,tier=run.tier,still=re
  return vista;
 }
 
-function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0&&!reduceMotion){ctx.translate(rnd(-2,2),rnd(-2,2));}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}
+
+/* Alpha 0.12.1 — 29 additional authored-style illustrated terrain mattes.
+   The original Tier I painted battlefield remains unchanged. The other tiers
+   use reproducible, offline-composable SVG landscape art, decoded once per
+   selected tier; no network calls, per-frame geometry builds, or save changes. */
+const terrainBiomes=[
+ 'verdant','ash','frost','marsh','storm','ruin','ember','obsidian','grove','astral',
+ 'ruin','ember','ember','obsidian','astral','ruin','crystal','astral','desert','thorn',
+ 'marsh','frost','thorn','astral','obsidian','storm','desert','ruin','ember','astral'
+];
+const terrainColors={
+ verdant:{sky:['#777db0','#e6b1ad','#ffd4a1'],mount:['#777993','#4d667a'],land:['#50654d','#84936b'],road:['#805d4a','#b89073'],dark:'#2b5145',light:'#c2cd8c',accent:'#deb86f'},
+ ash:{sky:['#4e536b','#be776d','#dfaaa0'],mount:['#675a66','#554955'],land:['#6d5551','#927465'],road:['#5f4e53','#b5927c'],dark:'#49434a',light:'#c5aaa0',accent:'#f3a56f'},
+ frost:{sky:['#3e577d','#a6bbd2','#ecdbda'],mount:['#8299ae','#546d8d'],land:['#748d98','#b2c7c9'],road:['#718a97','#b3c7cd'],dark:'#4b6580',light:'#f5f3e6',accent:'#b2eaf5'},
+ marsh:{sky:['#435b64','#a1a98e','#c8baa0'],mount:['#556e6a','#395d60'],land:['#425d4e','#64816b'],road:['#544f47','#948575'],dark:'#2b4d42',light:'#9cbd91',accent:'#a7dfbd'},
+ storm:{sky:['#273954','#79869f','#ad9eaa'],mount:['#4e6379','#334659'],land:['#455f6a','#71868a'],road:['#536478','#a1a2a4'],dark:'#253e57',light:'#a3c4d3',accent:'#b4d4ed'},
+ ruin:{sky:['#544d70','#c3a08a','#e5c8a2'],mount:['#6c6076','#55566c'],land:['#6e6762','#9b8d76'],road:['#615651','#b3a08a'],dark:'#48424c',light:'#d2bca0',accent:'#f7cf91'},
+ ember:{sky:['#4c364f','#aa534c','#f6a26a'],mount:['#68414b','#442b3b'],land:['#613f3c','#86574a'],road:['#4e3741','#a27564'],dark:'#342a35',light:'#e18d62',accent:'#ffc175'},
+ obsidian:{sky:['#2e334c','#74536b','#c88d84'],mount:['#4b4059','#28283e'],land:['#403c43','#686068'],road:['#3d3a4c','#867c89'],dark:'#252534',light:'#ab9aa9',accent:'#b8a0f5'},
+ grove:{sky:['#535e89','#a4b2ad','#d9c09b'],mount:['#56736f','#3f6671'],land:['#3a644f','#74905d'],road:['#6c6250','#b4a27b'],dark:'#245441',light:'#c2c78b',accent:'#d5d384'},
+ astral:{sky:['#262e58','#65639b','#aaa1c8'],mount:['#4b4e83','#313c6c'],land:['#49476d','#7274a0'],road:['#4c4969','#9690ae'],dark:'#26294e',light:'#b6b7e6',accent:'#c6a8f9'},
+ crystal:{sky:['#493c67','#a17baf','#d3b1c3'],mount:['#6b6589','#464e83'],land:['#625773','#94829d'],road:['#554c65','#ae92b5'],dark:'#3c365a',light:'#cfb1dc',accent:'#a5d8f5'},
+ desert:{sky:['#62728b','#ddb08b','#f3cf9a'],mount:['#ad8f7d','#8e746b'],land:['#ab895d','#d2b27b'],road:['#947354','#d4ae83'],dark:'#806148',light:'#ffe0a5',accent:'#ffcb7f'},
+ thorn:{sky:['#455471','#a99b96','#d4bd93'],mount:['#5b696f','#3f5666'],land:['#47594b','#71805b'],road:['#54534c','#9b8a73'],dark:'#354639',light:'#afbc80',accent:'#bc9e91'}
+};
+function terrainSeeded(tier){
+ let seed=(Math.imul(tier,2654435761)^0x6c8e9cf5)>>>0;
+ return ()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;};
+}
+function terrainSceneSvg(tier){
+ const scene=territoryVista(tier),biome=terrainBiomes[scene.tier-1],colors=terrainColors[biome],rand=terrainSeeded(scene.tier);
+ const pieces=[],choose=list=>list[Math.floor(rand()*list.length)],n=(low,high)=>Math.round(low+rand()*(high-low));
+ const alpha=(low,high)=>Number((low+rand()*(high-low)).toFixed(2));
+ const patch=(x,y,w,h,color,opacity=1)=>pieces.push('<rect x="'+x+'" y="'+y+'" width="'+Math.max(1,w)+'" height="'+Math.max(1,h)+'" fill="'+color+'" opacity="'+opacity+'"/>');
+ const poly=(points,color,opacity=1)=>pieces.push('<polygon points="'+points+'" fill="'+color+'" opacity="'+opacity+'"/>');
+ const line=(x1,y1,x2,y2,color,width=2,opacity=1)=>pieces.push('<path d="M'+x1+' '+y1+'L'+x2+' '+y2+'" fill="none" stroke="'+color+'" stroke-width="'+width+'" opacity="'+opacity+'"/>');
+ const land=colors.land,sky=colors.sky;
+ pieces.push('<svg xmlns="http://www.w3.org/2000/svg" width="960" height="346" viewBox="0 0 960 346" shape-rendering="crispEdges">');
+ pieces.push('<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="'+sky[0]+'"/><stop offset=".62" stop-color="'+sky[1]+'"/><stop offset="1" stop-color="'+sky[2]+'"/></linearGradient>');
+ pieces.push('<linearGradient id="soil" x1="0" y1="0" x2="0" y2="1"><stop stop-color="'+land[0]+'"/><stop offset="1" stop-color="'+land[1]+'"/></linearGradient>');
+ pieces.push('<linearGradient id="road" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="'+colors.road[0]+'"/><stop offset=".55" stop-color="'+colors.road[1]+'"/><stop offset="1" stop-color="'+colors.road[0]+'"/></linearGradient>');
+ pieces.push('<clipPath id="causeway"><path d="M449 99C438 152 418 168 403 198C382 232 362 266 306 346H662C625 277 595 231 580 198C561 160 533 125 516 99Z"/></clipPath></defs>');
+ patch(0,0,960,148,'url(#sky)');
+ // A painted dusk, moon or eerie sun low on the horizon; no per-frame blur.
+ pieces.push('<ellipse cx="'+n(520,740)+'" cy="'+n(13,55)+'" rx="'+n(34,57)+'" ry="'+n(20,38)+'" fill="'+colors.accent+'" opacity=".16"/>');
+ pieces.push('<circle cx="'+n(560,745)+'" cy="'+n(17,49)+'" r="'+n(16,25)+'" fill="'+colors.accent+'" opacity=".64"/>');
+ if(['astral','crystal','frost','obsidian'].includes(biome)){
+  for(let i=0;i<46;i++)patch(n(8,949),n(3,93),choose([1,2,2,3]),choose([1,1,2]),colors.light,alpha(.27,.75));
+ }
+ // Far mountains use overlapping faceted silhouettes and intermittent light on cliffs.
+ for(let layer=0;layer<3;layer++){
+  let path='M0 '+(94+layer*19);
+  for(let x=0;x<=1010;x+=38){const rise=n(17,52),y=78+layer*19-rise+(rand()-.5)*17;path+='L'+x+' '+Math.round(y)+'L'+(x+14)+' '+Math.round(y+rise*.32);}
+  path+='L960 147L0 147Z';
+  pieces.push('<path d="'+path+'" fill="'+colors.mount[layer===0?0:1]+'" opacity="'+[.78,.88,.94][layer]+'"/>');
+ }
+ for(let i=0;i<55;i++){
+  const x=n(0,945),y=n(67,112);
+  line(x,y,x+n(10,35),y-n(2,8),choose([colors.light,colors.mount[0]]),n(1,3),.25);
+ }
+ // Horizon, painted coarse brush texture, faint distant trees and battlements.
+ patch(0,104,960,242,'url(#soil)');
+ for(let i=0;i<44;i++){
+  const x=i*24-10+n(-4,6),height=n(8,26);
+  if(['forest','verdant','grove','thorn','marsh'].includes(biome)){
+   poly((x-7)+',113 '+x+','+(113-height)+' '+(x+10)+',113',colors.dark,.75);
+   line(x,108,x,115,colors.dark,2,.65);
+  }else{
+   poly((x-6)+',118 '+(x-2)+','+(118-height)+' '+(x+4)+','+(116-height*.5)+' '+(x+10)+',118',colors.dark,.65);
+  }
+ }
+ // Midground land slopes and illustrated shaded earth ridges.
+ pieces.push('<path d="M0 116Q160 102 342 130Q398 143 432 142L400 206Q257 166 0 203Z" fill="'+colors.land[1]+'" opacity=".5"/>');
+ pieces.push('<path d="M960 118Q790 100 621 139L573 159L615 205Q758 160 960 211Z" fill="'+colors.dark+'" opacity=".25"/>');
+ // Varied brush flecks / grasses / stones: dense but STATIC, rasterized by SVG decoder once.
+ for(let i=0;i<420;i++){
+  const x=n(1,956),y=n(116,345);
+  if(x>395-(y-130)*.36&&x<565+(y-130)*.48)continue;
+  const w=n(2,y>235?10:6),h=n(1,3),color=choose([colors.light,colors.dark,land[0],land[1],colors.accent]);
+  patch(x,y,w,h,color,alpha(.18,.52));
+  if(i%18===0)line(x,y+2,x+n(-2,2),y-n(3,7),colors.dark,1,.36);
+ }
+ // Flat, natural readable marching road is intentionally free from permanent landmarks.
+ pieces.push('<path d="M449 99C438 152 418 168 403 198C382 232 362 266 306 346H662C625 277 595 231 580 198C561 160 533 125 516 99Z" fill="url(#road)"/>');
+ pieces.push('<path d="M449 99C438 152 418 168 403 198C382 232 362 266 306 346" stroke="'+colors.dark+'" stroke-width="7" fill="none" opacity=".36"/>');
+ pieces.push('<path d="M516 99C533 125 561 160 580 198C595 231 625 277 662 346" stroke="'+colors.light+'" stroke-width="7" fill="none" opacity=".22"/>');
+ pieces.push('<g clip-path="url(#causeway)">');
+ for(let row=0;row<19;row++){
+  const y=102+row*(6+row*.45),step=16+row*.85;
+  const offset=row%2?step*.53:0;
+  for(let x=300+offset;x<663;x+=step){
+   const w=n(10,Math.max(12,Math.round(step-2)));
+   patch(Math.round(x+n(-2,2)),Math.round(y),w,n(2,Math.max(3,Math.round(step*.31))),choose([colors.road[0],colors.road[1],colors.light]),alpha(.16,.48));
+  }
+ }
+ for(let i=0;i<120;i++)patch(n(310,648),n(113,344),n(2,9),n(1,3),choose([colors.road[0],colors.road[1],colors.dark]),.27);
+ pieces.push('</g>');
+ // Regional landmarks are lavishly shadowed, fractured and textured: not icon stamps.
+ function tower(cx,base,scale,metal=false){
+  const w=Math.round(42*scale),height=Math.round(120*scale),x=Math.round(cx-w/2),top=Math.round(base-height);
+  const face=metal?colors.dark:colors.mount[1];
+  patch(x,top+13,w,height-12,face);
+  poly(x+','+(top+13)+' '+(x+12)+','+(top-4)+' '+(x+w-10)+','+(top-4)+' '+(x+w)+','+(top+13),colors.dark);
+  patch(x+4,top+20,8,height-19,colors.light,.2);
+  patch(x+w-13,top+20,11,height-19,colors.dark,.65);
+  for(let k=0;k<4;k++)patch(x+k*(w/3),top+n(2,7),n(6,10),n(9,13),face);
+  for(let j=0;j<Math.floor(height/14);j++){
+   line(x+2,top+24+j*13,x+w-3,top+23+j*13,colors.light,1,.24);
+   line(x+(j%2?Math.round(w*.36):Math.round(w*.62)),top+23+j*13,x+(j%2?Math.round(w*.36):Math.round(w*.62)),top+35+j*13,colors.dark,1,.45);
+  }
+  patch(x+Math.floor(w*.42),top+37,Math.max(3,Math.floor(w*.16)),n(14,25),colors.dark);
+  patch(x+Math.floor(w*.4),top+34,Math.max(2,Math.floor(w*.08)),12,colors.accent,.25);
+  patch(x-11,base-10,w+22,10,colors.mount[1]);
+  for(let k=0;k<5;k++)patch(x+n(0,w-2),n(top+16,base-10),n(2,5),n(2,7),colors.light,.27);
+ }
+ function pine(x,base,s){
+  const h=Math.round(n(72,125)*s),w=Math.round(h*.38);
+  patch(x-4,base-h*.5,8,h*.53,colors.dark);
+  for(let i=0;i<4;i++){
+   const cy=base-h+i*(h*.18),radius=Math.round(w*(.55+i*.24));
+   poly((x-radius)+','+(cy+h*.24)+' '+x+','+(cy-h*.12)+' '+(x+radius)+','+(cy+h*.24),i%2?colors.dark:colors.mount[1]);
+   for(let j=0;j<5;j++)patch(x+n(-radius*.7,radius*.7),Math.round(cy+n(0,h*.12)),n(2,7),n(1,3),colors.light,.32);
+  }
+  patch(x-2,base-12,4,10,colors.light,.16);
+ }
+ function crystal(x,base,s){
+  const h=Math.round(n(66,118)*s),w=Math.round(23*s);
+  poly((x-w)+','+base+' '+(x-8)+','+(base-h*.7)+' '+(x+2)+','+(base-h)+' '+(x+w)+','+base,colors.dark);
+  poly((x-7)+','+(base-6)+' '+(x+2)+','+(base-h)+' '+(x+10)+','+(base-5),colors.accent,.78);
+  poly((x+12)+','+(base-5)+' '+(x+w+8)+','+(base-h*.55)+' '+(x+w+16)+','+base,colors.light,.65);
+  line(x+1,base-h*.87,x+1,base-11,colors.light,2,.6);
+  for(let i=0;i<4;i++)patch(x+n(-w,w),base-n(4,24),n(2,8),n(3,12),colors.light,.42);
+ }
+ function basalt(x,base,s){
+  const h=Math.round(n(77,137)*s),w=Math.round(n(20,38)*s);
+  poly((x-w)+','+base+' '+(x-w*.55)+','+(base-h*.55)+' '+(x-4)+','+(base-h)+' '+(x+w*.65)+','+(base-h*.7)+' '+(x+w)+','+base,colors.dark);
+  poly((x-w*.4)+','+(base-8)+' '+(x-4)+','+(base-h*.82)+' '+(x+7)+','+(base-9),colors.mount[1]);
+  for(let i=0;i<4;i++)line(x+n(-w*.5,w*.5),base-n(12,h*.63),x+n(-w*.6,w*.3),base-n(3,11),colors.accent,n(1,3),.5);
+ }
+ function oak(x,base,s){
+  const h=Math.round(n(84,130)*s),w=Math.round(h*.40),top=base-h;
+  poly((x-10)+','+base+' '+(x-15)+','+(base-h*.55)+' '+(x-7)+','+top+' '+(x+12)+','+(top+9)+' '+(x+9)+','+base,colors.dark);
+  for(let k=0;k<5;k++){
+   const ax=x+n(-w,w),ay=top+n(0,h*.48),r=n(20,34)*s;
+   pieces.push('<ellipse cx="'+ax+'" cy="'+ay+'" rx="'+Math.round(r*1.25)+'" ry="'+Math.round(r*.76)+'" fill="'+(k%2?colors.mount[1]:colors.land[0])+'" opacity=".97"/>');
+   for(let j=0;j<7;j++)patch(ax+n(-r,r),ay+n(-r*.36,r*.36),n(2,7),n(2,5),colors.light,.32);
+  }
+  line(x+4,base-24,x+Math.round(w*.7),base-h*.73,colors.dark,5);
+ }
+ function ruinArch(x,base,s){
+  const w=Math.round(110*s),h=Math.round(105*s),left=x-w/2,top=base-h;
+  patch(left,top+18,Math.round(20*s),h-18,colors.mount[1]);
+  patch(left+w-20*s,top+18,Math.round(20*s),h-18,colors.mount[1]);
+  poly(left+','+(top+18)+' '+(left+25*s)+','+top+' '+(left+w-24*s)+','+top+' '+(left+w)+','+(top+18)+' '+(left+w-10*s)+','+(top+34),colors.dark);
+  patch(left+Math.round(18*s),top+13,w-Math.round(36*s),Math.round(16*s),colors.mount[1]);
+  for(let k=0;k<6;k++)patch(Math.round(left+k*w/6),Math.round(top+n(6,14)),n(5,12),n(5,11),colors.light,.24);
+  for(let k=0;k<8;k++)line(left+n(0,w),top+n(24,h),left+n(0,w),top+n(24,h),colors.light,1,.3);
+  patch(left-7,base-8,w+14,8,colors.dark);
+ }
+ // Landmark pair placement stays to field edges so it cannot confuse combat.
+ const leftX=n(92,205),rightX=n(758,870),nearY=n(243,273);
+ if(['verdant','grove','thorn'].includes(biome)){
+  oak(leftX,nearY,1.05);pine(rightX,nearY+8,.9);
+  for(let k=0;k<4;k++)pine(n(0,285),n(182,263),alpha(.35,.72));
+  if(biome==='thorn')for(let k=0;k<8;k++)line(n(0,305),n(233,341),n(0,305),n(208,231),colors.dark,2,.55);
+ }else if(['frost','crystal','astral'].includes(biome)){
+  crystal(leftX,nearY,alpha(.8,1.3));crystal(rightX,nearY,alpha(.7,1.2));
+  for(let k=0;k<5;k++)crystal(n(0,955),n(175,267),alpha(.28,.65));
+  if(biome==='astral')ruinArch(n(700,820),n(196,230),.62);
+ }else if(['ruin','obsidian'].includes(biome)){
+  tower(leftX,nearY,alpha(.78,1.25),biome==='obsidian');
+  ruinArch(rightX,nearY,alpha(.77,1.06));
+  for(let k=0;k<4;k++)basalt(n(30,930),n(208,280),alpha(.27,.68));
+ }else if(['ember','ash','storm'].includes(biome)){
+  basalt(leftX,nearY,alpha(.85,1.2));tower(rightX,nearY,n(.8,1.22),true);
+  for(let k=0;k<6;k++)basalt(n(0,960),n(179,265),alpha(.27,.7));
+  if(biome==='storm')for(let k=0;k<4;k++)line(n(0,960),n(68,128),n(0,960),n(134,168),colors.accent,2,.38);
+ }else if(biome==='marsh'){
+  oak(leftX,nearY,alpha(.8,1.12));ruinArch(rightX,nearY,.7);
+  for(let k=0;k<9;k++)patch(n(0,950),n(222,333),n(15,40),n(2,5),colors.light,.14);
+ }else if(biome==='desert'){
+  tower(leftX,nearY,alpha(.65,.95));basalt(rightX,nearY,alpha(.9,1.16));
+  for(let k=0;k<5;k++)poly(n(0,945)+','+n(251,278)+' '+n(0,940)+','+n(214,244)+' '+n(0,960)+','+n(249,274),colors.road[0],.5);
+ }
+ // Near-field sparse tuft and rock texture; never over the road marching lane.
+ for(let i=0;i<52;i++){
+  const x=n(2,958),y=n(261,345);
+  if(x>330&&x<644)continue;
+  if(rand()>.57){
+   poly((x-5)+','+(y+2)+' '+x+','+(y-7)+' '+(x+7)+','+(y+1),colors.dark,.45);
+   patch(x-1,y-3,3,2,colors.light,.44);
+  }else{
+   line(x,y,x-2,y-n(3,8),colors.light,1,.52);
+   line(x+3,y+1,x+4,y-n(3,8),colors.dark,1,.42);
+  }
+ }
+ pieces.push('</svg>');
+ return pieces.join('');
+}
+let terrainCachedTier=0,terrainCachedImage=null;
+function territorySceneImage(tier){
+ const normalized=territoryVista(tier).tier;
+ if(normalized===terrainCachedTier)return terrainCachedImage;
+ terrainCachedTier=normalized;
+ if(normalized===1){terrainCachedImage=null;return null;} // Original painted Verdant March retained.
+ const image=new Image();
+ image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(terrainSceneSvg(normalized));
+ terrainCachedImage=image;
+ return image;
+}
+function visibleTerritoryTier(){
+ return run.phase==='fighting'||run.phase==='intermission'?run.tier:chosenTier;
+}
+
+function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0&&!reduceMotion){ctx.translate(rnd(-2,2),rnd(-2,2));}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}const sceneTier=visibleTerritoryTier(),matte=territorySceneImage(sceneTier);if(matte&&matte.complete&&matte.naturalWidth)ctx.drawImage(matte,0,0,960,346);
  // Subtle animated fog and light make the illustrated environment breathe.
  const time=performance.now()/1000;let gd=ctx.createLinearGradient(0,96,0,415);gd.addColorStop(0,'rgba(5,25,39,.08)');gd.addColorStop(1,'rgba(18,10,21,.13)');ctx.fillStyle=gd;ctx.fillRect(0,90,960,350);
- drawTerritoryAtmosphere(ctx,run.time,run.tier,reduceMotion);
+ drawTerritoryAtmosphere(ctx,run.time,sceneTier,reduceMotion);
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
  for(const e of [...run.enemies].filter(e=>!e.dead).sort((a,b)=>a.y-b.y)){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'||e.type==='banneret'?1.18:1);let im=sprites[e.type==='warlord'&&e.bossStyle?'warlord_'+e.bossStyle:e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;ctx.drawImage(im,e.x-sw/2,py,sw,sh);ctx.restore();
  if(e.relicGuardian){
@@ -2384,7 +2598,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.0 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.1 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -2630,5 +2844,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainSceneSvg,territorySceneImage,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
