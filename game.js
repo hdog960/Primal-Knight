@@ -160,6 +160,46 @@ const combatPassiveData={
  sentinel:{id:'sentinel',name:'RAMPART OATH',school:'Guardian',level:5,
   short:'Reduce wall-impact and Sapper blast damage by 10%.',detail:'Passive protection does not raise damage or improve Gold rewards.'}
 };
+
+/* Alpha 0.11.9 — player-controlled, fully automatic cast timing policies.
+   Rapid is the original unchanged behavior for every existing iPhone save. */
+const doctrineTacticModes={
+ rapid:{name:'RAPID',detail:'Use your signature ability whenever its cooldown ends and a valid target is present.'},
+ horde:{name:'HORDE',detail:'Hold it for four enemies, a dangerous special cast, or damage that needs Aegis healing.'},
+ crisis:{name:'CRISIS',detail:'Save it for attackers near the wall, dangerous windups, crowded battlefields, or a damaged fortress.'}
+};
+function normalizeDoctrineTactic(id){return Object.prototype.hasOwnProperty.call(doctrineTacticModes,id)?id:'rapid';}
+function chooseDoctrineTactic(id){
+ if(run.phase==='fighting'||run.phase==='intermission'||!Object.prototype.hasOwnProperty.call(doctrineTacticModes,id))return false;
+ p.doctrineTactic=id;return true;
+}
+function doctrineTacticEligible(){
+ const mode=normalizeDoctrineTactic(p.doctrineTactic);
+ if(mode==='rapid')return true; // This exactly preserves previous auto-casting.
+ const alive=run.enemies.filter(e=>e&&!e.dead);
+ if(!alive.length)return false;
+ const damaged=run.health<=run.maxHealth*.91;
+ const urgent=alive.some(e=>e.bossWardTimer>0||e.crushWindup>0||e.bossFuryWindup>0||
+   e.bossBlinkWindup>0||e.type==='sapper'&&e.y>=220||
+   e.type==='shaman'&&e.ritualClock<=1.4);
+ const aegis=chosenDoctrine().id==='aegis';
+ if(mode==='horde')return alive.length>=4||urgent||(aegis&&damaged);
+ return urgent||alive.some(e=>e.y>=288)||alive.length>=9||
+   run.health<=run.maxHealth*.78||(aegis&&run.health<=run.maxHealth*.91);
+}
+function renderDoctrineTactics(compact=false){
+ const disabled=run.phase==='fighting'||run.phase==='intermission';
+ return `<section class="doctrine-tactics ${compact?'doctrine-tactics-compact':''}" aria-label="Automatic signature ability cast timing">
+   <div class="doctrine-tactics-head"><strong>✦ AUTOMATIC ABILITY STRATEGY</strong>
+   <span>${doctrineTacticModes[normalizeDoctrineTactic(p.doctrineTactic)].name} MODE</span></div>
+   <p>All choices stay fully automatic. RAPID preserves the original behavior; more selective timing can help with crowded or dangerous encounters.</p>
+   <div class="doctrine-tactics-options">${Object.entries(doctrineTacticModes).map(([id,mode])=>
+    `<button type="button" ${compact?'data-doctrine-tactic':'data-action'}="${compact?id:'tactic:'+id}"
+    class="doctrine-tactics-choice ${p.doctrineTactic===id?'selected':''}" aria-pressed="${p.doctrineTactic===id}"
+    ${disabled?'disabled':''}><strong>${mode.name}</strong><small>${mode.detail}</small></button>`).join('')}</div>
+   <small>Changing strategy is free between sieges, saves on your device, and does not restart a cooldown or alter your earned items.</small>
+  </section>`;
+}
 const combatLoadoutNames=['SCOUT','TEMPEST','BASTION'];
 function passiveTrait(){return combatPassiveData[p.combatPassive]||combatPassiveData.hunter;}
 function chooseCombatPassive(id){
@@ -183,14 +223,14 @@ function normalizeCombatLoadouts(slots){
    return out;
   };
   const equipped=acceptMap(item.equipped),socketed=acceptMap(item.socketed);
-  return equipped&&socketed?{doctrine:item.doctrine,passive:item.passive,equipped,socketed}:null;
+  return equipped&&socketed?{doctrine:item.doctrine,passive:item.passive,tactic:normalizeDoctrineTactic(item.tactic),equipped,socketed}:null;
  });
 }
 p.combatLoadouts=normalizeCombatLoadouts(p.combatLoadouts);
 function saveCombatLoadout(index){
  if(!Number.isInteger(index)||index<0||index>=combatLoadoutNames.length)return false;
  p.combatLoadouts[index]={
-  doctrine:p.combatDoctrine,passive:p.combatPassive,
+  doctrine:p.combatDoctrine,passive:p.combatPassive,tactic:normalizeDoctrineTactic(p.doctrineTactic),
   equipped:Object.fromEntries(Object.entries(p.equipped).filter(([slot,id])=>gearSlots.includes(slot)&&typeof id==='string'&&id)),
   socketed:Object.fromEntries(Object.entries(p.socketed).filter(([slot,id])=>gearSlots.includes(slot)&&typeof id==='string'&&id))
  };
@@ -223,7 +263,7 @@ function applyCombatLoadout(index){
  if(!status.ready)return false;
  const selected=p.combatLoadouts[index];
  // All validation happens before any mutation. Broken or sold-item builds cannot partially equip.
- p.combatDoctrine=selected.doctrine;p.combatPassive=selected.passive;
+ p.combatDoctrine=selected.doctrine;p.combatPassive=selected.passive;p.doctrineTactic=normalizeDoctrineTactic(selected.tactic);
  p.equipped={...selected.equipped};
  p.socketed={...selected.socketed};
  run.maxHealth=maxWall();run.health=Math.min(run.health,run.maxHealth);
@@ -233,10 +273,10 @@ function renderCombatLoadouts(compact=false){
  const counsel=compact?warCouncilPlan(chosenTier,useWaystone?waystoneForTier(chosenTier):1):null;
  const cards=combatLoadoutNames.map((name,index)=>{
   const saved=p.combatLoadouts[index],state=loadoutReadiness(index),active=saved&&
-   saved.doctrine===p.combatDoctrine&&saved.passive===p.combatPassive&&
+   saved.doctrine===p.combatDoctrine&&saved.passive===p.combatPassive&&normalizeDoctrineTactic(saved.tactic)===p.doctrineTactic&&
    JSON.stringify(saved.equipped)===JSON.stringify(p.equipped)&&
    JSON.stringify(saved.socketed)===JSON.stringify(p.socketed);
-  return `<div class="build-preset${active?' active':''}"><div class="build-preset-copy"><small>SLOT ${index+1} · ${name}</small><strong>${saved?combatDoctrineData[saved.doctrine].name+' / '+combatPassiveData[saved.passive].name:'EMPTY LOADOUT'}</strong><span>${saved?(compact&&state.ready?'TACTICAL MATCH '+warCouncilFit(saved.doctrine,saved.passive,counsel.guide,saved.socketed)+'/9 · '+state.reason:state.reason):'Save your current equipment, runes and abilities here.'}</span></div><div class="build-preset-actions">${compact?'':`<button type="button" data-action="saveLoadout:${index}" aria-label="Save current build into preset ${name}">SAVE</button>`}<button type="button" data-action="applyLoadout:${index}" ${state.ready?'':'disabled'} aria-label="Apply preset ${name}">${active?'EQUIPPED':state.ready?'EQUIP':'UNAVAILABLE'}</button></div></div>`;
+  return `<div class="build-preset${active?' active':''}"><div class="build-preset-copy"><small>SLOT ${index+1} · ${name}</small><strong>${saved?combatDoctrineData[saved.doctrine].name+' / '+combatPassiveData[saved.passive].name+' · '+doctrineTacticModes[normalizeDoctrineTactic(saved.tactic)].name:'EMPTY LOADOUT'}</strong><span>${saved?(compact&&state.ready?'TACTICAL MATCH '+warCouncilFit(saved.doctrine,saved.passive,counsel.guide,saved.socketed)+'/9 · '+state.reason:state.reason):'Save your current equipment, runes and abilities here.'}</span></div><div class="build-preset-actions">${compact?'':`<button type="button" data-action="saveLoadout:${index}" aria-label="Save current build into preset ${name}">SAVE</button>`}<button type="button" data-action="applyLoadout:${index}" ${state.ready?'':'disabled'} aria-label="Apply preset ${name}">${active?'EQUIPPED':state.ready?'EQUIP':'UNAVAILABLE'}</button></div></div>`;
  }).join('');
  return `<section class="combat-build-presets" aria-label="Saved combat loadout presets"><div class="combat-build-head"><strong>✦ ${compact?'QUICK PREPARATION':'THREE BATTLE LOADOUTS'}</strong><small>${compact?'Equip a saved build before the siege':'Three free presets · equipment and runes are referenced, never copied'}</small></div><div class="combat-build-grid">${cards}</div></section>`;
 }
