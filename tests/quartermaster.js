@@ -99,7 +99,7 @@ assert.equal(JSON.stringify({training:p.training,essence:p.essence}),beforeFight
  'No extra healing or free rank can be gained through a forged mid-battle click');
 r.phase='intermission';
 assert.equal(h.purchaseCouncilTraining('fort'),false,'Between-wave waits cannot bypass purchase restriction');
-assert(html.includes('ALPHA 0.11.7')&&html.includes('style.css?v=0.11.7')&&html.includes('game.js?v=0.11.7'),
+assert(html.includes('ALPHA 0.11.8')&&html.includes('style.css?v=0.11.8')&&html.includes('game.js?v=0.11.8'),
  'iPhone web assets and release banner display latest version');
 assert(css.includes('.war-quartermaster-grid')&&css.includes('min-height:44px'),
  'Original art-consistent Quartermaster cards have large touch targets');

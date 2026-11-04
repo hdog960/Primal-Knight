@@ -2270,3 +2270,35 @@
  .sigil-ledger-grid strong{font-size:15px}}
 @media(orientation:landscape) and (max-height:460px){.sigil-ledger>summary{padding:8px 11px}
  .sigil-ledger-body{padding:8px 11px}}
+
+
+/* 0.11.8 — collapsible, authentic Sigil War Chest in battle preparation. */
+.war-chest{margin-top:11px;border:1px solid #ac9466;background:linear-gradient(135deg,#263c45,#172c3b 70%);color:#eee2cb}
+.war-chest>summary{cursor:pointer;list-style:none;display:flex;gap:9px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:11px 12px;
+ color:#f9dfa8;font:800 12px Georgia,serif;letter-spacing:.3px}
+.war-chest>summary::-webkit-details-marker{display:none}
+.war-chest>summary:before{content:'▸';color:#efc985}
+.war-chest[open]>summary:before{content:'▾'}
+.war-chest>summary span{color:#bbd9d2;font:700 10px Arial,sans-serif;letter-spacing:.35px}
+.war-chest>summary:focus-visible{outline:2px solid #ffeeaf;outline-offset:-3px}
+.war-chest-body{padding:9px 11px 12px;border-top:1px solid #aa91694d}
+.war-chest-body p{font:11px/1.5 Arial,sans-serif;color:#dae0d6;margin:0 0 9px}
+.war-chest-offers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.war-chest-offer{padding:9px 8px;border:1px solid #80775f;background:#152a38;display:flex;flex-direction:column;justify-content:space-between;gap:10px;min-width:0}
+.war-chest-offer>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.war-chest-offer small{color:#efd196;font:800 9px/1.35 Arial,sans-serif;letter-spacing:.4px}
+.war-chest-offer strong{color:#fff0d1;font:700 13px/1.2 Georgia,serif;overflow-wrap:anywhere}
+.war-chest-offer span{font:10px Arial,sans-serif;color:#d1ddd4}
+.war-chest-offer button{padding:7px;min-height:44px;color:#ffe7b6;border:1px solid #c2a371;background:linear-gradient(#766044,#4e3d32);font:800 10px/1.2 Arial,sans-serif;cursor:pointer;touch-action:manipulation}
+.war-chest-offer button:disabled{opacity:.6;cursor:not-allowed;border-color:#78818a}
+.war-chest-offer button:focus-visible{outline:2px solid #ffe5a4;outline-offset:2px}
+.war-chest-body>small{display:block;margin-top:10px;font:10px/1.5 Arial,sans-serif;color:#c5d7c9}
+@media(max-width:750px),(orientation:portrait){.war-chest>summary{padding:10px}
+ .war-chest-offers{grid-template-columns:1fr}
+ .war-chest-offer{flex-direction:row;align-items:center;padding:8px;gap:9px}
+ .war-chest-offer>div{flex:1}
+ .war-chest-offer button{width:125px;flex:none}
+}
+@media(max-width:350px){.war-chest-offer{flex-direction:column;align-items:stretch}
+ .war-chest-offer button{width:100%}}
+@media(orientation:landscape) and (max-height:460px){.war-chest-body{padding:7px 9px}.war-chest-offer{padding:7px}.war-chest-offer button{min-height:42px}}
