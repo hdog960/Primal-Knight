@@ -36,3 +36,15 @@ Additional stress comparisons revisit Tier XIII at wave 3,000 and Tier XXIV at w
 - Alpha 0.11 Hero Combat Depth should stay open until actual balance risks, viability at comparable earned budgets, and device presentation have been reviewed.
 
 Do not call Alpha 0.11.4 an entirely new combat feature, or claim the late-game meta is balanced just because CI passes. The value of this slice is a **more relevant, permanently enforced comparison gate**.
+
+## Initial paired test observations — November 3, 2026
+The first passing 126-scene CI run used two fixed seeds for each of the nine combinations at each checkpoint. All findings here are **two-seed engineering observations**, not population win rates:
+
+- **First Watch, Tier I wave 20, level 8:** Hunter's Volley + Predator's Eye cleared 0/2 tests, while Arcane Chain + Rampart Oath and Aegis Pulse + Rampart Oath each cleared 2/2. Damage pressure was high, and a small sample cannot establish the typical early-player investment budget or that the default build is unviable.
+- **Frontier Entry, Tier XIII wave 20, level 180:** all nine pairs cleared 2/2 with no breaches or wall damage. The same investment jumped to Tier XIII wave 3,000 and all nine failed quickly. This is an intentionally very deep *return visit* and does not imply normal frontier progression is inaccessible.
+- **Outer Territory, Tier XXIV wave 250 and wave 5,000, level 480:** all pairs cleared both seeds with full wall health. Even an illustrative deeper wave was weak against this specific investment profile, so these results mostly reveal that the fixture is overpowered for these encounter checkpoints.
+- **Tier XXX wave 10,000 at level 1,000:** fully invested builds cleared both seeds with or without the late Dominion Crests. The Crest-prepared version averaged roughly 7.3–7.6 combat seconds per wave; the non-Crest version took about 11–12 seconds and sustained a little wall damage, so Crests are **materially helpful** in elapsed time but were **not necessary to win these selected fixtures**. This is not proof the real Sigil economy permits maxing Sovereign Oaths before the final Crest.
+
+**Next balance investigation:** pair actual earned-cost assumptions and attainable upgrades with intermediate-pressure wave brackets, rather than trying to make all builds have equal kill counts. Check whether Tier I wave 20 is suitably welcoming for a normal first-session character. Check whether max Sovereign Oaths without Crests is economically achievable, and whether high-investment long-wave play has enough meaningful encounters. Only then propose bounded gameplay changes with new regression tests.
+
+All 15 required quality-check commands must pass before merging this slice. Physical iPhone gameplay review remains uncompleted.
