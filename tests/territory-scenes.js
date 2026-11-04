@@ -22,7 +22,7 @@ function world(){
  const store=Object.create(null);
  const sandbox={Math,Image,Blob,Date,console,confirm(){return true},window:{__PK_TEST__:true,addEventListener(){},matchMedia(){return{matches:false}}},
   document:{getElementById:el,querySelectorAll(){return []},addEventListener(){},hidden:false},
-  localStorage:{getItem(k){return store[k]??null},setItem(k,v){store[k]=String(v)},removeItem(k){delete store[k]},
+  localStorage:{getItem(k){return store[k]??null},setItem(k,v){store[k]=String(v)},removeItem(k){delete store[k]}},
   performance:{now(){return 1000}},setTimeout(){return 0},clearTimeout(){},requestAnimationFrame(){},
   URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
  vm.runInNewContext(source,sandbox,{filename:'game.js'});
