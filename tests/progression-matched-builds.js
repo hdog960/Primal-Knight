@@ -100,8 +100,9 @@ for(const stage of stages){
   for(const doctrine of doctrines){
    for(const passive of passives){
     const h=world(seed+stage.tier*1009+stage.wave),p=prepare(h,stage,doctrine,passive),r=h.run();
+    const initialCrests={...p.dominionCrests};
     const initialSave=JSON.stringify({inventory:p.inventory,equipped:p.equipped,training:p.training,
-     ascension:p.ascension,sovereignOaths:p.sovereignOaths,dominionCrests:p.dominionCrests});
+     ascension:p.ascension,sovereignOaths:p.sovereignOaths});
     r.phase='ready';r.tier=stage.tier;r.wave=stage.wave;r.speed=1;
     r.maxHealth=h.maxWall();r.health=r.maxHealth;
     assert(Number.isFinite(h.damage())&&h.damage()>0,'Profile has legitimate finite attack power');
@@ -121,8 +122,10 @@ for(const stage of stages){
     assert(ticks>0,'Actual game ticks ran');
     assert(['fighting','intermission','completed','fallen'].includes(r.phase),'Real combat conclusion remains legal');
     assert.equal(JSON.stringify({inventory:p.inventory.slice(0,11),equipped:p.equipped,training:p.training,
-     ascension:p.ascension,sovereignOaths:p.sovereignOaths,dominionCrests:p.dominionCrests}),initialSave,
-     'No test battle modifies an existing item or permanent investment');
+     ascension:p.ascension,sovereignOaths:p.sovereignOaths}),initialSave,
+     'Wave rewards never mutate the original owned items or spent permanent ranks');
+    for(const [tier,rank] of Object.entries(initialCrests))
+     assert(p.dominionCrests[tier]>=rank,'Legitimate wave rewards cannot lower earned crest ranks');
     rows.push({stage:stage.id,tier:stage.tier,wave:stage.wave,seed,doctrine,passive,
      killed:r.enemiesDefeated||0,breaches:r.totalBreaches||0,casts:r.doctrineCasts||0,
      remaining:Number((r.health/r.maxHealth).toFixed(4)),phase:r.phase,
