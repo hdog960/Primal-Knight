@@ -63,3 +63,4 @@ jobs:
           node tests/doctrine-tactics.js
           node tests/doctrine-tactic-battles.js
           node tests/doctrine-telemetry.js
+          node tests/territory-atmosphere.js
