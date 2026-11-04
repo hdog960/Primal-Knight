@@ -61,3 +61,4 @@ jobs:
           node tests/war-chest.js
           node tests/sigil-gated-combat.js
           node tests/doctrine-tactics.js
+          node tests/doctrine-tactic-battles.js
