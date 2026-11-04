@@ -1608,7 +1608,7 @@ const territoryLore=[
  'Frozen wardstones mark the pass that no caravan crosses twice.',
  'The drowned sentries keep vigil in waterlogged ruins.',
  'Storm-lashed watchposts stand against the thunder beyond the ridge.',
- 'A forgotten kingdom's towers lean toward the last pale horizon.',
+ "A forgotten kingdom's towers lean toward the last pale horizon.",
  'Cinders drift across the homes the mountain swallowed.',
  'Black citadel stones drink what little daylight remains.',
  'The oldest groves shelter ruins older than the crown.',
