@@ -50,3 +50,4 @@ jobs:
           node tests/siege-chronicle.js
           node tests/boss-fairness.js
           node tests/hero-doctrines.js
+          node tests/combat-builds.js
