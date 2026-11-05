@@ -2615,3 +2615,15 @@
  .atlas-boss-title,.atlas-boss-status{font-size:8px}
  .atlas-boss-controls button{min-height:36px;padding:5px;font-size:8px}
 }
+
+/* Alpha 0.12.18 — full-resolution artwork export without another modal. */
+.atlas-inspect-row #atlasExport{min-height:44px;min-width:150px;
+ border:2px solid #dcb57c;color:#fff1ca;
+ background:linear-gradient(#64523d,#2c3b3b)}
+.atlas-inspect-row #atlasExport:focus-visible{outline:3px solid #fff4b7;outline-offset:2px}
+@media(max-width:520px){
+ .atlas-inspect-row #atlasExport{min-width:142px;padding:7px;font-size:10px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .atlas-inspect-row #atlasExport{min-height:44px;padding:5px 9px}
+}
