@@ -3,7 +3,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const code=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 const css=fs.readFileSync('style.css','utf8');
-function world(){
+function world(randomMath=Math){
  const elements=new Map(),saved=Object.create(null);
  class El{
   constructor(id){this.id=id;this.style={};this.dataset={};this.className='';this.textContent='';this.innerHTML='';this.scrollTop=0;this.width=960;this.height=540;this.hidden=false;this.disabled=false;this.listeners={};this.classList={add(){},remove(){},toggle(){}};}
@@ -12,7 +12,7 @@ function world(){
  }
  const get=id=>elements.get(id)||(elements.set(id,new El(id)),elements.get(id));
  class Image{constructor(){this.complete=true;this.naturalWidth=120;this.naturalHeight=120;this.src='';}}
- const sandbox={Math,Image,Date,Blob,console,confirm(){return true},window:{__PK_TEST__:true,addEventListener(){},matchMedia(){return{matches:false};}},
+ const sandbox={Math:randomMath,Image,Date,Blob,console,confirm(){return true},window:{__PK_TEST__:true,addEventListener(){},matchMedia(){return{matches:false};}},
  document:{getElementById:get,querySelectorAll(){return[];},addEventListener(){},hidden:false},
  localStorage:{getItem(k){return saved[k]??null;},setItem(k,v){saved[k]=String(v);},removeItem(k){delete saved[k]}},
  setTimeout(){return 0;},clearTimeout(){},requestAnimationFrame(){},performance:{now(){return 1000;}},URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
@@ -65,6 +65,23 @@ for(let tier=1;tier<=30;tier++){
  assert(r.enemies.filter(e=>e.nativeVanguard).length<=2,'No extra regional units are spawned');
  assert(r.enemies.filter(e=>['shaman','frostbinder','thornweaver'].includes(e.type)).length<=3,'Caster safety cap is intact');
  assert.equal(w.saved.primal_knight_onslaught_save_v1,undefined,'Native formations do not write new character data');
+}
+// Adversarial seeded spawns: previous code could exhaust both specialist slots
+// before the two regional slots, leaving a named Native Vanguard with zero natives.
+const firstChoice=Object.create(Math);firstChoice.random=()=>0;
+for(const tier of [6,7,8,9,10]){
+ const w=world(firstChoice),g=w.h,r=g.run(),native=g.territoryVanguard(tier);
+ r.tier=tier;r.wave=35;r.maxHealth=g.maxWall();r.health=r.maxHealth;
+ g.beginWave();
+ for(let i=0;i<r.total;i++){r.spawned=i;g.spawnEnemy();}
+ assert.equal(r.enemies[0].type,'skeleton','Early faction specialist must defer to reserved native in '+native.name);
+ assert.equal(r.enemies[1].type,'skeleton','Both early generic specialists defer to native in '+native.name);
+ assert.equal(r.enemies[2].type,native.unit,'Reserved native specialist always spawns at slot 2');
+ assert.equal(r.enemies[2].nativeVanguard,true,'Reserved native troop is marked on the real field');
+ assert(r.enemies.filter(e=>e.nativeVanguard).length>=1,'At least one native identity is guaranteed');
+ for(const type of ['shaman','frostbinder','thornweaver','sapper','riftstalker','banneret'])
+  assert(r.enemies.filter(e=>e.type===type).length<=2,'Two-of-kind cap still enforced for '+type);
+ assert(r.enemies.filter(e=>['shaman','frostbinder','thornweaver'].includes(e.type)).length<=3,'Global active caster cap is preserved');
 }
 assert(html.includes('ALPHA 0.12.22')&&html.includes('game.js?v=0.12.22')&&html.includes('style.css?v=0.12.22'),'Mobile Home Screen receives the new asset versions');
 assert(css.includes('.encounter-intel-native em'),'The in-game formation label is styled for readability');
