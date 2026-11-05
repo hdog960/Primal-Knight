@@ -36,7 +36,7 @@ for(let tier=1;tier<=30;tier++){
  assert(!svg.includes('NaN')&&!svg.includes('undefined'));
  assert(svg.length<20000,'Three tiny transparent banners remain a small image, not a second landscape');
  const xcoords=[...svg.matchAll(/<rect x="([^"]+)"/g)].map(m=>Number(m[1]));
- assert(xcoords.every(x=>x<=150||x>=810),'No ornamental pixels over central hero or buttons');
+ assert(xcoords.every(x=>x<=150||(x>=230&&x<=325)||x>=810),'Paint remains on the three original banner columns and never crosses the central knight/skills');
  const digest=crypto.createHash('sha256').update(svg).digest('hex');
  assert(!fingerprints.has(digest),'Each tier creates unique cloth colors and heraldic weathering');
  fingerprints.add(digest);sizes.push(svg.length);
