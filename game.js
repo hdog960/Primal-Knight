@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.15. Living Territories - Shareable Battlefield Snapshot: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.16. Living Territories - Illustrated Boss Stage Setpieces: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -2268,27 +2268,70 @@ function visibleTerritoryTier(){
  return run.phase==='fighting'||run.phase==='intermission'?run.tier:chosenTier;
 }
 
-/* Boss staging is a background-only, eight-pixel-column light response.
-   No screen flashes, simulated physics side effects, or new DOM allocations. */
+/* Alpha 0.12.16 — painterly boss-stage silhouettes. The three Warlord
+   schools and the Siege Beast get different *environmental* setpieces:
+   iron watchtowers, ember braziers, split rift obelisks and churned earth.
+   Every miniature feature lives in the left/right scenery margins, behind
+   enemies, warnings and the original fortress/embroidered banners.
+   Static, reusable pixel-brush templates: no image decode or per-frame SVG,
+   no particles, no arena hitboxes, no change to battle mechanics. */
+const bossStageEdges=[18,46,82,112,846,878,918,944];
+const bossStageTemplates={
+ iron:[
+  [7,31,68,11,0],[18,2,15,55,0],[45,13,18,46,0],[11,2,25,9,0],
+  [43,9,23,8,0],[6,45,70,3,1],[23,13,3,29,2],[50,21,3,26,2],
+  [10,28,26,4,1],[44,30,24,3,1],[15,52,52,2,1],[31,36,12,6,0]
+ ],
+ ember:[
+  [10,58,65,8,0],[34,15,11,46,0],[21,22,39,8,0],[23,15,35,5,1],
+  [25,31,33,7,1],[37,0,7,21,2],[33,9,7,16,2],[43,6,7,14,2],
+  [26,42,5,7,1],[55,43,4,7,1],[29,53,38,3,1],[17,61,62,3,0]
+ ],
+ rift:[
+  [14,61,67,7,0],[32,6,21,58,0],[24,24,13,33,0],[51,33,12,24,0],
+  [39,0,7,12,2],[34,19,18,3,2],[35,33,16,3,2],[36,45,16,3,2],
+  [15,53,19,4,1],[55,51,22,4,1],[23,62,45,2,2],[43,13,2,40,1]
+ ],
+ beast:[
+  [3,59,80,6,0],[11,48,59,6,0],[7,37,17,6,0],[37,33,26,5,0],
+  [18,20,8,21,1],[47,18,7,25,1],[68,29,7,20,1],[21,23,4,15,2],
+  [51,22,3,16,2],[7,60,66,2,1],[29,52,12,5,1],[58,45,18,6,0]
+ ]
+};
 function territoryBossStaging(context,tier=run.tier,state=run,still=reduceMotion){
  const normalized=territoryVista(tier).tier;
- const boss=state.phase==='fighting'&&
-  ['commander','chapterBoss'].includes(state.encounter?.kind)&&
-  state.enemies?.some(e=>e&&!e.dead&&isSiegeBoss(e));
- if(!boss)return {active:false,tier:normalized,marks:0};
- const colors=terrainColors[terrainBiomes[normalized-1]];
- const time=Number(state.time)||0;
- const alpha=still?.14:.12+.035*Math.sin(time*1.1);
- const edges=[18,46,82,112,846,878,918,944];
+ if(state.phase!=='fighting'||!['commander','chapterBoss'].includes(state.encounter?.kind))
+  return {active:false,tier:normalized,marks:0};
+ const enemy=state.enemies?.find(e=>e&&!e.dead&&isSiegeBoss(e));
+ if(!enemy)return {active:false,tier:normalized,marks:0};
+ const style=enemy.type==='siegebeast'?'beast':
+  enemy.bossStyle==='ember'?'ember':enemy.bossStyle==='rift'?'rift':'iron';
+ const phase=enemy.bossPhase===2?2:1;
+ const palette=terrainColors[terrainBiomes[normalized-1]];
+ const time=Number.isFinite(state.time)?state.time:0;
+ const baseAlpha=still?.17:.16+.025*Math.sin(time*.75+normalized*.3);
+ const material=bossStageTemplates[style];
+ const y0=style==='beast'?208:style==='ember'?171:158;
  context.save();
- context.globalAlpha=alpha;
- context.fillStyle=colors.accent;
- for(let i=0;i<edges.length;i++){
-  const x=edges[i],h=(i%3===0?18:12)+(still?0:Math.round(3*Math.sin(time*.9+i)));
+ context.globalAlpha=baseAlpha;
+ context.fillStyle=palette.accent;
+ for(let i=0;i<bossStageEdges.length;i++){
+  const x=bossStageEdges[i];
+  const h=(i%3===0?18:12)+(still?0:Math.round(3*Math.sin(time*.9+i)));
   context.fillRect(x,120+(i%3)*37,3,Math.max(6,h));
  }
+ for(let side=0;side<2;side++){
+  const baseX=side===0?18:854;
+  for(const brush of material){
+   const [dx,dy,w,h,ink]=brush;
+   // A clear visual signal of a real phase II without blinking the canvas.
+   context.globalAlpha=(ink===2?.39:ink===1?.28:.32)*(phase===2?1.12:1);
+   context.fillStyle=ink===2?palette.accent:ink===1?palette.light:palette.dark;
+   context.fillRect(baseX+dx,y0+dy,w,h);
+  }
+ }
  context.restore();
- return {active:true,tier:normalized,marks:edges.length};
+ return {active:true,tier:normalized,marks:bossStageEdges.length+material.length*2,style,phase};
 }
 let staticSkyVignette=null; // Fixed resolution: reuse a single CanvasGradient, never allocate one per frame.
 function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0&&!reduceMotion){ctx.translate(rnd(-2,2),rnd(-2,2));}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}const sceneTier=visibleTerritoryTier(),matte=territorySceneImage(sceneTier);if(matte&&matte.complete&&matte.naturalWidth)ctx.drawImage(matte,0,0,960,346);
@@ -3132,7 +3175,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Save or share a clean 960×540 PNG of the current battlefield art, including terrain, flags, creatures and projectiles. The HUD is not included; the image is never uploaded automatically.</span><button class="wide-btn" data-action="battleSnapshot">SHARE BATTLEFIELD PNG</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.12.15 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Save or share a clean 960×540 PNG of the current battlefield art, including terrain, flags, creatures and projectiles. The HUD is not included; the image is never uploaded automatically.</span><button class="wide-btn" data-action="battleSnapshot">SHARE BATTLEFIELD PNG</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.12.16 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -3579,5 +3622,5 @@ $('deviceCheckCopy').onclick=copyDeviceCheck;
 $('deviceCheckFrame').onclick=shareBattlefieldFrame;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
