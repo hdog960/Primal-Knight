@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.6. Living Territories - Fortress Art Alignment and Atlas Comparison: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.7. Living Territories - Three-Banner Fortress Cohesion: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1959,9 +1959,9 @@ function territorySceneImage(tier){
  terrainCachedImage=image;
  return image;
 }
-/* Alpha 0.12.4 — heraldry is applied to the TWO painted cloth banners,
-   never to the center hero, combat projectiles or underlying battlement art.
-   A second, tiny transparent SVG is decoded only when the selected tier changes. */
+/* Alpha 0.12.7 — dress ALL THREE original painted banners consistently:
+   the previously missed middle guild banner stays red if only edges change.
+   Banners remain behind the hero and projectiles; Tier I stays original. */
 const heraldrySigils={
  verdant:'M0 -16V15M0 -4L-8 -13M0 3L9 -8M0 9L-7 4',
  ash:'M-9 13Q-14 2-4-9L1-18Q4-5 11 0Q15 10 5 15M-3 12Q-4 3 3-3',
@@ -1981,11 +1981,12 @@ function fortressHeraldrySvg(tier){
  const t=territoryVista(tier).tier,biome=terrainBiomes[t-1],pallet=terrainColors[biome];
  const silk=pallet.land[0],fold=pallet.land[1],gold=pallet.accent,edge=pallet.dark,light=pallet.light;
  const symbol=heraldrySigils[biome];
- // Measured against the *actual* foreground's cloth: its red banners begin
- // near y=388 (not y=445), with pointed hems near y=513. Paint the entire
- // fabric; otherwise the old red tops show through above the biome cloth.
+ // Coordinates are based on the original hand-painted 960×540 art:
+ // outer left 57–124, guild center 246–310, outer right 834–894.
+ // All three red cloth panels are covered; do not draw over the center knight.
  const banners=[
   {cx:91,top:388,left:57,right:124,point:517},
+  {cx:277,top:384,left:246,right:310,point:507},
   {cx:864,top:390,left:834,right:894,point:513}
  ];
  const parts=['<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" shape-rendering="crispEdges">',
@@ -2953,7 +2954,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.6 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.7 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
