@@ -75,3 +75,4 @@ jobs:
           node tests/atlas-inspection.js
           node tests/atlas-pinch.js
           node tests/device-perf.js
+          node tests/visual-quality.js
