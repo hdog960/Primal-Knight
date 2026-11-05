@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.12.18 (Living Territories & Art, Slice 19)
+## Current release — Alpha 0.12.19 (Living Territories & Art, Slice 20)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -89,6 +89,8 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 **New in 0.12.17:** The World Atlas can now display **the real Iron, Ember, Rift, and Siege Beast stage artwork** in all 30 realms, with a view-only **Phase II** toggle for the three Warlords (disabled for Siege Beast, which has no Phase II). The optional preview is serialized directly from the battle's existing 32-mark renderer, preserving exact placement and palette behind the fortress and its three banners—no independent mockups or combat mutations. Boss-style selection stays active while browsing realms, and all images reset on Atlas close or battle launch. The original-art comparison and 1–3× pinch controls remain available. Added `tests/atlas-boss-inspection.js` for 120 styles × realms and both phases, bringing CI to **42 required checks**. Physical iPhone artwork, performance, and gesture acceptance still remain open. See `docs/ALPHA_01217_ATLAS_BOSS_INSPECTOR.md`.
 
 **New in 0.12.18:** The World Atlas now has a **SHARE ART PNG** button that exports the actual visible **960×540 region composition**, even in locked territories: original battlefield, 960×346 painted landscape, optional real boss-stage overlay, original knight/fortress foreground, and matching banners. The feature honors **COMPARE ORIGINAL ART** and Warlord Phase II, always exports the full unzoomed artwork, checks image decoding before capture, and uses iPhone file Share Sheet or a user-requested local PNG download. No automatic uploads, changes to live combat or saved progression. Added required `tests/atlas-image-export.js` (now **43 release checks**). Physical iPhone pixel-art/thermal acceptance remains open. See `docs/ALPHA_01218_ATLAS_EXPORT.md`.
+
+**New in 0.12.19:** The World Atlas can now show a **true battle-weather and lighting preview** in every territory, from the exact live canvas renderer, frozen at a deterministic 12-second scene so it remains lightweight on iPhone. Toggle **PREVIEW WEATHER** to compare the original scenic art with realistic rain, snow, mist, ash, embers, pollen, dust and stars; system Reduce Motion and Vivid/Balanced/Battery Saver preferences still apply. **SHARE ART PNG** includes the selected weather in its real scene depth layer, with an identifying `-weather` filename. Fixed hidden Atlas image layers potentially remaining visible under CSS. The new `tests/atlas-weather-preview.js` raises CI to **44 checks**, with unchanged gameplay and saved progression. Physical iPhone image quality and thermal acceptance remain open. See `docs/ALPHA_01219_ATLAS_WEATHER.md`.
 
 **Play:** https://hdog960.github.io/Primal-Knight/
 
