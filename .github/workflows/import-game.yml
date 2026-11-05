@@ -81,3 +81,4 @@ jobs:
           node tests/battlefield-snapshot.js
           node tests/boss-stage-art.js
           node tests/atlas-boss-inspection.js
+          node tests/atlas-image-export.js
