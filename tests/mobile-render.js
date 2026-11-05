@@ -31,7 +31,10 @@ function world(reducedMotion=false){
  return {h:window.__PK_TEST_TOOLS__,el,metrics,document,window};
 }
 const clock=world(),h=clock.h,run=h.run();
-assert(Math.abs(h.drawInterval()-1000/60)<.001,'Normal battle targets at most 60 render frames per second');
+assert(Math.abs(h.drawInterval()-1000/12)<.001,'Idle battlefield now paints no more than 12Hz');
+run.phase='intermission';run.rewardTimer=20;run.speed=1;
+assert(Math.abs(h.drawInterval()-1000/60)<.001,'Active siege still targets at most 60 frames per second');
+run.phase='ready';
 assert.equal(clock.metrics.frames,0,'Startup schedules a frame rather than performing unnecessary initial paint');
 // HUD resource cards should not be rebuilt six times each second when the numbers have not changed.
 const resourceBox=clock.el('resources'),originalWrites=resourceBox.htmlWrites;
@@ -79,7 +82,7 @@ assert(Math.abs(fast.floats[0].life-slow.floats[0].life)<.0001,'30Hz and 120Hz f
 assert(Math.abs(fast.floats[0].y-slow.floats[0].y)<.0001,'30Hz and 120Hz floating text moves the same distance');
 assert(Math.abs(fast.rewardTimer-slow.rewardTimer)<.0001,'30Hz and 120Hz wave timer progression match');
 // Actual RAF callbacks can run at 120+Hz without repainting 120 large canvas scenes.
-const fps=world();
+const fps=world();fps.h.run().phase='intermission';fps.h.run().rewardTimer=30;fps.h.run().speed=1;
 fps.h.loop(1000);assert.equal(fps.metrics.frames,1,'First frame is painted');
 fps.h.loop(1008);assert.equal(fps.metrics.frames,1,'120Hz callback does not force repaint');
 fps.h.loop(1017);assert.equal(fps.metrics.frames,2,'A new frame is painted after normal 60Hz interval');
@@ -90,7 +93,8 @@ fps.h.loop(1119);assert.equal(fps.metrics.frames,3,'Menu still refreshes the und
 fps.document.hidden=true;assert.equal(fps.h.drawInterval(),Infinity,'Hidden Safari tab schedules no expensive canvas redraw');
 fps.h.loop(1250);assert.equal(fps.metrics.frames,3,'Backgrounded page does not paint the canvas');
 const reduce=world(true),reducedRun=reduce.h.run();
-assert(Math.abs(reduce.h.drawInterval()-1000/30)<.001,'System reduced motion caps the visual presentation to 30Hz');
+reducedRun.phase='intermission';reducedRun.rewardTimer=30;reducedRun.speed=1;
+assert(Math.abs(reduce.h.drawInterval()-1000/30)<.001,'Active system reduced motion caps the visual presentation to 30Hz');
 reducedRun.shakes=.2;reducedRun.flashes=.1;
 reduce.h.draw();assert.equal(reduce.metrics.shakes,0,'Reduced motion suppresses battlefield camera shake');
 // Static CSS coverage checks new rules without claiming physical iPhone device testing.
@@ -98,7 +102,7 @@ assert(css.includes('(orientation:portrait) and (max-width:540px)'),'Compact iPh
 assert(css.includes('.hud-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))'),'Mobile HUD prevents the three resource blocks from overflowing narrow viewports');
 assert(css.includes('.fight-actions button{min-height:44px;min-width:44px'),'Portrait battle controls meet 44px touch target guidance');
 assert(css.includes('.encounter-ribbon .encounter-goal,.encounter-ribbon .encounter-hint{font-size:10px'),'Objective and attack warnings have larger text');
-assert(html.includes('ALPHA 0.12.7')&&html.includes('game.js?v=0.12.7'),'Release assets are cache-busted for Safari and Home Screen updates');
+assert(html.includes('ALPHA 0.12.8')&&html.includes('game.js?v=0.12.8'),'Release assets are cache-busted for Safari and Home Screen updates');
 console.log('PASS: Alpha 0.10.8 time-independent VFX, visual pause, 120/60/30Hz frame pacing, low-refresh menu and background behavior, DOM resource cache and iPhone HUD CSS.');
 
 
