@@ -74,3 +74,4 @@ jobs:
           node tests/adaptive-mobile-render.js
           node tests/atlas-inspection.js
           node tests/atlas-pinch.js
+          node tests/device-perf.js
