@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.10. Living Territories - Pinch Atlas Art Inspection: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.11. Living Territories - On-Device Performance Check: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -3063,7 +3063,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.9 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.12.11 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -3167,6 +3167,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
    showLobby();notice('PREVIOUS SAVE RESTORED');
   }catch(error){notice('RECOVERY FAILED · CURRENT SAVE PRESERVED');}
  }
+ else if(type==='deviceCheck'){toggleDeviceCheck();renderPanel();return;}
  else if(type==='save'){notice(save()?'PROGRESS SAVED':'SAVE FAILED · EXPORT A BACKUP')}
  else if(type==='export'){let blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='primal-knight-onslaught-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return;}
  const scrollPane=$('panelContent'),keepScroll=scrollPane.scrollTop;
@@ -3185,6 +3186,81 @@ function drawInterval(){
  const active=(run.phase==='fighting'||run.phase==='intermission')&&run.speed>0;
  if(!active)return 1000/12;
  return reduceMotion?1000/30:1000/60;
+}
+
+/* Alpha 0.12.11 — optional device-side paint/callback diagnostic.
+   Measures actual RAF callbacks and canvas draw() calls, NOT GPU FPS or battery.
+   Off by default, no saved preferences, uploads, or persistent telemetry. */
+let deviceCheckEnabled=false,deviceCheckState=null;
+function resetDeviceCheck(){
+ deviceCheckState={windowStart:null,lastFrame:null,frames:0,draws:0,slow:0,worst:0,
+  totalFrames:0,totalDraws:0,totalSlow:0,totalWorst:0,activeMs:0,sample:null};
+}
+function deviceCheckMode(){
+ if(document.hidden)return 'HIDDEN';
+ if(atlasOpen)return 'ATLAS';
+ if($('app').dataset.view==='menu')return 'MENU';
+ if(run.speed===0&&(run.phase==='fighting'||run.phase==='intermission'))return 'PAUSED';
+ if(run.phase==='fighting'||run.phase==='intermission')return 'FIGHTING';
+ return 'LOBBY';
+}
+function deviceCheckReport(){
+ const d=deviceCheckState,s=d?.sample;
+ return ['PRIMAL KNIGHT · ALPHA 0.12.11 · DEVICE CHECK',
+  'Mode: '+deviceCheckMode()+' · Tier '+roman(run.tier)+' · Wave '+formatWave(run.wave),
+  'Requested canvas paints/s: '+(s?s.drawRate.toFixed(1):'WARMING UP'),
+  'Animation callbacks/s: '+(s?s.frameRate.toFixed(1):'WARMING UP'),
+  'Gaps ≥34ms per sample: '+(s?s.slow:0)+' · Worst: '+(s?s.worst.toFixed(0):'—')+'ms',
+  'Total paint calls: '+d.totalDraws+' · Total gaps ≥34ms: '+d.totalSlow,
+  'Measured active siege time: '+Math.floor(d.activeMs/1000)+'s',
+  'Canvas paint calls are not GPU FPS; no battery/thermal readings. No data uploaded.'
+ ].join('\n');
+}
+function updateDeviceCheckPanel(){
+ if(!deviceCheckEnabled)return;
+ const d=deviceCheckState,s=d.sample;
+ const line=$('deviceCheckReadout');
+ if(line)line.textContent=(s?'PAINT '+s.drawRate.toFixed(0)+'/s · RAF '+s.frameRate.toFixed(0)+'/s · SLOW '+s.slow+' · MAX '+s.worst.toFixed(0)+'ms':'SAMPLING · COLLECTING 2 SECONDS')+
+  ' · ACTIVE '+Math.floor(d.activeMs/1000)+'s';
+ const mode=$('deviceCheckMode');if(mode)mode.textContent=deviceCheckMode()+' · TIER '+roman(run.tier)+' · WAVE '+formatWave(run.wave);
+}
+function toggleDeviceCheck(){
+ deviceCheckEnabled=!deviceCheckEnabled;resetDeviceCheck();
+ $('deviceCheckPanel').hidden=!deviceCheckEnabled;
+ const button=$('deviceCheckToggle');
+ button.textContent=deviceCheckEnabled?'FPS ON':'FPS';
+ button.setAttribute?.('aria-pressed',String(deviceCheckEnabled));
+ if(deviceCheckEnabled)updateDeviceCheckPanel();
+ return deviceCheckEnabled;
+}
+function sampleDeviceCheck(tm,painted){
+ if(!deviceCheckEnabled||!Number.isFinite(tm))return false;
+ const d=deviceCheckState,mode=deviceCheckMode();
+ if(d.windowStart===null)d.windowStart=tm;
+ const gap=d.lastFrame===null?0:Math.max(0,tm-d.lastFrame);
+ d.lastFrame=tm;
+ if(mode==='FIGHTING'&&gap>0&&gap<250)d.activeMs+=gap;
+ if(gap>0&&gap<250){
+  d.worst=Math.max(d.worst,gap);d.totalWorst=Math.max(d.totalWorst,gap);
+  if(gap>=34){d.slow++;d.totalSlow++;}
+ }
+ d.frames++;d.totalFrames++;
+ if(painted){d.draws++;d.totalDraws++;}
+ const elapsed=tm-d.windowStart;
+ if(elapsed<2000)return false;
+ const sec=Math.max(.001,elapsed/1000);
+ d.sample={frameRate:d.frames/sec,drawRate:d.draws/sec,slow:d.slow,worst:d.worst,mode};
+ d.frames=0;d.draws=0;d.slow=0;d.worst=0;d.windowStart=tm;
+ updateDeviceCheckPanel();
+ return true;
+}
+async function copyDeviceCheck(){
+ const report=deviceCheckReport();
+ if(typeof navigator!=='undefined'&&navigator.clipboard?.writeText){
+  try{await navigator.clipboard.writeText(report);notice('DEVICE REPORT COPIED');return true;}catch(error){}
+ }
+ notice('COPY NOT AVAILABLE · SCREENSHOT THE REPORT');
+ return false;
 }
 // Battle controls do not alter earned progression or permanent save data.
 const siegeActive=()=>run.phase==='fighting'||run.phase==='intermission';
@@ -3225,9 +3301,11 @@ function loop(tm){
  const dt=clamp(((tm-(loop.last||tm))/1000),0,.05);
  loop.last=tm;tick(dt);
  const interval=drawInterval();
+ let painted=false;
  if(Number.isFinite(interval)&&(loop.lastDraw===undefined||tm-loop.lastDraw>=interval-.5)){
-  draw();loop.lastDraw=tm;
+  draw();loop.lastDraw=tm;painted=true;
  }
+ if(deviceCheckEnabled)sampleDeviceCheck(tm,painted);
  if(tm-(loop.lastHud||0)>160){refreshHUD();loop.lastHud=tm}
  requestAnimationFrame(loop);
 }
@@ -3336,7 +3414,9 @@ $('milestoneList').addEventListener('click',e=>{
 });
 $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
+$('deviceCheckToggle').onclick=toggleDeviceCheck;
+$('deviceCheckCopy').onclick=copyDeviceCheck;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
