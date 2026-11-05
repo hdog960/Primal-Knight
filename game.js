@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.11. Living Territories - On-Device Performance Check: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.12. Living Territories - Adaptive Visual Quality Presets: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1576,7 +1576,7 @@ function drawTerritoryAtmosphere(context,seconds=run.time,tier=run.tier,still=re
  context.fillRect(0,80,960,340);
  if(!still){
   const type=vista.weather,soft=type==='mist';
-  const count=soft?4:type==='rain'?18:type==='snow'?15:14;
+  const count=territoryWeatherCount(type);
   context.fillStyle=vista.particleColor;
   for(let i=0;i<count;i++){
    if(soft){
@@ -3063,7 +3063,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.12.11 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.12.12 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -3167,6 +3167,11 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
    showLobby();notice('PREVIOUS SAVE RESTORED');
   }catch(error){notice('RECOVERY FAILED · CURRENT SAVE PRESERVED');}
  }
+ else if(type==='visualMode'){
+  if(setVisualQuality(id))notice('VISUAL PERFORMANCE · '+visualQualityProfiles[visualQuality].name);
+  else notice('VISUAL PROFILE UNAVAILABLE');
+  renderPanel();return;
+ }
  else if(type==='deviceCheck'){toggleDeviceCheck();renderPanel();return;}
  else if(type==='save'){notice(save()?'PROGRESS SAVED':'SAVE FAILED · EXPORT A BACKUP')}
  else if(type==='export'){let blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='primal-knight-onslaught-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return;}
@@ -3178,6 +3183,45 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
 // but avoid re-painting the large layered pixel-art canvas more than 60 times/sec.
 // Low-motion devices use 30Hz rendering without altering wave timers or earned rewards.
 const reduceMotion=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Alpha 0.12.12: local-only visual profiles. These affect presentation only;
+   no wave ticks, enemy spawns, boss telegraphs, rewards or permanent saves.
+   Default Vivid preserves the prior 60Hz / full-weather visual experience. */
+const visualQualityKey='primal_knight_onslaught_visual_quality_v1';
+const visualQualityProfiles={
+ vivid:{name:'VIVID',hz:60,weather:1,description:'Original illustrated detail and up to 60 canvas paints per second.'},
+ balanced:{name:'BALANCED',hz:30,weather:.65,description:'Up to 30 canvas paints per second, with lighter ambient weather.'},
+ saver:{name:'BATTERY SAVER',hz:20,weather:.35,description:'Up to 20 canvas paints per second and sparse ambient weather.'}
+};
+let visualQuality='vivid';
+try{const savedVisual=localStorage.getItem(visualQualityKey);
+ if(Object.prototype.hasOwnProperty.call(visualQualityProfiles,savedVisual))visualQuality=savedVisual;
+}catch(error){/* Storage may be unavailable in private Safari; keep a safe default. */}
+function effectiveVisualHz(){
+ return Math.min(visualQualityProfiles[visualQuality].hz,reduceMotion?30:60);
+}
+function territoryWeatherCount(weather){
+ const base=weather==='mist'?4:weather==='rain'?18:weather==='snow'?15:14;
+ return Math.max(1,Math.ceil(base*visualQualityProfiles[visualQuality].weather));
+}
+function setVisualQuality(value){
+ if(!Object.prototype.hasOwnProperty.call(visualQualityProfiles,value))return false;
+ if(visualQuality===value)return true;
+ visualQuality=value;
+ // Separate device preference; never modifies the exported character save.
+ try{localStorage.setItem(visualQualityKey,value);}catch(error){}
+ if(deviceCheckEnabled)updateDeviceCheckPanel();
+ return true;
+}
+function renderVisualSettings(){
+ return '<section class="visual-settings" role="group" aria-label="iPhone visual performance profile">'+
+  '<div class="visual-settings-heading"><strong>✦ BATTLEFIELD PERFORMANCE</strong><small>VISUALS ONLY · NO GAME SPEED CHANGES</small></div>'+
+  '<p>Choose the canvas presentation rate for long sieges. All enemies, projectiles, boss warnings, rewards and saved progression work identically. System Reduce Motion still caps visual refresh at 30Hz.</p>'+
+  '<div class="visual-profile-options">'+Object.entries(visualQualityProfiles).map(([id,profile])=>
+   '<button type="button" data-action="visualMode:'+id+'" aria-pressed="'+(visualQuality===id)+
+   '" class="visual-profile '+(visualQuality===id?'selected':'')+'"><strong>'+profile.name+
+   '</strong><span>'+Math.min(profile.hz,reduceMotion?30:60)+' PAINTS/s CAP</span><small>'+profile.description+'</small></button>').join('')+
+  '</div><small class="visual-settings-note">This choice stays only on this device (when browser storage is available). It is not a paid upgrade, does not alter battle speed, and is not sent online.</small></section>';
+}
 function drawInterval(){
  // Battery-aware, *visual-only* pacing. Battle simulation still uses real RAF dt.
  // Atlas is fully opaque, and non-fighting scenes/paused sieges are static.
@@ -3185,7 +3229,7 @@ function drawInterval(){
  if($('app').dataset.view==='menu')return 100;
  const active=(run.phase==='fighting'||run.phase==='intermission')&&run.speed>0;
  if(!active)return 1000/12;
- return reduceMotion?1000/30:1000/60;
+ return 1000/effectiveVisualHz();
 }
 
 /* Alpha 0.12.11 — optional device-side paint/callback diagnostic.
@@ -3206,8 +3250,9 @@ function deviceCheckMode(){
 }
 function deviceCheckReport(){
  const d=deviceCheckState,s=d?.sample;
- return ['PRIMAL KNIGHT · ALPHA 0.12.11 · DEVICE CHECK',
+ return ['PRIMAL KNIGHT · ALPHA 0.12.12 · DEVICE CHECK',
   'Mode: '+deviceCheckMode()+' · Tier '+roman(run.tier)+' · Wave '+formatWave(run.wave),
+  'Visual profile: '+visualQualityProfiles[visualQuality].name+' · active paint target '+effectiveVisualHz()+'Hz',
   'Requested canvas paints/s: '+(s?s.drawRate.toFixed(1):'WARMING UP'),
   'Animation callbacks/s: '+(s?s.frameRate.toFixed(1):'WARMING UP'),
   'Gaps ≥34ms per sample: '+(s?s.slow:0)+' · Worst: '+(s?s.worst.toFixed(0):'—')+'ms',
@@ -3222,7 +3267,7 @@ function updateDeviceCheckPanel(){
  const line=$('deviceCheckReadout');
  if(line)line.textContent=(s?'PAINT '+s.drawRate.toFixed(0)+'/s · RAF '+s.frameRate.toFixed(0)+'/s · SLOW '+s.slow+' · MAX '+s.worst.toFixed(0)+'ms':'SAMPLING · COLLECTING 2 SECONDS')+
   ' · ACTIVE '+Math.floor(d.activeMs/1000)+'s';
- const mode=$('deviceCheckMode');if(mode)mode.textContent=deviceCheckMode()+' · TIER '+roman(run.tier)+' · WAVE '+formatWave(run.wave);
+ const mode=$('deviceCheckMode');if(mode)mode.textContent=deviceCheckMode()+' · '+visualQualityProfiles[visualQuality].name+' '+effectiveVisualHz()+'Hz · TIER '+roman(run.tier)+' · WAVE '+formatWave(run.wave);
 }
 function toggleDeviceCheck(){
  deviceCheckEnabled=!deviceCheckEnabled;resetDeviceCheck();
@@ -3418,5 +3463,5 @@ $('deviceCheckToggle').onclick=toggleDeviceCheck;
 $('deviceCheckCopy').onclick=copyDeviceCheck;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
