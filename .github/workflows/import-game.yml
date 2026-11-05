@@ -79,3 +79,4 @@ jobs:
           node tests/realm-weather.js
           node tests/specialist-alerts.js
           node tests/battlefield-snapshot.js
+          node tests/boss-stage-art.js

@@ -64,12 +64,12 @@ function stage(tier,options={}){
 for(const tier of [1,4,9,17,24,30]){
  const active=stage(tier),still=stage(tier,{still:true}),later=stage(tier,{time:19});
  assert.equal(active.result.active,true);
- assert.equal(active.result.marks,8,'Boss art is bounded to eight side-only brushlight strokes');
+ assert.equal(active.result.marks,32,'Boss stage uses eight historic light marks plus 24 themed side-only brush marks');
  const rects=active.rows.filter(x=>x[0]==='rect');
- assert.equal(rects.length,8);
- assert(rects.every(x=>x[1]<=116||x[1]>=845),'Every light stroke remains outside the central enemy lane');
+ assert.equal(rects.length,32);
+ assert(rects.every(x=>x[1]<=130||x[1]>=845),'All boss ornamentation stays beyond the original marching lane');
  assert(rects.every(x=>[x[1],x[2],x[3],x[4]].every(Number.isFinite)));
- assert.equal(still.rows.filter(x=>x[0]==='rect').length,8,'Reduced motion keeps static thematic lighting');
+ assert.equal(still.rows.filter(x=>x[0]==='rect').length,32,'Reduced motion keeps the full static themed stage without motion');
  assert.notEqual(JSON.stringify(active.rows),JSON.stringify(later.rows),'Boss lights move only when game time changes');
  assert.equal(JSON.stringify(stage(tier).rows),JSON.stringify(active.rows),'Identical frame time uses deterministic staging');
  assert.equal(stage(tier,{empty:true}).result.active,false,'No active boss means no boss staging');
@@ -95,8 +95,8 @@ assert(!paint.events.some(x=>x.type==='rect'&&x.x===18&&x.w===3),'Returning to B
 assert.equal(JSON.stringify({gold:p.gold,essence:p.essence,knowledge:p.knowledge,sigils:p.sigils,inventory:p.inventory,runes:p.runes}),before,
  'Paint and combat presentation cannot change money, gear or runes');
 assert.equal(store.primal_knight_onslaught_save_v1,undefined,'Environment art never creates a persistent save');
-assert(html.includes('ALPHA 0.12.15')&&html.includes('game.js?v=0.12.15')&&html.includes('style.css?v=0.12.15'),
+assert(html.includes('ALPHA 0.12.16')&&html.includes('game.js?v=0.12.16')&&html.includes('style.css?v=0.12.16'),
  'Safari version strings stay aligned');
-console.log('PASS: 30 painted territory relics with 14+ motif families, road-preserving art, eight side-only animated boss stage marks, reduced-motion fallback, correct sprite/fortress depth, deterministic no-economy redraws.');
+console.log('PASS: 30 painted territory relics with 14+ motif families, road-preserving art, 32 bounded stage marks with original eight light marks and themed architecture, reduced-motion fallback, correct sprite/fortress depth, deterministic no-economy redraws.');
 console.log('SIZES: min '+Math.min(...sizes)+' max '+Math.max(...sizes)+' average '+Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length)+' terrain SVG source characters.');
 console.log('LIMIT: CPU/thermal and fine art cohesion on physical iPhone need screenshot acceptance; headless tests are not a substitute.');
