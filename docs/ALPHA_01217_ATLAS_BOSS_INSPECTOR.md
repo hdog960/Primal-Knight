@@ -2,7 +2,7 @@
 
 ## Playable addition
 
-The World Atlas now includes a **view-only boss-stage artwork selector**. In any of the thirty territories—including locked regions—players can choose **OFF, IRON, EMBER, RIFT, or BEAST** and optionally toggle **PHASE II**. This allows actual iPhone inspection of the 0.12.16 boss scenic details without needing to defeat or even reach that encounter.
+The World Atlas now includes a **view-only boss-stage artwork selector**. In any of the thirty territories—including locked regions—players can choose **OFF, IRON, EMBER, RIFT, or BEAST** and optionally toggle **PHASE II** for the Iron, Ember and Rift Warlords. Siege Beasts do not have a real Phase II, so this button is disabled for Beast. This allows actual iPhone inspection of the 0.12.16 boss scenic details without needing to defeat or even reach that encounter.
 
 Critically, this is **not a separate artist mockup**: the preview invokes the same real `territoryBossStaging()` routine used during boss fights with a tiny temporary, unconnected inspection state. It serializes exactly the real 32 canvas `fillRect` calls into a small static 960×540 SVG image. It therefore preserves both the exact drawing coordinates and the original biome palette, with real Phase I versus II alpha intensities. The preview image is placed **between the painted landscape and original fortress foreground** within the same artwork wrapper as the existing zoom/pinch/drag. The hero and banners remain in their original layers. No new image sprites are created or replaced in the live combat renderer.
 
