@@ -2451,11 +2451,11 @@
 }
 
 
-/* Alpha 0.12.9 — inspect the actual terrain, castle and banners as ONE picture.
+/* Alpha 0.12.10 — inspect all painted layers with single-finger drag or two-finger pinch.
    Never scale individual SVG layers: 346px terrain and 540px castle must align. */
 .atlas-artwork{position:absolute;inset:0;width:100%;height:100%;
  transform-origin:50% 50%;pointer-events:none}
-.atlas-scene{touch-action:pan-y;cursor:grab}
+.atlas-scene{touch-action:none;cursor:grab}
 .atlas-scene[data-zoom="true"]{touch-action:none;cursor:grabbing}
 .atlas-scene[data-zoom="true"] .atlas-artwork{will-change:transform}
 .atlas-inspect-row{display:flex;justify-content:center;align-items:center;
