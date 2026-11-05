@@ -85,3 +85,4 @@ jobs:
           node tests/atlas-weather-preview.js
           node tests/low-allocation-combat.js
           node tests/native-vanguards.js
+          node tests/native-formations.js
