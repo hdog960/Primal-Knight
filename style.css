@@ -2652,3 +2652,8 @@
  .atlas-weather-controls button{min-height:44px;padding:5px;font-size:9px}
  .atlas-weather-controls small{font-size:8px}
 }
+
+/* Alpha 0.12.21 — readable native vanguard briefing, including narrow iPhone. */
+.encounter-intel .encounter-intel-native{margin-top:6px;color:#edddb2;line-height:1.45;font-size:10px}
+.encounter-intel-native b{color:#ffe39e}
+@media(max-width:650px){.encounter-intel .encounter-intel-native{font-size:9px;line-height:1.4}}
