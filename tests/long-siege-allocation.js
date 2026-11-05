@@ -71,7 +71,7 @@ const target=unit(760,110);
 h.shoot(target,20,'arrow',496,390);
 assert.equal(run.shots.length,1,'Real shooter still launches a projectile');
 const shot=run.shots[0],trail=shot.trail;
-assert(trail instanceof Float32Array&&trail.length===14,'Projectile allocates exactly seven coordinate pairs once');
+assert(ArrayBuffer.isView(trail)&&Object.prototype.toString.call(trail)==='[object Float32Array]'&&trail.length===14,'Projectile allocates exactly seven coordinate pairs once');
 assert.equal(shot.trailCount,0);assert.equal(shot.trailHead,0);
 const originalHistory=[];
 for(let k=0;k<400;k++){
