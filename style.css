@@ -2574,3 +2574,14 @@
  .specialist-alert-tracks{margin-top:2px}
  .encounter-ribbon .specialist-alert-line strong,.encounter-ribbon .specialist-alert-line span{font-size:8px}
 }
+
+/* Alpha 0.12.15 — opt-in capture of the unoccluded, actually rendered game art.
+   Reuses the Device Check panel rather than adding more floating battle controls. */
+.device-check-frame{display:block;width:100%;margin-top:9px;min-height:44px;
+ padding:7px 10px;background:linear-gradient(#6d5440,#352c32);
+ border:2px solid #deb779;color:#ffedc8;letter-spacing:.45px;
+ font:800 10px/1.2 Arial,sans-serif;box-shadow:inset 0 1px #ffdfad55,0 3px 7px #0007}
+.device-check-frame:focus-visible{outline:3px solid #fff0b5;outline-offset:2px}
+@media(orientation:landscape) and (max-height:460px){
+ .device-check-frame{min-height:36px;margin-top:4px;padding:5px 7px;font-size:9px}
+}
