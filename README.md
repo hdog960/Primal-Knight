@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.12.14 (Living Territories & Art, Slice 15)
+## Current release — Alpha 0.12.15 (Living Territories & Art, Slice 16)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -81,6 +81,8 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 **New in 0.12.13:** All 30 territory battlefields now have a unique animated weather phase within their weather family: broad drifting mist, fine rain streaks, slow snow, floating ash/dust/pollen, rising embers and faint sparkling stars. A compact live HUD subtitle shows each realm's particular sky, weather and light. Weather stays behind characters and warnings, never exceeds 18 small marks and one tint, and respects system Reduce Motion plus Vivid/Balanced/Battery Saver. No combat economy or saved progress changes; `tests/realm-weather.js` expands required regression coverage to **38 checks**. Physical iPhone art and thermal acceptance still remain open. See `docs/ALPHA_01213_LIVING_SKIES.md`.
 
 **New in 0.12.14:** Live specialist attacks now display true **seconds remaining, cast timing, and interruption progress** inside the existing battle encounter ribbon. Sapper fuses, Rift blinks, Frost rites and Thorn wards are prioritized by danger; overlapping casts are counted. Bar values read actual enemy HP/counterplay state, not invented timers, and vanish on real interruption, defeat or wave completion. This improves iPhone readability without adding more icons over the knight or modifying enemy balance, art, gear, Sigils or saves. Dedicated `tests/specialist-alerts.js` expands required CI to **39 checks**. Physical iPhone visual and thermal acceptance remains open. See `docs/ALPHA_01214_SPECIALIST_ALERTS.md`.
+
+**New in 0.12.15:** Capture the **real, layered 960×540 battlefield** as a PNG from Settings or the existing FPS panel, then share it through the iPhone Share Sheet where supported (or download locally). The image keeps region terrain, fortress, all three heraldic banners, weather and creatures aligned, while intentionally excluding HUD overlays for easier artwork review. Cancelled shares never download unexpectedly, and no artwork leaves the device unless the player explicitly shares it. The one-shot export cannot change saves, wave rewards or gameplay; `tests/battlefield-snapshot.js` adds a **40th required check**. Physical iPhone Safari/Home Screen testing remains outstanding. See `docs/ALPHA_01215_BATTLEFIELD_SNAPSHOT.md`.
 
 **Play:** https://hdog960.github.io/Primal-Knight/
 

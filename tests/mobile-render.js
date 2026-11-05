@@ -102,7 +102,7 @@ assert(css.includes('(orientation:portrait) and (max-width:540px)'),'Compact iPh
 assert(css.includes('.hud-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))'),'Mobile HUD prevents the three resource blocks from overflowing narrow viewports');
 assert(css.includes('.fight-actions button{min-height:44px;min-width:44px'),'Portrait battle controls meet 44px touch target guidance');
 assert(css.includes('.encounter-ribbon .encounter-goal,.encounter-ribbon .encounter-hint{font-size:10px'),'Objective and attack warnings have larger text');
-assert(html.includes('ALPHA 0.12.14')&&html.includes('game.js?v=0.12.14'),'Release assets are cache-busted for Safari and Home Screen updates');
+assert(html.includes('ALPHA 0.12.15')&&html.includes('game.js?v=0.12.15'),'Release assets are cache-busted for Safari and Home Screen updates');
 console.log('PASS: Alpha 0.10.8 time-independent VFX, visual pause, 120/60/30Hz frame pacing, low-refresh menu and background behavior, DOM resource cache and iPhone HUD CSS.');
 
 
