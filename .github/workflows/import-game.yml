@@ -83,3 +83,4 @@ jobs:
           node tests/atlas-boss-inspection.js
           node tests/atlas-image-export.js
           node tests/atlas-weather-preview.js
+          node tests/low-allocation-combat.js
