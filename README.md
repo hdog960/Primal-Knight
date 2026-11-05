@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.12.16 (Living Territories & Art, Slice 17)
+## Current release — Alpha 0.12.17 (Living Territories & Art, Slice 18)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -85,6 +85,8 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 **New in 0.12.15:** Capture the **real, layered 960×540 battlefield** as a PNG from Settings or the existing FPS panel, then share it through the iPhone Share Sheet where supported (or download locally). The image keeps region terrain, fortress, all three heraldic banners, weather and creatures aligned, while intentionally excluding HUD overlays for easier artwork review. Cancelled shares never download unexpectedly, and no artwork leaves the device unless the player explicitly shares it. The one-shot export cannot change saves, wave rewards or gameplay; `tests/battlefield-snapshot.js` adds a **40th required check**. Physical iPhone Safari/Home Screen testing remains outstanding. See `docs/ALPHA_01215_BATTLEFIELD_SNAPSHOT.md`.
 
 **New in 0.12.16:** The 30 illustrated realm battles now stage **four recognizably different boss environment styles**: Iron Warlord watchtower ruins, Ember Regent braziers, Rift Warlord obelisks and Siege Beast-torn earth. Each inherits the actual territory's material palette, stays in the side margins behind enemies, respects Reduced Motion, and subtly intensifies only on genuine boss phase II. The original eight light marks remain; the illustrated motif budget is bounded to 32 total brush strokes. No new image decoding, combat rules or save mutations. New `tests/boss-stage-art.js` and updated territory-art acceptance raise the required CI suite to **41 checks**. Physical iPhone artwork and long-session acceptance remain unfinished. See `docs/ALPHA_01216_BOSS_STAGE_ART.md`.
+
+**New in 0.12.17:** The World Atlas can now display **the real Iron, Ember, Rift, and Siege Beast stage artwork** in all 30 realms, with a view-only **Phase II** toggle. The optional preview is serialized directly from the battle's existing 32-mark renderer, preserving exact placement and palette behind the fortress and its three banners—no independent mockups or combat mutations. Boss-style selection stays active while browsing realms, and all images reset on Atlas close or battle launch. The original-art comparison and 1–3× pinch controls remain available. Added `tests/atlas-boss-inspection.js` for 120 styles × realms and both phases, bringing CI to **42 required checks**. Physical iPhone artwork, performance, and gesture acceptance still remain open. See `docs/ALPHA_01217_ATLAS_BOSS_INSPECTOR.md`.
 
 **Play:** https://hdog960.github.io/Primal-Knight/
 
