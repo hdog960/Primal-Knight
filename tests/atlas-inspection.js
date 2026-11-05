@@ -1,4 +1,4 @@
-// Alpha 0.12.9 — portrait-safe artwork zoom, swipe and modal keyboard focus.
+// Alpha 0.12.10 — preserve portrait-safe button zoom, swipe and modal keyboard focus.
 'use strict';
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8');
@@ -36,7 +36,7 @@ const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p();
 for(const id of ['atlasScene','atlasArtwork','atlasZoom'])assert(html.includes('id="'+id+'"'));
 assert(html.includes('aria-pressed="false"'));
 assert(css.includes('.atlas-artwork{')&&css.includes('.atlas-scene[data-zoom="true"]'));
-assert(css.includes('touch-action:pan-y')&&css.includes('touch-action:none'));
+assert(css.includes('.atlas-scene{touch-action:none')&&css.includes('.atlas-scene[data-zoom="true"]'));
 const previous=JSON.stringify({tier:p.unlockedTier,selected:p.selectedTier,gold:p.gold,essence:p.essence,sigils:p.sigils,inventory:p.inventory});
 assert.equal(h.openWorldAtlas(2),true);
 assert.equal(el('atlasCount').textContent,'2 / 30');
@@ -82,5 +82,5 @@ assert.equal(h.atlasPointerDown({pointerId:3,clientX:220,clientY:90}),false);
 assert.equal(el('atlasArtwork').style.transform,'none');
 assert.equal(JSON.stringify({tier:p.unlockedTier,selected:p.selectedTier,gold:p.gold,essence:p.essence,sigils:p.sigils,inventory:p.inventory}),previous,
  'Swipe, pan and zoom are art inspection only: no new tier, money or equipment changes');
-assert(html.includes('ALPHA 0.12.9')&&html.includes('game.js?v=0.12.9')&&html.includes('style.css?v=0.12.9'));
+assert(html.includes('ALPHA 0.12.10')&&html.includes('game.js?v=0.12.10')&&html.includes('style.css?v=0.12.10'));
 console.log('PASS: single-wrapper 1.8x zoom, pan clamp, swipe without scrolling false positives, unchanged decoded art, reset on navigation/close, keyboard focus trap and zero progression changes.');
