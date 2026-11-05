@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.12. Living Territories - Adaptive Visual Quality Presets: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.13. Living Territories - Distinct Realm Atmosphere: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1566,39 +1566,58 @@ function territoryVista(tier=run.tier){
  return {tier:index+1,name,weather,light,tint:territoryLight[light],
   particleColor:territoryWeatherColor[weather]};
 }
-// 0–22 tiny rectangles per frame and no persistent particle arrays; weather is
-// drawn behind enemies, boss warnings, projectile impacts and fortress foreground.
-// If reduced-motion is requested only the gentle static tint remains.
+/* Alpha 0.12.13 — eight recognizably different weather signatures across
+   thirty territories. No new textures, gradients, sprites, physics or saved
+   data. One flat light wash and at most 18 pixel marks per draw; respects
+   Vivid/Balanced/Saver density and system Reduce Motion. */
+function territoryWeatherSignature(tier=run.tier){
+ const vista=territoryVista(tier);
+ return vista.name+' · '+vista.weather.toUpperCase()+' · '+vista.light.toUpperCase()+' LIGHT';
+}
 function drawTerritoryAtmosphere(context,seconds=run.time,tier=run.tier,still=reduceMotion){
  const vista=territoryVista(tier);
+ const time=Number.isFinite(seconds)?seconds:0;
+ const wrap=(value,span)=>((value%span)+span)%span;
  context.save();
  context.fillStyle=vista.tint;
  context.fillRect(0,80,960,340);
  if(!still){
-  const type=vista.weather,soft=type==='mist';
-  const count=territoryWeatherCount(type);
+  const type=vista.weather,count=territoryWeatherCount(type);
+  const seed=vista.tier*47;
   context.fillStyle=vista.particleColor;
   for(let i=0;i<count;i++){
-   if(soft){
-    const y=126+i*65+Math.sin(seconds*.12+i*1.5)*9;
-    context.fillRect(25+i%2*210,y,730-i*46,8);
-   }else{
-    const pace=type==='rain'?118:type==='snow'?24:type==='embers'?20:type==='stars'?6:30;
-    const x=((i*73+Math.floor(seconds*pace*(type==='rain'?.34:.15))+i*i*17)%940+940)%940+8;
-    const rise=(type==='embers'||type==='stars')?-1:1;
-    const y=100+((i*53+Math.floor(seconds*pace*rise)+i*i*11)%298+298)%298;
-    if(type==='rain')context.fillRect(x,y,2,9);
-    else if(type==='snow')context.fillRect(x,y,3,3);
-    else if(type==='stars')context.fillRect(x,y,2,2);
-    else if(type==='embers')context.fillRect(x,y,3,2);
-    else context.fillRect(x,y,3,2);
+   if(type==='mist'){
+    // Slow drifting veils: four broad, translucent layers, not rain flecks.
+    const x=-34+(i%2)*72+Math.sin(time*.14+i*1.6+seed*.016)*25;
+    const y=119+i*67+Math.sin(time*.21+i*1.33+seed*.009)*11;
+    context.fillRect(x,y,730-i*54,5+(i%2)*3);
+    continue;
    }
+   // Each territory receives a distinct stable starting field. The weather
+   // movement is deterministic from game time; no Math.random() or arrays.
+   const depth=.75+(i%4)*.16;
+   const fall=type==='rain'?165:type==='snow'?30:type==='embers'?-24:
+    type==='stars'?-4:type==='pollen'?-12:type==='ash'?21:26;
+   const wind=type==='rain'?35:type==='snow'?14:type==='dust'?29:
+    type==='pollen'?17:type==='ash'?9:type==='embers'?-8:2;
+   const wobble=type==='snow'||type==='pollen'?Math.sin(time*.8+i*1.47+seed*.01)*12:0;
+   const x=8+wrap(i*97+seed*11+time*wind*depth+wobble,940);
+   const y=100+wrap(i*61+seed*5+time*fall*depth,298);
+   if(type==='rain')context.fillRect(x,y,1+i%2,8+(i%3)*2);
+   else if(type==='snow')context.fillRect(x,y,2+i%3,2+i%3);
+   else if(type==='stars'){
+    // Stars shimmer gently at night; avoid full-screen or boss-time flashes.
+    const glint=(Math.floor(time*.8+i*1.3+seed*.1)%5===0)?3:2;
+    context.fillRect(x,y,glint,glint);
+   }else if(type==='embers')context.fillRect(x,y,2+i%2,2+i%2);
+   else if(type==='pollen')context.fillRect(x,y,2+(i%4===0?1:0),2);
+   else if(type==='dust')context.fillRect(x,y,3+i%3,1+(i%5===0?1:0));
+   else context.fillRect(x,y,2+i%3,2);
   }
  }
  context.restore();
  return vista;
 }
-
 
 /* Alpha 0.12.1 — 29 additional authored-style illustrated terrain mattes.
    The original Tier I painted battlefield remains unchanged. The other tiers
@@ -2390,6 +2409,7 @@ function refreshHUD(){
  const resourceMarkup=r.map(a=>`<div class="resource"><span class="glyph">${a[0]}</span><div><small>${a[1]}</small><strong>${fmt(a[2])}</strong></div></div>`).join('');
  if(resourceMarkup!==lastResourceMarkup){$('resources').innerHTML=resourceMarkup;lastResourceMarkup=resourceMarkup;}
  $('stageName').textContent='TIER '+roman(run.tier)+' · '+tierNames[run.tier-1];
+ $('realmAtmosphere').textContent=territoryWeatherSignature(run.tier);
  $('waveName').textContent='WAVE '+formatWave(run.wave)+' / '+formatWave(MAX_WAVE);
  const bossHud=$('bossHud');
  if(bossHud){
@@ -3063,7 +3083,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.12.12 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.12.13 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -3463,5 +3483,5 @@ $('deviceCheckToggle').onclick=toggleDeviceCheck;
 $('deviceCheckCopy').onclick=copyDeviceCheck;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
