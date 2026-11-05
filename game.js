@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.7. Living Territories - Three-Banner Fortress Cohesion: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.8. Living Territories - Adaptive Mobile Render Budget: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1157,7 +1157,7 @@ function renderTierLobby(){
 }
 function enterSiege(){
  if(chosenTier>p.unlockedTier)return;
- $('worldAtlas').hidden=true;
+ $('worldAtlas').hidden=true;atlasOpen=false;
  atlasCompareOriginal=false;
  releaseWorldAtlasImages();
  p.selectedTier=chosenTier;initRun();lastSiegeReport=null;renderSiegeReport();
@@ -2043,7 +2043,7 @@ function fortressHeraldryImage(tier){
 /* Alpha 0.12.5 — view-only realm atlas. Uses the identical terrain and banner
    generators, but NEVER alters chosenTier, unlockedTier, run or the game art cache.
    Only the currently visible atlas picture is decoded in the DOM. */
-let atlasCurrentTier=1,atlasCompareOriginal=false;
+let atlasCurrentTier=1,atlasCompareOriginal=false,atlasOpen=false;
 function releaseWorldAtlasImages(){
  // Safari can keep very large percent-encoded SVG URLs alive while hidden.
  // Drop only DOM preview references, never the battle's two live Image caches.
@@ -2100,7 +2100,7 @@ function renderWorldAtlas(tier=atlasCurrentTier){
 function openWorldAtlas(tier=chosenTier){
  if(run.phase==='fighting'||run.phase==='intermission')return false;
  const modal=$('worldAtlas');
- modal.hidden=false;
+ modal.hidden=false;atlasOpen=true;
  atlasCompareOriginal=false;
  renderWorldAtlas(tier);
  $('atlasClose').focus?.();
@@ -2109,7 +2109,7 @@ function openWorldAtlas(tier=chosenTier){
 function closeWorldAtlas(){
  const modal=$('worldAtlas');
  if(modal.hidden)return false;
- modal.hidden=true;
+ modal.hidden=true;atlasOpen=false;
  atlasCompareOriginal=false;
  releaseWorldAtlasImages();
  $('openAtlasButton').focus?.();
@@ -2164,9 +2164,11 @@ function territoryBossStaging(context,tier=run.tier,state=run,still=reduceMotion
  context.restore();
  return {active:true,tier:normalized,marks:edges.length};
 }
+let staticSkyVignette=null; // Fixed resolution: reuse a single CanvasGradient, never allocate one per frame.
 function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(run.shakes>0&&!reduceMotion){ctx.translate(rnd(-2,2),rnd(-2,2));}if(background.complete&&background.naturalWidth){ctx.drawImage(background,0,0,w,h)}else{ctx.fillStyle='#223c45';ctx.fillRect(0,0,w,h)}const sceneTier=visibleTerritoryTier(),matte=territorySceneImage(sceneTier);if(matte&&matte.complete&&matte.naturalWidth)ctx.drawImage(matte,0,0,960,346);
  // Subtle animated fog and light make the illustrated environment breathe.
- const time=performance.now()/1000;let gd=ctx.createLinearGradient(0,96,0,415);gd.addColorStop(0,'rgba(5,25,39,.08)');gd.addColorStop(1,'rgba(18,10,21,.13)');ctx.fillStyle=gd;ctx.fillRect(0,90,960,350);
+ if(!staticSkyVignette){staticSkyVignette=ctx.createLinearGradient(0,96,0,415);staticSkyVignette.addColorStop(0,'rgba(5,25,39,.08)');staticSkyVignette.addColorStop(1,'rgba(18,10,21,.13)');}
+ ctx.fillStyle=staticSkyVignette;ctx.fillRect(0,90,960,350);
  drawTerritoryAtmosphere(ctx,run.time,sceneTier,reduceMotion);
  territoryBossStaging(ctx,sceneTier,run,reduceMotion);
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
@@ -2954,7 +2956,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.7 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div><p class="lead">Alpha 0.12.8 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -3069,8 +3071,12 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
 // Low-motion devices use 30Hz rendering without altering wave timers or earned rewards.
 const reduceMotion=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function drawInterval(){
- if(document.hidden)return Infinity;
+ // Battery-aware, *visual-only* pacing. Battle simulation still uses real RAF dt.
+ // Atlas is fully opaque, and non-fighting scenes/paused sieges are static.
+ if(document.hidden||atlasOpen)return Infinity;
  if($('app').dataset.view==='menu')return 100;
+ const active=(run.phase==='fighting'||run.phase==='intermission')&&run.speed>0;
+ if(!active)return 1000/12;
  return reduceMotion?1000/30:1000/60;
 }
 // Battle controls do not alter earned progression or permanent save data.
