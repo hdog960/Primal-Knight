@@ -76,3 +76,4 @@ jobs:
           node tests/atlas-pinch.js
           node tests/device-perf.js
           node tests/visual-quality.js
+          node tests/realm-weather.js
