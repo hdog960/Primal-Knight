@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.16. Living Territories - Illustrated Boss Stage Setpieces: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.17. Living Territories - Boss Stage Atlas Inspector: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -2063,22 +2063,25 @@ function fortressHeraldryImage(tier){
    generators, but NEVER alters chosenTier, unlockedTier, run or the game art cache.
    Only the currently visible atlas picture is decoded in the DOM. */
 let atlasCurrentTier=1,atlasCompareOriginal=false,atlasOpen=false;
+let atlasBossStyle='none',atlasBossPhase=1;
 let atlasZoomed=false,atlasScale=1,atlasPanX=0,atlasPanY=0,atlasPointer=null;
 const atlasPointers=new Map();let atlasPinch=null;
 function releaseWorldAtlasImages(){
  // Safari can keep very large percent-encoded SVG URLs alive while hidden.
  // Drop only DOM preview references, never the battle's two live Image caches.
- for(const id of ['atlasMatte','atlasHeraldry']){
+ for(const id of ['atlasMatte','atlasHeraldry','atlasBossStage']){
   const picture=$(id);
   picture.hidden=true;
   picture.removeAttribute?.('src');
   picture.dataset.atlasTier='';
+  picture.dataset.stageKey='';
  }
 }
 function updateAtlasComparison(){
  const original=atlasCompareOriginal||atlasCurrentTier===1;
  $('atlasMatte').hidden=original;
  $('atlasHeraldry').hidden=original;
+ updateAtlasBossStage();
  const button=$('atlasCompare');
  button.disabled=atlasCurrentTier===1;
  button.textContent=atlasCompareOriginal?'SHOW TERRITORY ART':'COMPARE ORIGINAL ART';
@@ -2089,6 +2092,69 @@ function toggleAtlasComparison(){
  if($('worldAtlas').hidden||atlasCurrentTier===1)return false;
  atlasCompareOriginal=!atlasCompareOriginal;
  updateAtlasComparison();
+ return true;
+}
+/* Alpha 0.12.17 — inspect exact live boss-stage geometry without
+   unlocking tiers or simulating combat. The preview serializes the existing
+   territoryBossStaging() canvas calls as static SVG, with the same shapes,
+   biome colors, depth and phase effects; it never touches a real run. */
+const atlasBossStyles=['none','iron','ember','rift','beast'];
+function atlasBossStageSvg(tier,style,phase=1){
+ if(!atlasBossStyles.includes(style)||style==='none')return '';
+ const normalized=territoryVista(tier).tier;
+ const pieces=['<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" shape-rendering="crispEdges">'];
+ let fill='#fff',alpha=1;
+ const recorder={
+  save(){},restore(){},
+  set fillStyle(value){fill=value;},
+  set globalAlpha(value){alpha=Number(value);},
+  fillRect(x,y,w,h){
+   if(![x,y,w,h,alpha].every(Number.isFinite)||w<=0||h<=0)return;
+   pieces.push('<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+fill+
+    '" opacity="'+clamp(alpha,0,1).toFixed(3)+'"/>');
+  }
+ };
+ const unit={type:style==='beast'?'siegebeast':'warlord',isBoss:true,
+  dead:false,hp:100,max:100,bossStyle:style,bossPhase:phase===2?2:1};
+ const mock={phase:'fighting',encounter:{kind:'chapterBoss'},time:0,enemies:[unit]};
+ if(!territoryBossStaging(recorder,normalized,mock,true).active)return '';
+ pieces.push('</svg>');
+ return pieces.join('');
+}
+function updateAtlasBossStage(){
+ const picture=$('atlasBossStage');
+ const key=atlasBossStyle==='none'?'':atlasCurrentTier+':'+atlasBossStyle+':'+atlasBossPhase;
+ if(picture.dataset.stageKey!==key){
+  if(key)picture.src='data:image/svg+xml;charset=utf-8,'+
+   encodeURIComponent(atlasBossStageSvg(atlasCurrentTier,atlasBossStyle,atlasBossPhase));
+  else picture.removeAttribute?.('src');
+  picture.dataset.stageKey=key;
+ }
+ picture.hidden=!key||atlasCompareOriginal;
+ for(const style of atlasBossStyles){
+  $('atlasBoss'+style[0].toUpperCase()+style.slice(1)).
+   setAttribute?.('aria-pressed',String(atlasBossStyle===style));
+ }
+ const phase=$('atlasBossPhase');
+ phase.disabled=atlasBossStyle==='none';
+ phase.setAttribute?.('aria-pressed',String(atlasBossPhase===2));
+ phase.textContent=atlasBossPhase===2?'PHASE II · ACTIVE':'PHASE II';
+ $('atlasBossStatus').textContent=atlasBossStyle==='none'?
+  'BOSS STAGE OFF · SELECT A STYLE TO INSPECT':
+  atlasBossStyle.toUpperCase()+' · PHASE '+(atlasBossPhase===2?'II':'I')+
+  ' · ART ONLY · NO FIGHT OR REWARDS';
+ return !!key;
+}
+function chooseAtlasBossStyle(style){
+ if(!atlasOpen||!atlasBossStyles.includes(style))return false;
+ atlasBossStyle=style;if(style==='none')atlasBossPhase=1;
+ updateAtlasBossStage();
+ return true;
+}
+function toggleAtlasBossPhase(){
+ if(!atlasOpen||atlasBossStyle==='none')return false;
+ atlasBossPhase=atlasBossPhase===1?2:1;
+ updateAtlasBossStage();
  return true;
 }
 /* Alpha 0.12.10 — the four illustration layers zoom as ONE canvas-sized
@@ -3175,7 +3241,7 @@ function renderPanel(){
  }
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Save or share a clean 960×540 PNG of the current battlefield art, including terrain, flags, creatures and projectiles. The HUD is not included; the image is never uploaded automatically.</span><button class="wide-btn" data-action="battleSnapshot">SHARE BATTLEFIELD PNG</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.12.16 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Save or share a clean 960×540 PNG of the current battlefield art, including terrain, flags, creatures and projectiles. The HUD is not included; the image is never uploaded automatically.</span><button class="wide-btn" data-action="battleSnapshot">SHARE BATTLEFIELD PNG</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.12.17 · Free to play · No outside subscriptions, analytics or purchases.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -3622,5 +3688,5 @@ $('deviceCheckCopy').onclick=copyDeviceCheck;
 $('deviceCheckFrame').onclick=shareBattlefieldFrame;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
