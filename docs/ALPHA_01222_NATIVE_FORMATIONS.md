@@ -1,0 +1,13 @@
+# Alpha 0.12.22 — Native Battlefield Formations
+
+## Playable changes
+Ordinary vanguard encounters starting at wave 35 now use one of eight unique marching orders based on the territory's existing native troop role. Raiders split into **Pincher Flanks**, sappers advance in a **Breach Wedge**, frostbinders hang back in a **Winter Arc**, guardians form a **Shield Wall**, bannerets lead **War Banners**, shamans deploy behind a **Ritual Screen**, thornweavers protect a **Thorn Crescent**, and riftstalkers attack from **Shadow Pincers**. Thirty territories retain their distinct names and native troops.
+
+The live `formationPosition` path now places actual soldiers in six balanced lanes with alternating rows and modest tier-specific offsets. Backline casters spawn slightly behind soldiers. All spawn coordinates remain within x=145–815 and y=124–163 of the existing 960×540 field. This gives recognizable positional differences without changing the underlying enemy damage, armor, HP, reward rates, or spawn totals. Current native golden unit crests remain.
+
+**Isolation:** the elite vanguard Ogre retains its previous boss-position logic. Introductory waves, normal patrols, commanders, century warlords, relic/treasure/arcane/special attacks, and phase-II reinforcements keep their old placement. Normal enemy caps (24) and specialist/active caster caps still apply. Hero auto-targeting and all 30×10,000 waves remain as before. No new permanent fields; existing `primal_knight_onslaught_save_v1` save and finite Sigil economy are preserved.
+
+## Truthful feedback and QA
+Players see the regional formation name and counter in the Battle preparation panel, live encounter ribbon and wave announcement. Required `tests/native-formations.js` exercises the actual game controller, all eight distinct lane layouts, 30 territories, all real enemy spawn positions, backline positioning, elite boss isolation, HUD warnings, safety caps, save invariants and Safari/Home Screen cache identifiers. This brings the suite to **47 mandatory checks including JavaScript syntax**.
+
+**Incomplete:** These code-level and VM tests do not measure physical iPhone Safari FPS, heat, battery or visual acceptance. Alpha 0.12 remains active; do not skip the locked Alpha 0.13–0.15 roadmap or misrepresent the 1,250-hour target as measured.

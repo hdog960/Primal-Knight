@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.12.21 (Living Territories & Art, Slice 22)
+## Current release — Alpha 0.12.22 (Living Territories & Art, Slice 23)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -95,6 +95,8 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 **New in 0.12.20:** Live sieges now use **reusable enemy sorting buffers** during back-to-front sprite rendering and automatic hero/fortress targeting, eliminating several per-frame temporary array allocations and the projectile-trail fallback array. The sorted order, attack priorities, wave timing, rewards, character progression, enemies and illustrated graphics remain unchanged; both temporary buffers clear their references after use. Added `tests/low-allocation-combat.js` (45 required checks total) to verify 500 repeated sorts, 40 real canvas redraws, live specialist priority and unchanged saves. **Actual iPhone thermal/FPS gains are not claimed** without device measurement. See `docs/ALPHA_01220_LOW_ALLOCATION_COMBAT.md`.
 
 **New in 0.12.21:** All **30 territories** now field a distinct named **Native Vanguard** on qualifying ordinary vanguard waves starting at wave 35. Two existing troop slots are replaced with local current enemy types, carrying genuine raid, shield, fuse, ward, frost, healing, rally or blink mechanics while respecting existing caps. Native enemies have a small gold crest in combat; the Battle briefing and live encounter ribbon identify their threat and counter. No extra enemies, changed bosses, early tutorial surprises, farming rewards or save-format changes. New `tests/native-vanguards.js` expands the regression gate to **46 checks including syntax**. Physical iPhone art/thermal and extended-session acceptance remain outstanding. See `docs/ALPHA_01221_NATIVE_VANGUARDS.md`.
+
+**New in 0.12.22:** Native vanguards now use **eight true marching formations**: Pincher Flanks (raiders), Breach Wedge (sappers), Winter Arc (frost casters), Shield Wall (guards), War Banners (standard bearers), Ritual Screen (shamans), Thorn Crescent (ward casters) and Shadow Pincers (riftstalkers). Their real start positions and backline placements change during qualifying vanguard waves 35+, rather than only changing labels. The Battle briefing and live encounter ribbon identify the formation and counter. The original elite ogre and every other wave keep their prior placement; spawn rates, 24-enemy cap, specialist limits, HP/damage formulas, rewards, 30×10,000 progression and saves remain unchanged. The new `tests/native-formations.js` expands the quality gate to **47 checks including syntax**. On-device art and extended thermal acceptance remain open. See `docs/ALPHA_01222_NATIVE_FORMATIONS.md`.
 
 **Play:** https://hdog960.github.io/Primal-Knight/
 
