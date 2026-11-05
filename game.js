@@ -1247,6 +1247,11 @@ function spawnEnemy(){
  const relicGuardian=encounter.kind==='relic'&&run.spawned===run.total-1;
  const nativeSlot=hasNativeVanguard(encounter)&&!run.reinforcementPhase&&(run.spawned===2||run.spawned===8);
  let type=isBoss?encounter.bossType:relicGuardian?'guardian':run.reinforcementPhase&&run.spawned>=run.total-2?({iron:'guardian',ember:'raider',rift:'warg'}[encounter.bossStyle]):encounterUnit(encounter,run.spawned);
+ // Reserve one genuinely native specialist at slot 2. The first two random
+ // faction troops cannot consume its existing 2-of-type safety cap first.
+ // Never create a bonus enemy or weaken the global three-caster limit.
+ if(hasNativeVanguard(encounter)&&run.spawned<2&&type===territoryVanguards[encounter.tier-1][1]&&
+   ['shaman','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type))type='skeleton';
  type=allowedSpecialist(type,run.enemies);
  const nativeMark=nativeSlot&&type===territoryVanguards[encounter.tier-1][1];
  const trial=dominionTrial(run.tier),trait=trial?.trait||'';
