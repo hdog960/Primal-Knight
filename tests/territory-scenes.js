@@ -94,7 +94,7 @@ assert.equal(JSON.stringify({inventory:p.inventory,runes:p.runes,essence:p.essen
  gold:JSON.parse(original).gold,sigils:JSON.parse(original).sigils
 }),'Changing background scenery never edits existing resources or equipment');
 assert(!Object.keys(w.store).some(key=>key.includes('terrain')),'Territory art creates no new persistent save keys');
-assert(html.includes('ALPHA 0.12.16')&&html.includes('game.js?v=0.12.16')&&html.includes('style.css?v=0.12.16'),'iPhone Safari Home Screen cache keys are updated');
+assert(html.includes('ALPHA 0.12.17')&&html.includes('game.js?v=0.12.17')&&html.includes('style.css?v=0.12.17'),'iPhone Safari Home Screen cache keys are updated');
 console.log('PASS: 30 unique landscape compositions, 13 regional palettes, original Tier I retained, textured perspective causeway, one terrain plus one banner decode per selected tier, genuine canvas depth order and no economy mutations.');
 console.log('ART SIZES: min '+Math.min(...sizes)+' max '+Math.max(...sizes)+' avg '+Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length)+' encoded chars per SVG.');
 console.log('LIMIT: generated painterly pixel mattes require human visual review on actual Safari iPhones; no physical thermal test performed.');
