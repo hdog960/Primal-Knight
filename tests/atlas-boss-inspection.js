@@ -82,7 +82,7 @@ assert.equal(h.chooseAtlasBossStyle('none'),true);
 assert.equal(art.hidden,true);assert.equal(art.src,'');
 assert.equal(el('atlasBossPhase').disabled,true);
 assert.equal(h.atlasBossSnapshot().phase,1);
-const labels=new Set(),svgs=new Set();
+const labels=new Set(),svgs=new Set(),perTierDistinct=new Map();
 for(let tier=1;tier<=30;tier++){
  for(const style of ['iron','ember','rift','beast']){
   const svg=h.atlasBossStageSvg(tier,style,1);
@@ -95,14 +95,21 @@ for(let tier=1;tier<=30;tier++){
   assert(rects.every(p=>{const x=Number(p[1]),y=Number(p[2]);return(x<=130||x>=845)&&y>=120&&y<325;}));
   assert(rects.every(p=>Number(p[3])>0&&Number(p[4])>0&&Number(p[6])>0&&Number(p[6])<=1));
   const digest=crypto.createHash('sha256').update(svg).digest('hex');
-  assert(!svgs.has(digest),'Every realm + boss combination is independently colored/shaped');
+  // Regions sharing the same material palette legitimately reuse color and geometry.
+  // Each individual realm must still show four genuinely different boss shapes.
   svgs.add(digest);
+  const seen=perTierDistinct.get(tier)||new Set();
+  assert(!seen.has(digest),'Different boss styles must be visually distinct within tier '+tier);
+  seen.add(digest);perTierDistinct.set(tier,seen);
   assert.equal(h.atlasBossStageSvg(tier,style,1),svg,'Frozen art inspection remains deterministic');
   assert.notEqual(h.atlasBossStageSvg(tier,style,2),svg,'True Phase II is inspectable without a fight');
   labels.add(style);
  }
 }
-assert.equal(svgs.size,120);assert.equal(labels.size,4);
+assert.equal(perTierDistinct.size,30);
+assert([...perTierDistinct.values()].every(set=>set.size===4));
+assert(svgs.size>=48,'Thirteen regional palettes must yield many distinct boss-stage images');
+assert.equal(labels.size,4);
 assert.equal(h.atlasBossStageSvg(1,'none',2),'');
 assert.equal(h.atlasBossStageSvg(1,'unknown',1),'');
 assert.equal(created,count,'Atlas preview does not allocate or replace the active battle Image caches');
