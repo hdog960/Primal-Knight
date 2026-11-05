@@ -2627,3 +2627,28 @@
 @media(orientation:landscape) and (max-height:460px){
  .atlas-inspect-row #atlasExport{min-height:44px;padding:5px 9px}
 }
+
+/* Alpha 0.12.19 — accurate, optional battle sky and weather inspection.
+   IMPORTANT: the inherited .atlas-scene img{display:block} must never
+   override DOM [hidden] for compare mode, boss previews or the new sky. */
+.atlas-scene img[hidden]{display:none!important}
+.atlas-scene .atlas-weather{height:100%;object-fit:fill}
+.atlas-weather-controls{display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:7px;padding:5px 9px;border:1px solid #839784;
+ background:linear-gradient(105deg,#22343d,#182730)}
+.atlas-weather-controls button{flex:none;min-width:150px;min-height:44px;
+ padding:8px 11px;border:2px solid #9cbcae;color:#ebfaee;
+ background:linear-gradient(#355b58,#23413d);font:800 11px/1.2 Arial,sans-serif}
+.atlas-weather-controls button[aria-pressed="true"]{border-color:#e6ca81;
+ color:#ffe9b1;background:linear-gradient(#615741,#36493d)}
+.atlas-weather-controls button:focus-visible{outline:3px solid #fff0b6;outline-offset:2px}
+.atlas-weather-controls small{flex:1;min-width:140px;color:#c6dfd1;
+ font:800 9px/1.4 Arial,sans-serif;letter-spacing:.3px}
+@media(max-width:520px){.atlas-weather-controls{gap:5px;padding:4px 6px}
+ .atlas-weather-controls button{min-width:135px;font-size:10px}
+ .atlas-weather-controls small{font-size:8px;letter-spacing:0}}
+@media(orientation:landscape) and (max-height:460px){
+ .atlas-weather-controls{padding:3px 5px}
+ .atlas-weather-controls button{min-height:44px;padding:5px;font-size:9px}
+ .atlas-weather-controls small{font-size:8px}
+}

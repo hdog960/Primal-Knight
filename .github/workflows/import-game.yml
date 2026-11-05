@@ -82,3 +82,4 @@ jobs:
           node tests/boss-stage-art.js
           node tests/atlas-boss-inspection.js
           node tests/atlas-image-export.js
+          node tests/atlas-weather-preview.js
