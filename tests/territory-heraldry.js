@@ -29,12 +29,12 @@ for(let tier=1;tier<=30;tier++){
  const svg=h.fortressHeraldrySvg(tier);
  assert(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540"'));
  assert(svg.endsWith('</svg>')&&svg.includes('shape-rendering="crispEdges"'));
- assert(svg.includes('translate(91 439)')&&svg.includes('translate(864 441)'),'Heraldic stitchwork is centered on the painted fabric rather than the bottom tips');
- assert(svg.includes('M57 388L124 388')&&svg.includes('M834 390L894 390'),'Both colored fabrics start at the actual painted flag tops, not 55 pixels below them');
+ assert(svg.includes('translate(91 439)')&&svg.includes('translate(277 435)')&&svg.includes('translate(864 441)'),'Heraldic embroidery covers all THREE original castle flags, including the center guild banner');
+ assert(svg.includes('M57 388L124 388')&&svg.includes('M246 384L310 384')&&svg.includes('M834 390L894 390'),'All three regional cloth panels begin at the actual painted tops');
  assert(!svg.includes('M56 446')&&!svg.includes('M831 445'),'No old misaligned lower-half banner shapes remain');
  assert(!/<script|<foreignObject|<iframe|<image|xlink:href/i.test(svg),'Safe offline art only');
  assert(!svg.includes('NaN')&&!svg.includes('undefined'));
- assert(svg.length<13000,'Small transparent SVG image, not a full second landscape');
+ assert(svg.length<20000,'Three tiny transparent banners remain a small image, not a second landscape');
  const xcoords=[...svg.matchAll(/<rect x="([^"]+)"/g)].map(m=>Number(m[1]));
  assert(xcoords.every(x=>x<=150||x>=810),'No ornamental pixels over central hero or buttons');
  const digest=crypto.createHash('sha256').update(svg).digest('hex');
@@ -71,7 +71,7 @@ assert(!paint.ops.some(x=>x.kind==='image'&&x.src.startsWith('data:image/svg+xml
 assert.equal(JSON.stringify({gold:p.gold,essence:p.essence,sigils:p.sigils,inventory:p.inventory,runes:p.runes}),saved,
  'Changing visual banners never changes resources, gear or runes');
 assert(!Object.keys(store).some(k=>k.includes('heraldry')));
-assert(html.includes('ALPHA 0.12.6')&&html.includes('game.js?v=0.12.6')&&html.includes('style.css?v=0.12.6'));
+assert(html.includes('ALPHA 0.12.7')&&html.includes('game.js?v=0.12.7')&&html.includes('style.css?v=0.12.7'));
 console.log('PASS: 13 region banner glyph families, full-height aligned fabric, 30 deterministic heraldic cloth variants, hero-safe x bounds, real fortress/projectile draw ordering, original Tier I and 75 redraws without allocations.');
 console.log('SOURCE SIZE: min '+Math.min(...sizes)+' max '+Math.max(...sizes)+' average '+Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length)+'.');
 console.log('LIMIT: iPhone screenshots, visuals and long-session energy use not measured.');
