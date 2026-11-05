@@ -102,7 +102,8 @@ for(let tier=1;tier<=30;tier++){
   assert(!seen.has(digest),'Different boss styles must be visually distinct within tier '+tier);
   seen.add(digest);perTierDistinct.set(tier,seen);
   assert.equal(h.atlasBossStageSvg(tier,style,1),svg,'Frozen art inspection remains deterministic');
-  assert.notEqual(h.atlasBossStageSvg(tier,style,2),svg,'True Phase II is inspectable without a fight');
+  if(style==='beast')assert.equal(h.atlasBossStageSvg(tier,style,2),svg,'Siege Beast has no actual Phase II');
+  else assert.notEqual(h.atlasBossStageSvg(tier,style,2),svg,'Real Warlord Phase II is inspectable without a fight');
   labels.add(style);
  }
 }
@@ -123,6 +124,9 @@ assert.equal(h.openWorldAtlas(30),true);
 assert.equal(art.src,'','Reopen never resurrects a previous boss-stage overlay');
 assert.equal(el('atlasBossPhase').disabled,true);
 assert.equal(h.chooseAtlasBossStyle('beast'),true);
+assert.equal(el('atlasBossPhase').disabled,true,'Beast does not offer an invented Warlord Phase II');
+assert.equal(el('atlasBossPhase').textContent,'NO PHASE II');
+assert.equal(h.toggleAtlasBossPhase(),false);
 assert.equal(h.atlasBossSnapshot().tier,30);
 assert.equal(art.hidden,false);
 assert.equal(h.closeWorldAtlas(),true);
