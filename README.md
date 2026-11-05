@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.12.20 (Living Territories & Art, Slice 21)
+## Current release — Alpha 0.12.21 (Living Territories & Art, Slice 22)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -93,6 +93,8 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 **New in 0.12.19:** The World Atlas can now show a **true battle-weather and lighting preview** in every territory, from the exact live canvas renderer, frozen at a deterministic 12-second scene so it remains lightweight on iPhone. Toggle **PREVIEW WEATHER** to compare the original scenic art with realistic rain, snow, mist, ash, embers, pollen, dust and stars; system Reduce Motion and Vivid/Balanced/Battery Saver preferences still apply. **SHARE ART PNG** includes the selected weather in its real scene depth layer, with an identifying `-weather` filename. Fixed hidden Atlas image layers potentially remaining visible under CSS. The new `tests/atlas-weather-preview.js` raises CI to **44 checks**, with unchanged gameplay and saved progression. Physical iPhone image quality and thermal acceptance remain open. See `docs/ALPHA_01219_ATLAS_WEATHER.md`.
 
 **New in 0.12.20:** Live sieges now use **reusable enemy sorting buffers** during back-to-front sprite rendering and automatic hero/fortress targeting, eliminating several per-frame temporary array allocations and the projectile-trail fallback array. The sorted order, attack priorities, wave timing, rewards, character progression, enemies and illustrated graphics remain unchanged; both temporary buffers clear their references after use. Added `tests/low-allocation-combat.js` (45 required checks total) to verify 500 repeated sorts, 40 real canvas redraws, live specialist priority and unchanged saves. **Actual iPhone thermal/FPS gains are not claimed** without device measurement. See `docs/ALPHA_01220_LOW_ALLOCATION_COMBAT.md`.
+
+**New in 0.12.21:** All **30 territories** now field a distinct named **Native Vanguard** on qualifying ordinary vanguard waves starting at wave 35. Two existing troop slots are replaced with local current enemy types, carrying genuine raid, shield, fuse, ward, frost, healing, rally or blink mechanics while respecting existing caps. Native enemies have a small gold crest in combat; the Battle briefing and live encounter ribbon identify their threat and counter. No extra enemies, changed bosses, early tutorial surprises, farming rewards or save-format changes. New `tests/native-vanguards.js` expands the regression gate to **46 checks including syntax**. Physical iPhone art/thermal and extended-session acceptance remain outstanding. See `docs/ALPHA_01221_NATIVE_VANGUARDS.md`.
 
 **Play:** https://hdog960.github.io/Primal-Knight/
 
