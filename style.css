@@ -2539,3 +2539,38 @@
 @media(orientation:landscape) and (max-height:460px){
  .hudbox .realm-atmosphere{max-width:150px;font-size:7px;margin-top:2px}
 }
+
+/* Alpha 0.12.14 — readable, compact specialist counterplay, *inside* the
+   existing encounter ribbon. No extra full-screen UI or pulsing animations. */
+.encounter-ribbon:has(.specialist-alert:not([hidden])){flex-wrap:wrap;row-gap:4px;max-width:94%}
+.encounter-ribbon .specialist-alert[hidden]{display:none!important}
+.encounter-ribbon .specialist-alert{display:block;flex:1 0 100%;min-width:0;
+ padding-top:5px;border-top:1px solid #caad8866;color:#f2ddbd}
+.specialist-alert-line{display:flex;align-items:center;justify-content:space-between;
+ gap:7px;min-width:0}
+.encounter-ribbon .specialist-alert-line strong{color:#ffd8a0;font:800 10px/1.2 Arial,sans-serif;
+ letter-spacing:.6px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.encounter-ribbon .specialist-alert-line span{flex:none;white-space:nowrap;
+ font:800 9px/1.2 Arial,sans-serif;color:#f4e1b5}
+.encounter-ribbon .specialist-alert-line #specialistAlertBreak{color:#b9ebcf}
+.specialist-alert-tracks{display:grid;grid-template-columns:2fr 1fr;gap:5px;margin-top:4px}
+.specialist-alert-track{height:5px;overflow:hidden;background:#111d29;border:1px solid #5e6969}
+.specialist-alert-track i{height:100%;width:0;display:block;transition:width .11s linear}
+.specialist-alert-cast i{background:linear-gradient(90deg,#dfaa77,#ffc98e)}
+.specialist-alert-break i{background:linear-gradient(90deg,#629e92,#b7f0b2)}
+.specialist-alert[data-kind="fuse"] .specialist-alert-line strong{color:#ffc08f}
+.specialist-alert[data-kind="rift"] .specialist-alert-line strong{color:#d6bafa}
+.specialist-alert[data-kind="frost"] .specialist-alert-line strong{color:#b6e9fa}
+.specialist-alert[data-kind="thorn"] .specialist-alert-line strong{color:#cef0ae}
+@media(orientation:portrait) and (max-width:680px){
+ .encounter-ribbon:has(.specialist-alert:not([hidden])){max-width:97%}
+ .encounter-ribbon .specialist-alert{padding-top:3px}
+ .encounter-ribbon .specialist-alert-line strong{font-size:8px;letter-spacing:0}
+ .encounter-ribbon .specialist-alert-line span{font-size:8px}
+ .specialist-alert-track{height:5px}
+}
+@media(orientation:landscape) and (max-height:460px){
+ .encounter-ribbon .specialist-alert{padding-top:3px}
+ .specialist-alert-tracks{margin-top:2px}
+ .encounter-ribbon .specialist-alert-line strong,.encounter-ribbon .specialist-alert-line span{font-size:8px}
+}
