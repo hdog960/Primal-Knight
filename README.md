@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.12.13 (Living Territories & Art, Slice 14)
+## Current release — Alpha 0.12.14 (Living Territories & Art, Slice 15)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -79,6 +79,8 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 **New in 0.12.12:** **Battlefield Performance** presets in Settings let an iPhone player choose **Vivid (60 canvas paints/sec)**, **Balanced (30)**, or **Battery Saver (20)** while retaining identical combat simulation. Ambient weather becomes less dense at the lower settings; the original detailed territory art, enemy roles, boss telegraphs, rewards and 30×10,000-wave progression remain intact. The optional FPS overlay now shows the effective target. The device-only choice is stored separately from the character save, never uploaded, and works even if private Safari cannot store it. New `tests/visual-quality.js` raises the CI requirement to **37 checks**. Actual iPhone battery, temperature and visual acceptance still require testing. See `docs/ALPHA_01212_VISUAL_PROFILES.md`.
 
 **New in 0.12.13:** All 30 territory battlefields now have a unique animated weather phase within their weather family: broad drifting mist, fine rain streaks, slow snow, floating ash/dust/pollen, rising embers and faint sparkling stars. A compact live HUD subtitle shows each realm's particular sky, weather and light. Weather stays behind characters and warnings, never exceeds 18 small marks and one tint, and respects system Reduce Motion plus Vivid/Balanced/Battery Saver. No combat economy or saved progress changes; `tests/realm-weather.js` expands required regression coverage to **38 checks**. Physical iPhone art and thermal acceptance still remain open. See `docs/ALPHA_01213_LIVING_SKIES.md`.
+
+**New in 0.12.14:** Live specialist attacks now display true **seconds remaining, cast timing, and interruption progress** inside the existing battle encounter ribbon. Sapper fuses, Rift blinks, Frost rites and Thorn wards are prioritized by danger; overlapping casts are counted. Bar values read actual enemy HP/counterplay state, not invented timers, and vanish on real interruption, defeat or wave completion. This improves iPhone readability without adding more icons over the knight or modifying enemy balance, art, gear, Sigils or saves. Dedicated `tests/specialist-alerts.js` expands required CI to **39 checks**. Physical iPhone visual and thermal acceptance remains open. See `docs/ALPHA_01214_SPECIALIST_ALERTS.md`.
 
 **Play:** https://hdog960.github.io/Primal-Knight/
 
