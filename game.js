@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.9. Living Territories - Touch Atlas Art Inspection: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.10. Living Territories - Pinch Atlas Art Inspection: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -2044,7 +2044,8 @@ function fortressHeraldryImage(tier){
    generators, but NEVER alters chosenTier, unlockedTier, run or the game art cache.
    Only the currently visible atlas picture is decoded in the DOM. */
 let atlasCurrentTier=1,atlasCompareOriginal=false,atlasOpen=false;
-let atlasZoomed=false,atlasPanX=0,atlasPanY=0,atlasPointer=null;
+let atlasZoomed=false,atlasScale=1,atlasPanX=0,atlasPanY=0,atlasPointer=null;
+const atlasPointers=new Map();let atlasPinch=null;
 function releaseWorldAtlasImages(){
  // Safari can keep very large percent-encoded SVG URLs alive while hidden.
  // Drop only DOM preview references, never the battle's two live Image caches.
@@ -2071,51 +2072,108 @@ function toggleAtlasComparison(){
  updateAtlasComparison();
  return true;
 }
-/* The four illustration layers zoom as ONE canvas-sized group. Zooming them
-   separately would misalign the 346px terrain with the 540px fortress.
-   No art source is regenerated when panning or magnifying. */
+/* Alpha 0.12.10 — the four illustration layers zoom as ONE canvas-sized
+   group. Two-finger touch scales 1–3× around the gesture midpoint, without
+   re-decoding any landscape or changing the selected/unlocked territory.
+   CSS translation percentages are relative to the unscaled illustration. */
+function atlasPanLimit(scale=atlasScale){return Math.max(0,(scale-1)*50);}
 function applyAtlasZoom(){
+ atlasZoomed=atlasScale>1.01;
+ const bound=atlasPanLimit();
+ atlasPanX=clamp(atlasPanX,-bound,bound);
+ atlasPanY=clamp(atlasPanY,-bound,bound);
  const viewport=$('atlasScene'),art=$('atlasArtwork'),button=$('atlasZoom');
  viewport.dataset.zoom=String(atlasZoomed);
  art.style.transform=atlasZoomed?
-  'translate('+atlasPanX.toFixed(2)+'%,'+atlasPanY.toFixed(2)+'%) scale(1.8)':'none';
- button.textContent=atlasZoomed?'ZOOM OUT · 1×':'ZOOM IN · 1.8×';
+  'translate('+atlasPanX.toFixed(2)+'%,'+atlasPanY.toFixed(2)+'%) scale('+Number(atlasScale.toFixed(2))+')':'none';
+ button.textContent=atlasZoomed?'ZOOM OUT · '+atlasScale.toFixed(1)+'×':'ZOOM IN · 1.8×';
  button.setAttribute?.('aria-pressed',String(atlasZoomed));
  return atlasZoomed;
 }
 function resetAtlasZoom(){
- atlasZoomed=false;atlasPanX=0;atlasPanY=0;atlasPointer=null;
+ atlasScale=1;atlasZoomed=false;atlasPanX=0;atlasPanY=0;
+ atlasPointer=null;atlasPinch=null;atlasPointers.clear();
  return applyAtlasZoom();
 }
 function toggleAtlasZoom(){
  if(!atlasOpen)return false;
- atlasZoomed=!atlasZoomed;
- atlasPanX=0;atlasPanY=0;atlasPointer=null;
+ atlasScale=atlasZoomed?1:1.8;
+ atlasPanX=0;atlasPanY=0;atlasPointer=null;atlasPinch=null;atlasPointers.clear();
  return applyAtlasZoom();
 }
 function atlasPointerDown(e){
  if(!atlasOpen||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return false;
- atlasPointer={id:e.pointerId??null,x:e.clientX,y:e.clientY,panX:atlasPanX,panY:atlasPanY};
- $('atlasScene').setPointerCapture?.(e.pointerId);
+ const id=e.pointerId??0;
+ if(atlasPointers.has(id)||atlasPointers.size>=2)return false;
+ atlasPointers.set(id,{x:e.clientX,y:e.clientY});
+ if(e.pointerId!==undefined)$('atlasScene').setPointerCapture?.(e.pointerId);
+ if(atlasPointers.size===2){
+  const [a,b]=[...atlasPointers.values()];
+  atlasPinch={distance:Math.max(1,Math.hypot(b.x-a.x,b.y-a.y)),
+   scale:atlasScale,panX:atlasPanX,panY:atlasPanY,
+   midX:(a.x+b.x)/2,midY:(a.y+b.y)/2};
+  atlasPointer=null;
+ }else{
+  atlasPointer={id,x:e.clientX,y:e.clientY,panX:atlasPanX,panY:atlasPanY};
+ }
  return true;
 }
 function atlasPointerMove(e){
- if(!atlasOpen||!atlasZoomed||!atlasPointer)return false;
- if(atlasPointer.id!==null&&e.pointerId!==undefined&&atlasPointer.id!==e.pointerId)return false;
+ const id=e.pointerId??0;
+ if(!atlasOpen||!atlasPointers.has(id)||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return false;
+ atlasPointers.set(id,{x:e.clientX,y:e.clientY});
  const view=$('atlasScene'),rect=view.getBoundingClientRect?.();
  const w=Math.max(1,rect?.width||960),h=Math.max(1,rect?.height||540);
- atlasPanX=clamp(atlasPointer.panX+(e.clientX-atlasPointer.x)*100/w,-40,40);
- atlasPanY=clamp(atlasPointer.panY+(e.clientY-atlasPointer.y)*100/h,-40,40);
+ if(atlasPinch&&atlasPointers.size===2){
+  const [a,b]=[...atlasPointers.values()],distance=Math.hypot(b.x-a.x,b.y-a.y);
+  const next=clamp(atlasPinch.scale*distance/atlasPinch.distance,1,3);
+  const midX=(a.x+b.x)/2,midY=(a.y+b.y)/2;
+  const x0=(atlasPinch.midX-(rect?.left||0)-w/2)*100/w;
+  const y0=(atlasPinch.midY-(rect?.top||0)-h/2)*100/h;
+  const x1=(midX-(rect?.left||0)-w/2)*100/w;
+  const y1=(midY-(rect?.top||0)-h/2)*100/h;
+  const factor=next/atlasPinch.scale,bound=atlasPanLimit(next);
+  atlasPanX=clamp(x1-factor*(x0-atlasPinch.panX),-bound,bound);
+  atlasPanY=clamp(y1-factor*(y0-atlasPinch.panY),-bound,bound);
+  atlasScale=next;applyAtlasZoom();
+  return true;
+ }
+ if(!atlasZoomed||!atlasPointer||atlasPointer.id!==id)return false;
+ const bound=atlasPanLimit();
+ atlasPanX=clamp(atlasPointer.panX+(e.clientX-atlasPointer.x)*100/w,-bound,bound);
+ atlasPanY=clamp(atlasPointer.panY+(e.clientY-atlasPointer.y)*100/h,-bound,bound);
  applyAtlasZoom();
  return true;
 }
 function atlasPointerUp(e){
- if(!atlasPointer)return false;
- if(atlasPointer.id!==null&&e.pointerId!==undefined&&atlasPointer.id!==e.pointerId)return false;
+ const id=e.pointerId??0;
+ if(!atlasPointers.has(id))return false;
+ const wasPinching=!!atlasPinch;
+ atlasPointers.delete(id);
+ if(wasPinching){
+  // The surviving finger starts a new drag, never an accidental realm swipe.
+  atlasPinch=null;atlasPointer=null;
+  if(atlasPointers.size===1){
+   const [remainingId,point]=[...atlasPointers.entries()][0];
+   atlasPointer={id:remainingId,x:point.x,y:point.y,panX:atlasPanX,panY:atlasPanY};
+  }
+  return false;
+ }
+ if(!atlasPointer||atlasPointer.id!==id)return false;
  const dx=e.clientX-atlasPointer.x,dy=e.clientY-atlasPointer.y;
  atlasPointer=null;
  if(!atlasZoomed&&Math.abs(dx)>=46&&Math.abs(dx)>Math.abs(dy)*1.35)
   return stepWorldAtlas(dx<0?1:-1);
+ return false;
+}
+function atlasPointerCancel(e){
+ const id=e.pointerId??0;
+ atlasPointers.delete(id);
+ atlasPinch=null;atlasPointer=null;
+ if(atlasPointers.size===1){
+  const [remainingId,point]=[...atlasPointers.entries()][0];
+  atlasPointer={id:remainingId,x:point.x,y:point.y,panX:atlasPanX,panY:atlasPanY};
+ }else atlasPointers.clear();
  return false;
 }
 function renderWorldAtlas(tier=atlasCurrentTier){
@@ -3202,7 +3260,7 @@ $('atlasZoom').addEventListener('click',toggleAtlasZoom);
 $('atlasScene').addEventListener('pointerdown',atlasPointerDown);
 $('atlasScene').addEventListener('pointermove',atlasPointerMove);
 $('atlasScene').addEventListener('pointerup',atlasPointerUp);
-$('atlasScene').addEventListener('pointercancel',()=>{atlasPointer=null;});
+$('atlasScene').addEventListener('pointercancel',atlasPointerCancel);
 $('atlasPrev').addEventListener('click',()=>stepWorldAtlas(-1));
 $('atlasNext').addEventListener('click',()=>stepWorldAtlas(1));
 document.addEventListener('keydown',event=>{
@@ -3280,5 +3338,5 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,formationPosition,activeEncounterThreat,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,territoryVistas,territoryVista,drawTerritoryAtmosphere,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
