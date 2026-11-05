@@ -72,3 +72,4 @@ jobs:
           node tests/atlas-art-compare.js
           node tests/three-banner-cohesion.js
           node tests/adaptive-mobile-render.js
+          node tests/atlas-inspection.js
