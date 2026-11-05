@@ -43,7 +43,8 @@ function make(reduced=false,stored=null,denyStorage=false){
 assert(html.includes('ALPHA 0.12.12')&&html.includes('game.js?v=0.12.12')&&html.includes('style.css?v=0.12.12'));
 assert(css.includes('.visual-profile-options')&&css.includes('.visual-profile.selected'));
 const {h,storage,metrics,el,document}=make();
-const before=JSON.stringify(h.p()),run=h.run();
+const progressFingerprint=p=>{const snapshot=JSON.parse(JSON.stringify(p));delete snapshot.battleSeconds;return JSON.stringify(snapshot);};
+const before=progressFingerprint(h.p()),run=h.run();
 assert.equal(h.visualQualityKey,visualKey);
 assert.equal(h.visualQualityMode(),'vivid','Existing saves default to original visual quality');
 assert.equal(h.effectiveVisualHz(),60);
@@ -84,7 +85,7 @@ el('app').dataset.view='battle';
 document.hidden=true;
 assert.equal(h.drawInterval(),Infinity,'Hidden Safari tab never paints');
 document.hidden=false;
-assert.equal(JSON.stringify(h.p()),before,'Changes do not touch level, upgrades, runes, currency, or milestones');
+assert.equal(progressFingerprint(h.p()),before,'Visual choices do not change level, upgrades, runes, currency, or milestones; live siege time advances normally');
 const reloaded=make(false,'saver');
 assert.equal(reloaded.h.visualQualityMode(),'saver','A new app session reloads only the device graphics choice');
 assert.equal(reloaded.h.p().unlockedTier,h.p().unlockedTier);
