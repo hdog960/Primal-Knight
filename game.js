@@ -2115,7 +2115,7 @@ function atlasBossStageSvg(tier,style,phase=1){
   }
  };
  const unit={type:style==='beast'?'siegebeast':'warlord',isBoss:true,
-  dead:false,hp:100,max:100,bossStyle:style,bossPhase:phase===2?2:1};
+  dead:false,hp:100,max:100,bossStyle:style,bossPhase:style!=='beast'&&phase===2?2:1};
  const mock={phase:'fighting',encounter:{kind:'chapterBoss'},time:0,enemies:[unit]};
  if(!territoryBossStaging(recorder,normalized,mock,true).active)return '';
  pieces.push('</svg>');
@@ -2136,9 +2136,9 @@ function updateAtlasBossStage(){
    setAttribute?.('aria-pressed',String(atlasBossStyle===style));
  }
  const phase=$('atlasBossPhase');
- phase.disabled=atlasBossStyle==='none';
- phase.setAttribute?.('aria-pressed',String(atlasBossPhase===2));
- phase.textContent=atlasBossPhase===2?'PHASE II · ACTIVE':'PHASE II';
+ phase.disabled=atlasBossStyle==='none'||atlasBossStyle==='beast';
+ phase.setAttribute?.('aria-pressed',String(atlasBossStyle!=='beast'&&atlasBossPhase===2));
+ phase.textContent=atlasBossStyle==='beast'?'NO PHASE II':atlasBossPhase===2?'PHASE II · ACTIVE':'PHASE II';
  $('atlasBossStatus').textContent=atlasBossStyle==='none'?
   'BOSS STAGE OFF · SELECT A STYLE TO INSPECT':
   atlasBossStyle.toUpperCase()+' · PHASE '+(atlasBossPhase===2?'II':'I')+
@@ -2147,12 +2147,12 @@ function updateAtlasBossStage(){
 }
 function chooseAtlasBossStyle(style){
  if(!atlasOpen||!atlasBossStyles.includes(style))return false;
- atlasBossStyle=style;if(style==='none')atlasBossPhase=1;
+ atlasBossStyle=style;if(style==='none'||style==='beast')atlasBossPhase=1;
  updateAtlasBossStage();
  return true;
 }
 function toggleAtlasBossPhase(){
- if(!atlasOpen||atlasBossStyle==='none')return false;
+ if(!atlasOpen||atlasBossStyle==='none'||atlasBossStyle==='beast')return false;
  atlasBossPhase=atlasBossPhase===1?2:1;
  updateAtlasBossStage();
  return true;
