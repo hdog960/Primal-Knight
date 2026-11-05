@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.12.11 (Living Territories & Art, Slice 12)
+## Current release — Alpha 0.12.12 (Living Territories & Art, Slice 13)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -75,6 +75,8 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 **New in 0.12.10:** The World Atlas can now be **pinched with two fingers from 1× to 3×** to inspect all 30 territory paintings at any scale. Midpoint-anchored zoom and one-finger drag keep all four illustrated layers—including the original knight, region landscape and three embroidered banners—perfectly aligned. Touch cancellation prevents accidental realm browsing; the previous accessible 1.8× button remains available. Zoom changes only CSS transforms and never generates another SVG or modifies a saved item, milestone, unlock or run. **35 required CI checks** including syntax now cover actual two-pointer inputs. Physical iPhone Safari art and thermal approval remains open. See `docs/ALPHA_01210_ATLAS_PINCH.md`.
 
 **New in 0.12.11:** An optional **iPhone Device Check** is now available from the battlefield **FPS** button or Settings. It counts actual game canvas paint calls and `requestAnimationFrame` callbacks separately, highlights 34ms+ timing gaps, tracks measured active siege seconds, and provides a one-tap report-copy action. The monitor defaults off, adds no permanent save fields and never uploads any data. It helps collect real-device evidence without pretending to measure GPU FPS, battery or phone temperature. The 36 mandatory checks include `tests/device-perf.js`. Physical iPhone visual/performance acceptance remains open. See `docs/ALPHA_01211_DEVICE_CHECK.md`.
+
+**New in 0.12.12:** **Battlefield Performance** presets in Settings let an iPhone player choose **Vivid (60 canvas paints/sec)**, **Balanced (30)**, or **Battery Saver (20)** while retaining identical combat simulation. Ambient weather becomes less dense at the lower settings; the original detailed territory art, enemy roles, boss telegraphs, rewards and 30×10,000-wave progression remain intact. The optional FPS overlay now shows the effective target. The device-only choice is stored separately from the character save, never uploaded, and works even if private Safari cannot store it. New `tests/visual-quality.js` raises the CI requirement to **37 checks**. Actual iPhone battery, temperature and visual acceptance still require testing. See `docs/ALPHA_01212_VISUAL_PROFILES.md`.
 
 **Play:** https://hdog960.github.io/Primal-Knight/
 
