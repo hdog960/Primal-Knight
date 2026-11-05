@@ -1158,7 +1158,7 @@ function renderTierLobby(){
 function enterSiege(){
  if(chosenTier>p.unlockedTier)return;
  $('worldAtlas').hidden=true;atlasOpen=false;
- atlasCompareOriginal=false;resetAtlasZoom();
+ atlasCompareOriginal=false;atlasBossStyle='none';atlasBossPhase=1;resetAtlasZoom();
  releaseWorldAtlasImages();
  p.selectedTier=chosenTier;initRun();lastSiegeReport=null;renderSiegeReport();
  run.speed=storedSpeed===2?2:1;syncBattleControls();
@@ -2293,7 +2293,7 @@ function openWorldAtlas(tier=chosenTier){
  if(run.phase==='fighting'||run.phase==='intermission')return false;
  const modal=$('worldAtlas');
  modal.hidden=false;atlasOpen=true;
- atlasCompareOriginal=false;resetAtlasZoom();
+ atlasCompareOriginal=false;atlasBossStyle='none';atlasBossPhase=1;resetAtlasZoom();
  renderWorldAtlas(tier);
  $('atlasClose').focus?.();
  return true;
@@ -2302,7 +2302,7 @@ function closeWorldAtlas(){
  const modal=$('worldAtlas');
  if(modal.hidden)return false;
  modal.hidden=true;atlasOpen=false;
- atlasCompareOriginal=false;resetAtlasZoom();
+ atlasCompareOriginal=false;atlasBossStyle='none';atlasBossPhase=1;resetAtlasZoom();
  releaseWorldAtlasImages();
  $('openAtlasButton').focus?.();
  return true;
@@ -3604,6 +3604,10 @@ $('openAtlasButton').addEventListener('click',()=>openWorldAtlas(chosenTier));
 $('atlasClose').addEventListener('click',closeWorldAtlas);
 $('atlasCompare').addEventListener('click',toggleAtlasComparison);
 $('atlasZoom').addEventListener('click',toggleAtlasZoom);
+ for(const style of atlasBossStyles){
+  $('atlasBoss'+style[0].toUpperCase()+style.slice(1)).addEventListener('click',()=>chooseAtlasBossStyle(style));
+ }
+ $('atlasBossPhase').addEventListener('click',toggleAtlasBossPhase);
 $('atlasScene').addEventListener('pointerdown',atlasPointerDown);
 $('atlasScene').addEventListener('pointermove',atlasPointerMove);
 $('atlasScene').addEventListener('pointerup',atlasPointerUp);
