@@ -16,7 +16,7 @@ class El{
  setPointerCapture(){}
  querySelectorAll(sel){
   if(this.id==='worldAtlas'&&sel==='button:not([disabled])')
-   return ['atlasClose','atlasBossNone','atlasBossIron','atlasBossEmber','atlasBossRift','atlasBossBeast','atlasBossPhase','atlasCompare','atlasZoom','atlasPrev','atlasNext'].map(el).filter(x=>!x.disabled);
+   return ['atlasClose','atlasBossNone','atlasBossIron','atlasBossEmber','atlasBossRift','atlasBossBeast','atlasBossPhase','atlasCompare','atlasZoom','atlasExport','atlasPrev','atlasNext'].map(el).filter(x=>!x.disabled);
   return [];
  }
  querySelector(){return null;}
@@ -76,7 +76,7 @@ options[0].focus();
 listeners.keydown({key:'Tab',shiftKey:true,preventDefault(){prevented++}});
 assert.equal(doc.activeElement,options.at(-1),'Modal Shift+Tab wraps to last available control');
 assert.equal(prevented,2);
-assert(options.includes(el('atlasBossIron')),'New boss preview controls remain reachable within modal keyboard focus');
+assert(options.includes(el('atlasBossIron'))&&options.includes(el('atlasExport')),'Boss preview and PNG export controls remain reachable within modal keyboard focus');
 assert.equal(h.closeWorldAtlas(),true);
 assert.equal(h.toggleAtlasZoom(),false,'No accidental zoom when modal closed');
 assert.equal(h.atlasPointerDown({pointerId:3,clientX:220,clientY:90}),false);
