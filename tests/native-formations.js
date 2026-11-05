@@ -69,7 +69,7 @@ for(let tier=1;tier<=30;tier++){
 // Adversarial seeded spawns: previous code could exhaust both specialist slots
 // before the two regional slots, leaving a named Native Vanguard with zero natives.
 const firstChoice=Object.create(Math);firstChoice.random=()=>0;
-for(const tier of [6,7,8,9,10]){
+for(const tier of [7,9,10]){
  const w=world(firstChoice),g=w.h,r=g.run(),native=g.territoryVanguard(tier);
  r.tier=tier;r.wave=35;r.maxHealth=g.maxWall();r.health=r.maxHealth;
  g.beginWave();
@@ -82,6 +82,17 @@ for(const tier of [6,7,8,9,10]){
  for(const type of ['shaman','frostbinder','thornweaver','sapper','riftstalker','banneret'])
   assert(r.enemies.filter(e=>e.type===type).length<=2,'Two-of-kind cap still enforced for '+type);
  assert(r.enemies.filter(e=>['shaman','frostbinder','thornweaver'].includes(e.type)).length<=3,'Global active caster cap is preserved');
+}
+// Frostvein and Gilded randomized specialists are DIFFERENT from the native role.
+// They should not be replaced merely for being casters; the true native still appears.
+for(const tier of [6,8]){
+ const w=world(firstChoice),g=w.h,r=g.run(),native=g.territoryVanguard(tier);
+ r.tier=tier;r.wave=35;r.maxHealth=g.maxWall();r.health=r.maxHealth;
+ g.beginWave();for(let i=0;i<r.total;i++){r.spawned=i;g.spawnEnemy();}
+ assert.notEqual(r.enemies[0].type,'skeleton','Unrelated faction specialist is not removed');
+ assert.equal(r.enemies[2].type,native.unit,'Different-role native specialist still receives reserved slot');
+ assert.equal(r.enemies[2].nativeVanguard,true,'True regional native appears');
+ assert(r.enemies.filter(e=>['shaman','frostbinder','thornweaver'].includes(e.type)).length<=3,'Cross-type caster safety cap still enforced');
 }
 assert(html.includes('ALPHA 0.12.22')&&html.includes('game.js?v=0.12.22')&&html.includes('style.css?v=0.12.22'),'Mobile Home Screen receives the new asset versions');
 assert(css.includes('.encounter-intel-native em'),'The in-game formation label is styled for readability');
