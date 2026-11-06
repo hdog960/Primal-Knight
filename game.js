@@ -1578,6 +1578,11 @@ function renderTierLobby(){
  $('tierHeading').textContent='TIER '+roman(tier)+' — '+tierNames[tier-1].toUpperCase();
  $('tierDescription').textContent=`Enemy strength ×${tierThreat(tier).toFixed(2)} · Gold & XP ×${(1+(tier-1)*.32).toFixed(2)} · Record ${formatWave(best)} / ${formatWave(MAX_WAVE)} · ${best>=MAX_WAVE?'ETERNALLY CONQUERED':'Continue your legacy'} · ${territoryVista(tier).name}`;
   updateTerritoryPreview(tier);
+  if(saveWriteBlocked){
+   $('tierDescription').textContent='⚠ SAVED CHARACTER MAY BE DAMAGED · AUTOSAVE LOCKED TO PROTECT THE ORIGINAL FILE · OPEN SETTINGS & SAVES FOR RECOVERY OR IMPORT.';
+  }else if(saveRecoveryStatus==='recovered'){
+   $('tierDescription').textContent+=' · ✦ RESTORED FROM AN OLDER VERIFIED CHECKPOINT · CONSIDER EXPORTING A BACKUP';
+  }
  const activeRoute=selectedScoutRoute(tier);
   const waystone=stone>1?`<div class="milestone-waystone" role="group" aria-label="Siege starting checkpoint"><div><strong>✦ UNLOCKED WAYSTONE · WAVE ${formatWave(stone)}</strong><small>Resume an earlier tier without replaying its first ${formatWave(stone-1)} waves. Milestone rewards are earned once per tier.</small></div>
   <div class="milestone-waystone-choices">
