@@ -2774,3 +2774,24 @@
  background:radial-gradient(circle,#74603dbb,#1c2935);
 }
 .milestone-entry.milestone-keepsake .milestone-copy strong{color:#ffedc6}
+
+/* Alpha 0.13.4 — a distinct paired Echo Return objective, within established
+   parchment/bronze battle UI. No additional art downloads or flashing effects. */
+.lost-signal-entry.echo-return-entry{
+ border-color:#bda47d;
+ border-left:3px solid #e7be7e;
+ background:linear-gradient(105deg,#47392ee6,#283a42e8);
+}
+.lost-signal-entry.echo-return-entry strong{color:#ffe2a8}
+.lost-signal-entry.echo-return-entry.claimed{
+ border-color:#7eae98;border-left-color:#a9e5c7;
+ background:linear-gradient(105deg,#28443de8,#20343ce8);
+}
+.milestone-waystone-choices [data-start-mode="echo"]{
+ min-height:44px;border-color:#be9b67;
+ color:#f8e1b2;
+}
+.milestone-waystone-choices [data-start-mode="echo"].selected{
+ border-color:#efc981;
+ box-shadow:inset 0 0 0 1px #f1d59b85;
+}
