@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.14.0. Long-Run Quality of Life - Verified Save Checkpoints: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.14.1. Long-Run Quality of Life - Persistent Siege Chronicle: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -45,8 +45,10 @@ const gearNames={
  charm:['Copper Locket','Hunter Sigil','Wolfsbane Charm','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone'],
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
-function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},explorationFinds:{},cartographerOaths:{},echoReturns:{},atlasSeals:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',doctrineTactic:'rapid',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-// Alpha 0.14.0: keep the original readable character JSON and save key.
+function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},explorationFinds:{},cartographerOaths:{},echoReturns:{},atlasSeals:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],siegeHistory:[],siegeHistorySeq:0,battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',doctrineTactic:'rapid',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+const siegeHistoryLimit=24;
+const historyEarnedKeys=['firstClears','milestones','lostSignals','oaths','echoes','atlasSeals'];
+ // Alpha 0.14.0: keep the original readable character JSON and save key.
  // An older checksum-verified checkpoint protects it from truncated or broken saves.
  const storageKey='primal_knight_onslaught_save_v1';
  const recoveryCheckpointKey='primal_knight_onslaught_checkpoint_v1';
@@ -109,7 +111,10 @@ function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence
     p=defaultState();saveWriteBlocked=true;saveRecoveryStatus='blocked';
    }
   }else p=defaultState();
- }catch{p=defaultState();saveWriteBlocked=true;saveRecoveryStatus='blocked';}for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.explorationFinds=validSaveObject(p.explorationFinds)?p.explorationFinds:{};p.cartographerOaths=validSaveObject(p.cartographerOaths)?p.cartographerOaths:{};p.echoReturns=validSaveObject(p.echoReturns)?p.echoReturns:{};p.atlasSeals=validSaveObject(p.atlasSeals)?p.atlasSeals:{};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
+ }catch{p=defaultState();saveWriteBlocked=true;saveRecoveryStatus='blocked';}for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.explorationFinds=validSaveObject(p.explorationFinds)?p.explorationFinds:{};p.cartographerOaths=validSaveObject(p.cartographerOaths)?p.cartographerOaths:{};p.echoReturns=validSaveObject(p.echoReturns)?p.echoReturns:{};p.atlasSeals=validSaveObject(p.atlasSeals)?p.atlasSeals:{};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];
+p.siegeHistory=normalizeSiegeHistory(p.siegeHistory);
+p.siegeHistorySeq=Math.max(safeHistoryCount(p.siegeHistorySeq),...p.siegeHistory.map(e=>e.id),0);
+p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -150,7 +155,7 @@ function validateProgressBackup(data){
  for(const key of ['equipped','training','skills','stations','research','suppression','socketed','bestByTier','milestones','chapterChallenges','relicHunts','explorationFinds','cartographerOaths','echoReturns','atlasSeals','ascension','dominionCrests','sovereignOaths','legacy']){
   if(data[key]!==undefined&&!validSaveObject(data[key]))throw Error('Invalid '+key);
  }
- for(const key of ['runes','pendingRelics','pendingGear','firstWatchClaimed','banners','combatLoadouts']){
+ for(const key of ['runes','pendingRelics','pendingGear','firstWatchClaimed','banners','combatLoadouts','siegeHistory']){
   if(data[key]!==undefined&&!Array.isArray(data[key]))throw Error('Invalid '+key);
  }
  if(data.unlockedTier!==undefined&&!Number.isFinite(Number(data.unlockedTier)))throw Error('Invalid tier');
@@ -176,10 +181,13 @@ function normalizeRestoredProgress(){
  p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';
  p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
  p.combatLoadouts=normalizeCombatLoadouts(p.combatLoadouts);
+ p.siegeHistory=normalizeSiegeHistory(p.siegeHistory);
+ p.siegeHistorySeq=Math.max(safeHistoryCount(p.siegeHistorySeq),...p.siegeHistory.map(e=>e.id),0);
+ lastSiegeReport=p.siegeHistory[0]||null;
 }
 function restoreProgressBackup(data,keepRecoveryCopy=false){
  validateProgressBackup(data);
- const old=p,previousTier=chosenTier,previousWaystone=useWaystone,previousEcho=echoStartSelected,previousRoute=selectedScoutRouteId,previousScout=scoutSignalsSelected,previousBlock=saveWriteBlocked,previousStatus=saveRecoveryStatus,previousVerified=lastVerifiedSaveRaw;
+ const old=p,previousTier=chosenTier,previousWaystone=useWaystone,previousEcho=echoStartSelected,previousRoute=selectedScoutRouteId,previousScout=scoutSignalsSelected,previousBlock=saveWriteBlocked,previousStatus=saveRecoveryStatus,previousVerified=lastVerifiedSaveRaw,previousReport=lastSiegeReport;
  try{
   // Refuse a destructive import if iPhone storage cannot hold a safety copy.
   if(keepRecoveryCopy){
@@ -201,7 +209,7 @@ function restoreProgressBackup(data,keepRecoveryCopy=false){
   if(!save())throw Error('Could not save restored progress');
   return true;
  }catch(error){
-  p=old;chosenTier=previousTier;useWaystone=previousWaystone;echoStartSelected=previousEcho;selectedScoutRouteId=previousRoute;scoutSignalsSelected=previousScout;saveWriteBlocked=previousBlock;saveRecoveryStatus=previousStatus;lastVerifiedSaveRaw=previousVerified;
+  p=old;chosenTier=previousTier;useWaystone=previousWaystone;echoStartSelected=previousEcho;selectedScoutRouteId=previousRoute;scoutSignalsSelected=previousScout;saveWriteBlocked=previousBlock;saveRecoveryStatus=previousStatus;lastVerifiedSaveRaw=previousVerified;lastSiegeReport=previousReport;
   throw error;
  }
 }
@@ -215,7 +223,7 @@ function undoProgressImport(){
 }
 
 let ctx=$('game').getContext('2d'),c=$('game'),background=new Image();background.src='assets/battlefield.png';const foreground=new Image();foreground.src='assets/foreground.png';let sprites={};for(const type of ['hero','goblin','skeleton','warg','imp','ogre','guardian','raider','shaman','siegebeast','warlord','warlord_iron','warlord_ember','warlord_rift','frostbinder','sapper','banneret','thornweaver','riftstalker']){const i=new Image();i.src='assets/'+type+(['guardian','raider','shaman','siegebeast','warlord','warlord_iron','warlord_ember','warlord_rift','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type)?'.svg':'.png');sprites[type]=i;}
-let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,heroChill:0,rewardTimer:0,shakes:0,flashes:0,encounter:null,reinforcementPhase:false,bossCounters:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0,lastSiegeReport=null;
+let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,heroChill:0,rewardTimer:0,shakes:0,flashes:0,encounter:null,reinforcementPhase:false,bossCounters:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0,lastSiegeReport=p.siegeHistory[0]||null;
 // The first Hero Combat Depth layer: one active, automatically casting doctrine.
 // Disciplines are earned at low hero levels, not via additional paid currencies.
 const combatDoctrineData={
@@ -1415,6 +1423,71 @@ function rewardMilestone(tier,wave){
  save();return true;
 }
 let chosenTier=p.selectedTier;
+// Alpha 0.14.1 — a finite account journal, not a second reward source.
+// Imported records are read-only, type-normalized and capped to 24.
+function safeHistoryCount(value){
+ const n=Number(value);
+ return Number.isSafeInteger(n)&&n>=0?Math.min(n,Number.MAX_SAFE_INTEGER-1):0;
+}
+function earnedProgressTotals(){
+ const count=obj=>Object.values(obj||{}).filter(Boolean).length;
+ return {firstClears:safeHistoryCount(p.uniqueClears),
+  milestones:count(p.milestones),lostSignals:count(p.explorationFinds),
+  oaths:count(p.cartographerOaths),echoes:count(p.echoReturns),
+  atlasSeals:count(p.atlasSeals)};
+}
+function normalizeSiegeHistory(value){
+ if(!Array.isArray(value))return [];
+ const valid=[];
+ for(const rec of value.slice(0,siegeHistoryLimit*2)){
+  if(!rec||typeof rec!=='object'||Array.isArray(rec)||
+   !['fallen','retreated','victory'].includes(rec.reason))continue;
+  const tier=Number(rec.tier),start=Number(rec.startWave),last=Number(rec.lastWave);
+  if(!Number.isInteger(tier)||tier<1||tier>30||
+   !Number.isInteger(start)||start<1||start>10000||
+   !Number.isInteger(last)||last<start||last>10000)continue;
+  const clean={id:safeHistoryCount(rec.id),finishedAt:safeHistoryCount(rec.finishedAt),
+   reason:rec.reason,tier,startWave:start,lastWave:last,
+   doctrineTactic:normalizeDoctrineTactic(rec.doctrineTactic)};
+  for(const key of ['cleared','enemies','bossBreaks','specialistBreaks',
+   'bosses','bossEscapes','breaches','sabotage','doctrineCasts','doctrineHoldEvents'])
+   clean[key]=safeHistoryCount(rec[key]);
+  const held=Number(rec.doctrineHeldSeconds);
+  clean.doctrineHeldSeconds=Number.isFinite(held)&&held>=0?Math.min(held,1e9):0;
+  clean.earned={};
+  for(const key of historyEarnedKeys)clean.earned[key]=safeHistoryCount(rec.earned?.[key]);
+  valid.push(clean);
+  if(valid.length>=siegeHistoryLimit)break;
+ }
+ return valid;
+}
+function siegeHistoryForTier(tier=null){
+ return p.siegeHistory.filter(entry=>tier===null||entry.tier===tier);
+}
+function renderSiegeHistory(tier=null){
+ const entries=siegeHistoryForTier(tier),scope=tier===null?'ALL TERRITORIES':'TIER '+roman(tier);
+ const cards=entries.map(entry=>{
+  const outcome={fallen:'FORTRESS FALLEN',retreated:'HONORABLE RETREAT',victory:'ETERNAL VICTORY'}[entry.reason];
+  const earned=historyEarnedKeys.filter(k=>entry.earned[k]>0).map(k=>
+   ({firstClears:'FIRST CLEARS',milestones:'MILESTONES',lostSignals:'LOST SIGNALS',
+     oaths:'OATHS',echoes:'ECHO RETURNS',atlasSeals:'ATLAS SEALS'}[k]+
+    ': '+formatWave(entry.earned[k]))).join(' · ');
+  const when=entry.finishedAt?new Date(entry.finishedAt).toLocaleDateString():'LEGACY RECORD';
+  return '<article class="siege-history-entry"><div><strong>TIER '+roman(entry.tier)+' · '+outcome+
+   '</strong><small>'+when+' · WAVE '+formatWave(entry.startWave)+' → '+
+   formatWave(entry.lastWave)+'</small></div>'+
+   '<p>'+formatWave(entry.cleared)+' WAVES · '+formatWave(entry.enemies)+
+   ' FOES · '+formatWave(entry.breaches)+' BREACHES · '+formatWave(entry.bosses)+
+   ' BOSSES</p>'+(earned?'<small class="siege-history-earned">EARNED · '+earned+
+   '</small>':'<small>NO NEW ONE-TIME OBJECTIVES THIS RUN</small>')+'</article>';
+ }).join('');
+ return '<details class="siege-history" aria-label="Persistent recent siege history"><summary>✦ SIEGE ARCHIVE · '+
+  scope+' <span>'+entries.length+' RECENT / '+siegeHistoryLimit+' MAX</span></summary>'+
+  '<div class="siege-history-body"><p>Recent '+siegeHistoryLimit+
+  ' completed sorties across all territories, newest first. Earned progress counts represent one-time achievements, not repeatable loot. Older versions did not log sieges.</p>'+
+  (cards||'<p class="siege-history-empty">NO RECORDED SIEGES HERE YET. COMPLETE A SIEGE TO ADD ITS RESULT.</p>')+
+  '</div></details>';
+}
 function buildSiegeReport(reason){
  return {reason,tier:run.tier,startWave:run.startWave||1,lastWave:run.wave,
   cleared:run.wavesCleared||0,enemies:run.enemiesDefeated||0,
@@ -1428,6 +1501,21 @@ function buildSiegeReport(reason){
 }
 function finishSiege(reason){
  lastSiegeReport=buildSiegeReport(reason);
+ if(run.historyActive&&!run.historyWritten&&
+  ['fallen','retreated','victory'].includes(reason)){
+  const now=earnedProgressTotals(),start=run.historyStartTotals||now;
+  const earned={};
+  for(const key of historyEarnedKeys)earned[key]=Math.max(0,now[key]-(start[key]||0));
+  const entry={...lastSiegeReport,earned,finishedAt:Date.now(),
+   id:safeHistoryCount(p.siegeHistorySeq)+1};
+  p.siegeHistorySeq=entry.id;
+  const normalized=normalizeSiegeHistory([entry])[0];
+  if(normalized){
+   p.siegeHistory.unshift(normalized);
+   p.siegeHistory.length=Math.min(p.siegeHistory.length,siegeHistoryLimit);
+  }
+  run.historyWritten=true;
+ }
  return lastSiegeReport;
 }
 function renderSiegeReport(){
@@ -1622,7 +1710,7 @@ function renderTierLobby(){
  }).join('');
  const gearNotice=p.pendingGear.length?`<div class="rune-vault-notice" role="status"><strong>⚒ ${p.pendingGear.length} EARNED EQUIPMENT REWARD${p.pendingGear.length===1?'':'S'} RESERVED</strong><small>Your equipment bag was full when First Watch, exploration or a milestone granted unique gear. Go to <b>Gear → Equipment</b>, free a slot, and claim the saved items.</small></div>`:'';
  const vaultNotice=p.pendingRelics.length?`<div class="rune-vault-notice" role="status"><strong>✦ ${p.pendingRelics.length} EARNED RUNE${p.pendingRelics.length===1?'':'S'} RESERVED</strong><small>Your rune pouch was full. Nothing was lost. Go to <b>Gear → Rune Workshop</b>, free a rune slot, then claim your reward.</small></div>`:'';
- $('milestoneList').innerHTML=renderWarCouncil(tier,startWaveForTier(tier))+renderCombatLoadouts(true)+gearNotice+vaultNotice+renderFirstWatch()+renderLostSignalLedger(tier,startWaveForTier(tier))+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
+ $('milestoneList').innerHTML=renderWarCouncil(tier,startWaveForTier(tier))+renderCombatLoadouts(true)+gearNotice+vaultNotice+renderFirstWatch()+renderLostSignalLedger(tier,startWaveForTier(tier))+renderSiegeHistory(tier)+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
  $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(startWaveForTier(tier))+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
@@ -1632,7 +1720,7 @@ function enterSiege(){
  $('worldAtlas').hidden=true;atlasOpen=false;
  atlasCompareOriginal=false;atlasBossStyle='none';atlasBossPhase=1;atlasWeatherOn=false;resetAtlasZoom();
  releaseWorldAtlasImages();
- p.selectedTier=chosenTier;initRun();lastSiegeReport=null;renderSiegeReport();
+ p.selectedTier=chosenTier;initRun();lastSiegeReport=null;run.historyActive=true;run.historyStartTotals=earnedProgressTotals();renderSiegeReport();
  run.speed=storedSpeed===2?2:1;syncBattleControls();
  run.wave=startWaveForTier(chosenTier);run.tier=chosenTier;run.startWave=run.wave;run.explorationEnabled=scoutSignalsSelected;
  $('tierLobby').hidden=true;$('exitRunButton').hidden=false;$('startButton').hidden=true;
@@ -1731,7 +1819,7 @@ function randomGear(forceRarity=null){
 }
 function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('excavation')*.015;if(Math.random()<prob&&p.inventory.length<inventoryCap){let g=randomGear();p.inventory.push(g);notice('FOUND '+rarities[g.rarity].toUpperCase()+' EQUIPMENT');}if(p.runes.length<240&&Math.random()<.32+res('excavation')*.013){let types=Object.keys(runeNames),kind=types[Math.floor(Math.random()*types.length)];p.runes.push({type:kind,tier:1,id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)});}}
 function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.breaches=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;run.heroChill=0;run.encounter=null;run.reinforcementPhase=false;run.bossCounters=0;
- run.startWave=1;run.wavesCleared=0;run.enemiesDefeated=0;run.totalBossBreaks=0;
+ run.startWave=1;run.wavesCleared=0;run.enemiesDefeated=0;run.totalBossBreaks=0;run.historyActive=false;run.historyWritten=false;run.historyStartTotals=null;
  run.explorationEnabled=false;run.discoveryCurrent=null;run.discoveryWardenKilled=false;run.echoCurrent=null;run.echoDefeatedMask=0;run.cartographerStages=0;run.cartographerBroken=false;run.cartographerCurrent=null;run.totalSpecialistBreaks=0;run.totalBreaches=0;run.bossVictories=0;run.bossEscapes=0;run.bossesKilledThisWave=0;run.sapperBlasts=0;run.doctrineClock=3.5;run.doctrineCasts=0;run.doctrineHeldSeconds=0;run.doctrineHoldEvents=0;run.doctrineHolding=false;run.doctrineCastReasons={};
 }
 function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.discoveryCurrent=activeLostSignal(run.tier,run.wave);run.discoveryWardenKilled=false;if(run.wave===1001){run.cartographerStages=0;run.cartographerBroken=false;}run.cartographerCurrent=activeCartographerOath(run.tier,run.wave);run.echoCurrent=activeEchoReturn(run.tier,run.wave);run.echoDefeatedMask=0;run.bossesKilledThisWave=0;run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;run.doctrineHolding=false;message((run.echoCurrent?'✦ ECHO RETURN · MEMORY ANCHOR + REVENANT COURIER':run.cartographerCurrent?'✦ CARTOGRAPHER OATH · STAGE '+run.cartographerCurrent.step+' / 3':run.discoveryCurrent?'✦ '+run.discoveryCurrent.name+' · '+run.discoveryCurrent.guardian.name:hasNativeVanguard(run.encounter)?territoryVanguard(run.tier).name+' · '+nativeMarchOrder(run.tier).name:run.encounter.label)+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
@@ -4050,7 +4138,8 @@ function renderPanel(){
  if(tab==='settings'){
   html+=highlight('Your progress stays yours','Your save stays on this device. Export a copy before clearing browser data.','✦');
   html+=renderSaveRecoveryPanel();
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Save or share a clean 960×540 PNG of the current battlefield art, including terrain, flags, creatures and projectiles. The HUD is not included; the image is never uploaded automatically.</span><button class="wide-btn" data-action="battleSnapshot">SHARE BATTLEFIELD PNG</button></div><div class="setting-row"><span>Compare the same live battlefield twice in one PNG: original artwork on the left, tactical LENS on the right. Your current visual setting is restored after capture.</span><button class="wide-btn" data-action="battleCompare">COMPARE LENS PNG</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.14.0 · Local save checkpoints · Free to play · No purchases or subscriptions.</p>`;
+  html+=renderSiegeHistory();
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Save or share a clean 960×540 PNG of the current battlefield art, including terrain, flags, creatures and projectiles. The HUD is not included; the image is never uploaded automatically.</span><button class="wide-btn" data-action="battleSnapshot">SHARE BATTLEFIELD PNG</button></div><div class="setting-row"><span>Compare the same live battlefield twice in one PNG: original artwork on the left, tactical LENS on the right. Your current visual setting is restored after capture.</span><button class="wide-btn" data-action="battleCompare">COMPARE LENS PNG</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.14.1 · Persistent Siege Chronicle · Free to play · No purchases or subscriptions.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -4678,5 +4767,5 @@ $('deviceCheckFrame').onclick=shareBattlefieldFrame;
 $('deviceCheckCompare').onclick=shareBattlefieldComparison;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-const recoveredKeepsakes=reconcileMilestoneKeepsakes(),recoveredSeals=reconcileAtlasSeals();if(saveRecoveryStatus==='recovered'||recoveredKeepsakes||recoveredSeals)save();resetDeviceCheck();initRun();syncBattleControls();syncClarityLens();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,recoveryCheckpointKey,recoveryCadence,recoveryDigest,parseCharacterRaw,readRecoveryCheckpoint,saveRecoverySummary,restoreVerifiedCheckpoint,renderSaveRecoveryPanel,damagedOriginalKey,damagedOriginalRaw,save,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,renderHeroHall,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,isProtectedExplorerHeirloom,isProtectedMilestoneKeepsake,isProtectedEchoSignet,echoReturnWave,echoReturnEnemies,echoReturn,echoReturnEligible,activeEchoReturn,awardEchoReturn,atlasSealObjectiveCount,atlasSealBonusPerRealm,atlasSealBanner,atlasSealProgress,atlasSealEligible,atlasSealCount,atlasSealBonus,reconcileAtlasSeals,awardAtlasSeals,startWaveForTier,echoStartSelected:()=>echoStartSelected,keepsakeWaves,milestoneKeepsake,reconcileMilestoneKeepsakes,canSellGear,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,lostSignalWaves,lostSignal,lostSignalGuardians,cartographerRouteWaves,cartographerOath,activeCartographerOath,awardCartographerOath,explorerSetStatus,explorerSetLabel,activeLostSignal,awardLostSignal,renderLostSignalLedger,scoutSignalsSelected:()=>scoutSignalsSelected,setScoutSignalsSelected:v=>(scoutSignalsSelected=!!v),scoutRouteWaystone,scoutRouteOptions,selectedScoutRoute,selectScoutRoute,renderScoutRoutebook,selectedScoutRouteId:()=>selectedScoutRouteId,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,castFocus:()=>castFocus,castFocusKind:()=>castFocusKind,castFocusActive,castFocusColors,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,clarityLensKey,clarityLensEnabled:()=>clarityLensEnabled,setClarityLens,toggleClarityLens,syncClarityLens,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,battlefieldComparisonName,buildBattlefieldComparison,shareBattlefieldComparison,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+const recoveredKeepsakes=reconcileMilestoneKeepsakes(),recoveredSeals=reconcileAtlasSeals();if(saveRecoveryStatus==='recovered'||recoveredKeepsakes||recoveredSeals)save();resetDeviceCheck();initRun();syncBattleControls();syncClarityLens();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,siegeHistoryLimit,safeHistoryCount,earnedProgressTotals,normalizeSiegeHistory,siegeHistoryForTier,renderSiegeHistory,recoveryCheckpointKey,recoveryCadence,recoveryDigest,parseCharacterRaw,readRecoveryCheckpoint,saveRecoverySummary,restoreVerifiedCheckpoint,renderSaveRecoveryPanel,damagedOriginalKey,damagedOriginalRaw,save,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,renderHeroHall,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,isProtectedExplorerHeirloom,isProtectedMilestoneKeepsake,isProtectedEchoSignet,echoReturnWave,echoReturnEnemies,echoReturn,echoReturnEligible,activeEchoReturn,awardEchoReturn,atlasSealObjectiveCount,atlasSealBonusPerRealm,atlasSealBanner,atlasSealProgress,atlasSealEligible,atlasSealCount,atlasSealBonus,reconcileAtlasSeals,awardAtlasSeals,startWaveForTier,echoStartSelected:()=>echoStartSelected,keepsakeWaves,milestoneKeepsake,reconcileMilestoneKeepsakes,canSellGear,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,lostSignalWaves,lostSignal,lostSignalGuardians,cartographerRouteWaves,cartographerOath,activeCartographerOath,awardCartographerOath,explorerSetStatus,explorerSetLabel,activeLostSignal,awardLostSignal,renderLostSignalLedger,scoutSignalsSelected:()=>scoutSignalsSelected,setScoutSignalsSelected:v=>(scoutSignalsSelected=!!v),scoutRouteWaystone,scoutRouteOptions,selectedScoutRoute,selectScoutRoute,renderScoutRoutebook,selectedScoutRouteId:()=>selectedScoutRouteId,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,castFocus:()=>castFocus,castFocusKind:()=>castFocusKind,castFocusActive,castFocusColors,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,clarityLensKey,clarityLensEnabled:()=>clarityLensEnabled,setClarityLens,toggleClarityLens,syncClarityLens,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,battlefieldComparisonName,buildBattlefieldComparison,shareBattlefieldComparison,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
