@@ -102,3 +102,4 @@ jobs:
           node tests/save-checkpoint-recovery.js
           node tests/siege-history.js
           node tests/siege-guard.js
+          node tests/waystone-navigator.js
