@@ -81,7 +81,7 @@ assert.equal(h.openWorldAtlas(30),false,'Cannot open the art modal during live s
 r.phase='ready';
 assert(css.includes('.world-atlas[hidden]')&&css.includes('.atlas-scene .atlas-matte'),'Composited full-battle illustration and hidden rules exist');
 assert(css.includes('max-height:460px')&&css.includes('min-height:44px'),'Responsive narrow/landscape layout and touch targets are present');
-assert(html.includes('ALPHA 0.12.23')&&html.includes('game.js?v=0.12.23')&&html.includes('style.css?v=0.12.23'),
+assert(html.includes('ALPHA 0.12.24')&&html.includes('game.js?v=0.12.24')&&html.includes('style.css?v=0.12.24'),
  'Home Screen Safari picks up the next game release');
 console.log('PASS: all 30 locked/unlocked territories have view-only full-layer illustrations, correct original Tier I, navigable boundaries, 2 SVG image types, no original-tier select/reward change, no canvas cache churn, Escape/close and iPhone layout.');
 console.log('LIMIT: art quality and GPU thermals still need real iPhone device testing.');

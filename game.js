@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.23. Living Territories - Low-Churn Long Sieges: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.24. Living Territories - iPhone Endurance Checkpoints: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -3626,13 +3626,53 @@ function drawInterval(){
  return 1000/effectiveVisualHz();
 }
 
-/* Alpha 0.12.11 — optional device-side paint/callback diagnostic.
+/* Alpha 0.12.24 — optional device-side 30-minute endurance observation.
    Measures actual RAF callbacks and canvas draw() calls, NOT GPU FPS or battery.
-   Off by default, no saved preferences, uploads, or persistent telemetry. */
+   A bounded rolling record of five-minute checkpoints survives pauses within the
+   opt-in FPS session only. No save writes, uploads, or persistent telemetry. */
 let deviceCheckEnabled=false,deviceCheckState=null;
+const enduranceCheckpointMs=5*60*1000,enduranceTargetMs=30*60*1000;
 function resetDeviceCheck(){
- deviceCheckState={windowStart:null,lastFrame:null,frames:0,draws:0,slow:0,worst:0,
-  totalFrames:0,totalDraws:0,totalSlow:0,totalWorst:0,activeMs:0,sample:null};
+ deviceCheckState={windowStart:null,lastFrame:null,lastMode:null,frames:0,draws:0,slow:0,worst:0,
+  totalFrames:0,totalDraws:0,totalSlow:0,totalWorst:0,activeMs:0,sample:null,
+  activeFrames:0,activeDraws:0,activeSlow:0,activeWorst:0,
+  windowFrames:0,windowDraws:0,windowSlow:0,windowWorst:0,windowStartActiveMs:0,
+  checkpointCount:0,checkpoints:[]};
+}
+function deviceEnduranceProgress(){
+ const d=deviceCheckState;
+ if(!d)return {elapsedSeconds:0,minutesCompleted:0,complete:false};
+ return {elapsedSeconds:Math.floor(d.activeMs/1000),minutesCompleted:d.checkpointCount*5,
+  complete:d.activeMs>=enduranceTargetMs};
+}
+function deviceEnduranceStatus(){
+ const d=deviceCheckState,progress=deviceEnduranceProgress();
+ const duration=progress.elapsedSeconds,mins=Math.floor(duration/60),secs=String(duration%60).padStart(2,'0');
+ return (progress.complete?'30-MIN REVIEW READY':'ENDURANCE '+mins+':'+secs+' / 30:00')+
+  ' · '+Math.min(6,d.checkpointCount)+'/6 CHECKPOINTS';
+}
+function recordDeviceEnduranceCheckpoint(){
+ const d=deviceCheckState;
+ if(d.activeMs<(d.checkpointCount+1)*enduranceCheckpointMs)return false;
+ const seconds=Math.max(.001,(d.activeMs-d.windowStartActiveMs)/1000);
+ const entry={minute:(d.checkpointCount+1)*5,tier:run.tier,wave:run.wave,
+  profile:visualQualityProfiles[visualQuality].name,
+  rafRate:(d.activeFrames-d.windowFrames)/seconds,
+  paintRate:(d.activeDraws-d.windowDraws)/seconds,
+  slow:d.activeSlow-d.windowSlow,worst:d.windowWorst};
+ d.checkpoints.push(entry);
+ if(d.checkpoints.length>12)d.checkpoints.shift();
+ d.checkpointCount++;
+ d.windowStartActiveMs=d.activeMs;
+ d.windowFrames=d.activeFrames;d.windowDraws=d.activeDraws;d.windowSlow=d.activeSlow;d.windowWorst=0;
+ return true;
+}
+function restartDeviceEndurance(){
+ if(!deviceCheckEnabled)return false;
+ resetDeviceCheck();
+ updateDeviceCheckPanel();
+ notice('DEVICE CHECK · NEW 30-MIN SESSION');
+ return true;
 }
 function deviceCheckMode(){
  if(document.hidden)return 'HIDDEN';
@@ -3643,16 +3683,28 @@ function deviceCheckMode(){
  return 'LOBBY';
 }
 function deviceCheckReport(){
- const d=deviceCheckState,s=d?.sample;
- return ['PRIMAL KNIGHT · ALPHA 0.12.20 · DEVICE CHECK',
+ const d=deviceCheckState,s=d?.sample,progress=deviceEnduranceProgress();
+ const checkpoints=d.checkpoints.length?
+  d.checkpoints.map(c=>'At '+c.minute+'m · Tier '+roman(c.tier)+' Wave '+formatWave(c.wave)+
+   ' · '+c.profile+' · RAF '+c.rafRate.toFixed(1)+'/s'+
+   ' · paints '+c.paintRate.toFixed(1)+'/s'+
+   ' · active gaps ≥34ms '+c.slow+' · longest '+c.worst.toFixed(0)+'ms'):
+  ['No completed five-minute active-play checkpoints yet.'];
+ return ['PRIMAL KNIGHT · ALPHA 0.12.24 · IPHONE ENDURANCE REVIEW',
   'Mode: '+deviceCheckMode()+' · Tier '+roman(run.tier)+' · Wave '+formatWave(run.wave),
   'Visual profile: '+visualQualityProfiles[visualQuality].name+' · active paint target '+effectiveVisualHz()+'Hz',
   'Requested canvas paints/s: '+(s?s.drawRate.toFixed(1):'WARMING UP'),
   'Animation callbacks/s: '+(s?s.frameRate.toFixed(1):'WARMING UP'),
-  'Gaps ≥34ms per sample: '+(s?s.slow:0)+' · Worst: '+(s?s.worst.toFixed(0):'—')+'ms',
-  'Total paint calls: '+d.totalDraws+' · Total gaps ≥34ms: '+d.totalSlow,
-  'Measured active siege time: '+Math.floor(d.activeMs/1000)+'s',
-  'Canvas paint calls are not GPU FPS; no battery/thermal readings. No data uploaded.'
+  'Gaps ≥34ms per 2s sample (all visible modes): '+(s?s.slow:0)+' · Worst: '+(s?s.worst.toFixed(0):'—')+'ms',
+  'Total paint calls: '+d.totalDraws+' · Total RAF callback gaps ≥34ms: '+d.totalSlow,
+  'Active siege time: '+progress.elapsedSeconds+'s · '+(progress.complete?'30-MIN TARGET REACHED':'30-MIN TARGET NOT YET REACHED'),
+  'Active-only callback gaps ≥34ms: '+d.activeSlow+' · Worst active callback gap: '+d.activeWorst.toFixed(0)+'ms',
+  'Completed five-minute checkpoints: '+d.checkpointCount,
+  ...checkpoints,
+  'Manual iPhone observations (fill in after testing):',
+  'Battery start/end: ____% / ____% · Device warmth: ____ · Visual problems: ____',
+  'Canvas paint calls are not GPU FPS, battery draw or temperature; RAF callbacks are not rendered frame rate.',
+  'Time excludes paused/hidden intervals and callback gaps ≥250ms; no data saved or uploaded.'
  ].join('\n');
 }
 function updateDeviceCheckPanel(){
@@ -3662,6 +3714,7 @@ function updateDeviceCheckPanel(){
  if(line)line.textContent=(s?'PAINT '+s.drawRate.toFixed(0)+'/s · RAF '+s.frameRate.toFixed(0)+'/s · SLOW '+s.slow+' · MAX '+s.worst.toFixed(0)+'ms':'SAMPLING · COLLECTING 2 SECONDS')+
   ' · ACTIVE '+Math.floor(d.activeMs/1000)+'s';
  const mode=$('deviceCheckMode');if(mode)mode.textContent=deviceCheckMode()+' · '+visualQualityProfiles[visualQuality].name+' '+effectiveVisualHz()+'Hz · TIER '+roman(run.tier)+' · WAVE '+formatWave(run.wave);
+ const endurance=$('deviceCheckEndurance');if(endurance)endurance.textContent=deviceEnduranceStatus();
 }
 function toggleDeviceCheck(){
  deviceCheckEnabled=!deviceCheckEnabled;resetDeviceCheck();
@@ -3677,8 +3730,19 @@ function sampleDeviceCheck(tm,painted){
  const d=deviceCheckState,mode=deviceCheckMode();
  if(d.windowStart===null)d.windowStart=tm;
  const gap=d.lastFrame===null?0:Math.max(0,tm-d.lastFrame);
- d.lastFrame=tm;
- if(mode==='FIGHTING'&&gap>0&&gap<250)d.activeMs+=gap;
+ const activeGap=mode==='FIGHTING'&&d.lastMode==='FIGHTING'&&gap>0&&gap<250;
+ d.lastFrame=tm;d.lastMode=mode;
+ if(mode==='FIGHTING'){
+  d.activeFrames++;
+  if(painted)d.activeDraws++;
+ }
+ if(activeGap){
+  d.activeMs+=gap;
+  d.activeWorst=Math.max(d.activeWorst,gap);
+  d.windowWorst=Math.max(d.windowWorst,gap);
+  if(gap>=34)d.activeSlow++;
+  recordDeviceEnduranceCheckpoint();
+ }
  if(gap>0&&gap<250){
   d.worst=Math.max(d.worst,gap);d.totalWorst=Math.max(d.totalWorst,gap);
   if(gap>=34){d.slow++;d.totalSlow++;}
@@ -3906,8 +3970,9 @@ $('speedButton').onclick=cycleBattleSpeed;
 $('pauseButton').onclick=toggleBattlePause;
 $('deviceCheckToggle').onclick=toggleDeviceCheck;
 $('deviceCheckCopy').onclick=copyDeviceCheck;
+$('deviceCheckReset').onclick=restartDeviceEndurance;
 $('deviceCheckFrame').onclick=shareBattlefieldFrame;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
