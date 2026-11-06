@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.14.2. Long-Run Quality of Life - Siege Guard: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.14.3. Long-Run Quality of Life - Waystone Navigator: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -187,7 +187,7 @@ function normalizeRestoredProgress(){
 }
 function restoreProgressBackup(data,keepRecoveryCopy=false){
  validateProgressBackup(data);
- const old=p,previousTier=chosenTier,previousWaystone=useWaystone,previousEcho=echoStartSelected,previousRoute=selectedScoutRouteId,previousScout=scoutSignalsSelected,previousBlock=saveWriteBlocked,previousStatus=saveRecoveryStatus,previousVerified=lastVerifiedSaveRaw,previousReport=lastSiegeReport;
+ const old=p,previousTier=chosenTier,previousWaystone=useWaystone,previousCustomWaystone=selectedWaystoneWave,previousGoal=selectedMilestoneTarget,previousEcho=echoStartSelected,previousRoute=selectedScoutRouteId,previousScout=scoutSignalsSelected,previousBlock=saveWriteBlocked,previousStatus=saveRecoveryStatus,previousVerified=lastVerifiedSaveRaw,previousReport=lastSiegeReport;
  try{
   // Refuse a destructive import if iPhone storage cannot hold a safety copy.
   if(keepRecoveryCopy){
@@ -205,11 +205,11 @@ function restoreProgressBackup(data,keepRecoveryCopy=false){
   migrateEquipmentSave();
   reconcileMilestoneKeepsakes();
   reconcileAtlasSeals();
-  chosenTier=p.selectedTier;useWaystone=true;echoStartSelected=false;selectedScoutRouteId=null;
+  chosenTier=p.selectedTier;useWaystone=true;resetWaystoneNavigation();echoStartSelected=false;selectedScoutRouteId=null;
   if(!save())throw Error('Could not save restored progress');
   return true;
  }catch(error){
-  p=old;chosenTier=previousTier;useWaystone=previousWaystone;echoStartSelected=previousEcho;selectedScoutRouteId=previousRoute;scoutSignalsSelected=previousScout;saveWriteBlocked=previousBlock;saveRecoveryStatus=previousStatus;lastVerifiedSaveRaw=previousVerified;lastSiegeReport=previousReport;
+  p=old;chosenTier=previousTier;useWaystone=previousWaystone;selectedWaystoneWave=previousCustomWaystone;selectedMilestoneTarget=previousGoal;echoStartSelected=previousEcho;selectedScoutRouteId=previousRoute;scoutSignalsSelected=previousScout;saveWriteBlocked=previousBlock;saveRecoveryStatus=previousStatus;lastVerifiedSaveRaw=previousVerified;lastSiegeReport=previousReport;
   throw error;
  }
 }
@@ -772,7 +772,7 @@ function selectScoutRoute(tier,id){
  const route=scoutRouteOptions(tier).find(item=>item.id===id&&!item.claimed&&!item.locked);
  if(!route)return false;
  selectedScoutRouteId=route.id;scoutSignalsSelected=true;
- useWaystone=true;echoStartSelected=false;
+ resetWaystoneNavigation();useWaystone=true;echoStartSelected=false;
  return true;
 }
 function renderScoutRoutebook(tier){
@@ -1270,12 +1270,85 @@ function waystoneForTier(tier){
  return waystonesAt.filter(w=>p.milestones[milestoneKey(tier,w)]).at(-1)||1;
 }
 let useWaystone=true,echoStartSelected=false;
+// Alpha 0.14.3: all custom waystone choices are ephemeral UI state, never new save fields.
+// Original earned tier milestone flags remain the sole authority for checkpoint access.
+let selectedWaystoneWave=null,selectedMilestoneTarget=null;
+function earnedWaystones(tier){
+ const n=Number(tier);
+ if(!Number.isInteger(n)||n<1||n>MAX_TIER||n>p.unlockedTier)return [];
+ return [1,...waystonesAt.filter(w=>p.milestones[milestoneKey(n,w)]===true)];
+}
+function resetWaystoneNavigation(){selectedWaystoneWave=null;selectedMilestoneTarget=null;}
+function nearestEarnedWaystone(tier,target){
+ const options=earnedWaystones(tier),wave=Number(target);
+ if(!Number.isInteger(wave)||wave<1||wave>MAX_WAVE||!options.length)return null;
+ return options.filter(w=>w<=wave).at(-1)||1;
+}
+function selectEarnedWaystone(tier,wave){
+ const value=Number(wave);
+ if(!Number.isInteger(value)||value===1||tier!==chosenTier||
+    (run.phase==='fighting'||run.phase==='intermission')||
+    !earnedWaystones(tier).includes(value))return false;
+ selectedWaystoneWave=value;selectedMilestoneTarget=null;
+ useWaystone=true;echoStartSelected=false;selectedScoutRouteId=null;
+ return true;
+}
+function focusUnclaimedMilestone(tier,wave){
+ const target=Number(wave);
+ if(!Number.isInteger(target)||tier!==chosenTier||
+    (run.phase==='fighting'||run.phase==='intermission')||
+    !tierMilestones(tier).includes(target)||p.milestones[milestoneKey(tier,target)])return false;
+ const starting=nearestEarnedWaystone(tier,target);
+ if(starting===null)return false;
+ selectedWaystoneWave=starting>1?starting:null;
+ selectedMilestoneTarget=target;
+ useWaystone=starting>1;echoStartSelected=false;selectedScoutRouteId=null;
+ return true;
+}
+function renderWaystoneNavigator(tier){
+ const earned=earnedWaystones(tier);
+ if(earned.length<=1)return '';
+ const custom=selectedWaystoneWave!==null&&earned.includes(selectedWaystoneWave);
+ const start=startWaveForTier(tier);
+ const best=Math.min(MAX_WAVE,Math.max(0,Number(p.bestByTier[tier])||0));
+ const remaining=tierMilestones(tier).filter(w=>!p.milestones[milestoneKey(tier,w)]);
+ const before=remaining.filter(w=>w<best).slice(0,2);
+ const after=remaining.filter(w=>w>=best).slice(0,3);
+ const goals=[...before,...after].slice(0,4);
+ const waypointButtons=earned.filter(w=>w>1).map(w=>{
+  const selected=custom&&selectedWaystoneWave===w&&selectedMilestoneTarget===null;
+  return '<button type="button" data-waystone-wave="'+w+'" class="waystone-choice'+(selected?' selected':'')+
+   '" aria-pressed="'+selected+'"><strong>WAVE '+formatWave(w)+'</strong>'+
+   '<small>✦ EARNED CHECKPOINT</small></button>';
+ }).join('');
+ const goalButtons=goals.map(w=>{
+  const from=nearestEarnedWaystone(tier,w);
+  const chosen=selectedMilestoneTarget===w;
+  const info=tierMilestone(tier,w);
+  return '<button type="button" data-milestone-target="'+w+'" class="waystone-goal'+(chosen?' selected':'')+
+   '" aria-pressed="'+chosen+'"><strong>WAVE '+formatWave(w)+' · '+info.name+'</strong>'+
+   '<small>START '+formatWave(from)+' · '+(w<best?'MISSED REWARD · REVISIT':'NEXT UNCLAIMED REWARD')+'</small></button>';
+ }).join('');
+ return '<details class="waystone-navigator" aria-label="Earned waystone navigator">'+
+  '<summary><strong>✦ WAYSTONE NAVIGATOR</strong><span>'+formatWave(earned.length-1)+' CHECKPOINTS EARNED · START WAVE '+formatWave(start)+'</span></summary>'+
+  '<div class="waystone-navigator-body"><p>Return to any checkpoint <b>already earned in this tier</b>. Every skipped wave stays skipped: no free XP, loot, Sigils, objectives or milestone claims.</p>'+
+  '<div class="waystone-navigator-heading">CHOOSE AN EARNED WAYSTONE</div><div class="waystone-navigator-options">'+waypointButtons+'</div>'+
+  '<div class="waystone-navigator-heading">NEARBY UNCLAIMED MILESTONES</div>'+
+  (goalButtons?'<div class="waystone-goals">'+goalButtons+'</div>':'<p>All milestones in this tier have been claimed.</p>')+
+  (selectedMilestoneTarget!==null?'<div class="waystone-navigator-status" role="status">FOCUS WAVE '+formatWave(selectedMilestoneTarget)+
+   ' · START AT '+formatWave(start)+' · COMPLETE REAL WAVES TO EARN THE REWARD</div>':
+   custom?'<div class="waystone-navigator-status" role="status">MANUAL START · WAVE '+formatWave(start)+'</div>':'')+
+  '<small>Scout objectives use the separate Scout Routebook. Choosing a waypoint or milestone target clears a selected Scout route; NORMAL/SCOUT setting remains under your control.</small></div></details>';
+}
+
 function startWaveForTier(tier){
  const route=tier===chosenTier?selectedScoutRoute(tier):null;
  if(route&&scoutSignalsSelected)return route.start;
  const latest=waystoneForTier(tier);
- return echoStartSelected&&echoReturnEligible(tier)&&latest>=100?100:
-   useWaystone?latest:1;
+ if(echoStartSelected&&echoReturnEligible(tier)&&latest>=100)return 100;
+ if(!useWaystone)return 1;
+ return selectedWaystoneWave!==null&&earnedWaystones(tier).includes(selectedWaystoneWave)?
+  selectedWaystoneWave:latest;
 }
 const legacyPaths=[['siegebreaker','Siegebreaker','Deal +6% damage to siege bosses per rank.',2,30],['guardianOath','Guardian’s Oath','Increase permanent wall durability +3% per rank.',2,35],['goldenTouch','Golden Touch','Earn +4% gold from monster kills per rank.',3,40]];
 const lr=id=>n(p.legacy,id);
@@ -1691,7 +1764,7 @@ function renderTierLobby(){
   const waystone=stone>1?`<div class="milestone-waystone" role="group" aria-label="Siege starting checkpoint"><div><strong>✦ UNLOCKED WAYSTONE · WAVE ${formatWave(stone)}</strong><small>Resume an earlier tier without replaying its first ${formatWave(stone-1)} waves. Milestone rewards are earned once per tier.</small></div>
   <div class="milestone-waystone-choices">
    <button type="button" data-start-mode="fresh" ${!useWaystone&&!echoStartSelected&&!activeRoute?'aria-pressed="true"':''} class="${!useWaystone&&!echoStartSelected&&!activeRoute?'selected':''}">WAVE 1</button>
-   <button type="button" data-start-mode="waystone" ${useWaystone&&!echoStartSelected&&!activeRoute?'aria-pressed="true"':''} class="${useWaystone&&!echoStartSelected&&!activeRoute?'selected':''}">WAYSTONE ${formatWave(stone)}</button>
+   <button type="button" data-start-mode="waystone" ${useWaystone&&selectedWaystoneWave===null&&!echoStartSelected&&!activeRoute?'aria-pressed="true"':''} class="${useWaystone&&selectedWaystoneWave===null&&!echoStartSelected&&!activeRoute?'selected':''}">WAYSTONE ${formatWave(stone)}</button>
     ${echoReturnEligible(tier)&&stone>=250? `<button type="button" data-start-mode="echo" ${echoStartSelected?'aria-pressed="true"':''} class="${echoStartSelected&&!activeRoute?'selected':''}">REVISIT WAVE 100</button>`:''}
     ${activeRoute?`<span class="scout-waystone-active" role="status">SCOUT ROUTE · START ${formatWave(activeRoute.start)} → ${formatWave(activeRoute.wave)}</span>`:''}
   </div></div>`:`<div class="milestone-waystone milestone-waystone-empty"><strong>✧ YOUR FIRST WAYSTONE AWAITS AT WAVE 100</strong><small>Push deeper to permanently unlock restart checkpoints and more powerful Ascension routes.</small></div>`;
@@ -1711,7 +1784,9 @@ function renderTierLobby(){
  }).join('');
  const gearNotice=p.pendingGear.length?`<div class="rune-vault-notice" role="status"><strong>⚒ ${p.pendingGear.length} EARNED EQUIPMENT REWARD${p.pendingGear.length===1?'':'S'} RESERVED</strong><small>Your equipment bag was full when First Watch, exploration or a milestone granted unique gear. Go to <b>Gear → Equipment</b>, free a slot, and claim the saved items.</small></div>`:'';
  const vaultNotice=p.pendingRelics.length?`<div class="rune-vault-notice" role="status"><strong>✦ ${p.pendingRelics.length} EARNED RUNE${p.pendingRelics.length===1?'':'S'} RESERVED</strong><small>Your rune pouch was full. Nothing was lost. Go to <b>Gear → Rune Workshop</b>, free a rune slot, then claim your reward.</small></div>`:'';
- $('milestoneList').innerHTML=renderWarCouncil(tier,startWaveForTier(tier))+renderCombatLoadouts(true)+gearNotice+vaultNotice+renderFirstWatch()+renderLostSignalLedger(tier,startWaveForTier(tier))+renderSiegeHistory(tier)+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
+ const waystoneDetailsOpen=!!$('milestoneList').querySelector?.('details.waystone-navigator')?.open;
+ $('milestoneList').innerHTML=renderWarCouncil(tier,startWaveForTier(tier))+renderCombatLoadouts(true)+gearNotice+vaultNotice+renderFirstWatch()+renderLostSignalLedger(tier,startWaveForTier(tier))+renderSiegeHistory(tier)+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+renderWaystoneNavigator(tier)+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
+ if(waystoneDetailsOpen){const nav=$('milestoneList').querySelector?.('details.waystone-navigator');if(nav)nav.open=true;}
  $('launchTierButton').disabled=tier>p.unlockedTier;
  $('launchTierButton').textContent='⚔ START TIER '+roman(tier)+' · WAVE '+formatWave(startWaveForTier(tier))+' / '+formatWave(MAX_WAVE);
  $('bannerBadge').textContent='♛ '+p.activeBanner;
@@ -4787,7 +4862,7 @@ $('siegeGuardLobby').addEventListener('click',e=>{
  $('siegeGuardLobby').innerHTML=siegeGuardSettings();
  notice('SIEGE GUARD · REST CONTROL UPDATED');
 });
-$('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(!b||b.disabled)return;chosenTier=Number(b.dataset.tier);useWaystone=true;echoStartSelected=false;selectedScoutRouteId=null;p.selectedTier=chosenTier;save();renderTierLobby();});
+$('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(!b||b.disabled)return;chosenTier=Number(b.dataset.tier);useWaystone=true;resetWaystoneNavigation();echoStartSelected=false;selectedScoutRouteId=null;p.selectedTier=chosenTier;save();renderTierLobby();});
 $('milestoneList').addEventListener('click',e=>{
  const council=e.target.closest('[data-war-council]');
  if(council&&!council.disabled&&council.dataset?.warCouncil==='apply'){
@@ -4852,10 +4927,24 @@ $('milestoneList').addEventListener('click',e=>{
   const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;
   return;
  }
+ const waypoint=e.target.closest('[data-waystone-wave]');
+ if(waypoint&&typeof waypoint.dataset?.waystoneWave==='string'){
+  if(waypoint.disabled||!selectEarnedWaystone(chosenTier,waypoint.dataset.waystoneWave))return;
+  const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;
+  notice('WAYSTONE · EARNED WAVE '+formatWave(startWaveForTier(chosenTier)));
+  return;
+ }
+ const target=e.target.closest('[data-milestone-target]');
+ if(target&&typeof target.dataset?.milestoneTarget==='string'){
+  if(target.disabled||!focusUnclaimedMilestone(chosenTier,target.dataset.milestoneTarget))return;
+  const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;
+  notice('MILESTONE FOCUS · WAVE '+formatWave(Number(target.dataset.milestoneTarget)));
+  return;
+ }
  const b=e.target.closest('[data-start-mode]');if(!b)return;
  const mode=b.dataset.startMode;
  if(!['fresh','waystone','echo'].includes(mode)||mode==='echo'&&!echoReturnEligible(chosenTier))return;
- selectedScoutRouteId=null;echoStartSelected=mode==='echo';useWaystone=mode!=='fresh';
+ selectedScoutRouteId=null;resetWaystoneNavigation();echoStartSelected=mode==='echo';useWaystone=mode!=='fresh';
  const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;
 });
 $('speedButton').onclick=cycleBattleSpeed;
@@ -4868,5 +4957,5 @@ $('deviceCheckFrame').onclick=shareBattlefieldFrame;
 $('deviceCheckCompare').onclick=shareBattlefieldComparison;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-const recoveredKeepsakes=reconcileMilestoneKeepsakes(),recoveredSeals=reconcileAtlasSeals();if(saveRecoveryStatus==='recovered'||recoveredKeepsakes||recoveredSeals)save();resetDeviceCheck();initRun();syncBattleControls();syncClarityLens();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={siegeGuardKey,siegeGuard, siegeGuardSettings,setSiegeGuardOption,siegeGuardWaveRest,pauseForSiegeGuard,tick,bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,siegeHistoryLimit,safeHistoryCount,earnedProgressTotals,normalizeSiegeHistory,siegeHistoryForTier,renderSiegeHistory,recoveryCheckpointKey,recoveryCadence,recoveryDigest,parseCharacterRaw,readRecoveryCheckpoint,saveRecoverySummary,restoreVerifiedCheckpoint,renderSaveRecoveryPanel,damagedOriginalKey,damagedOriginalRaw,save,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,renderHeroHall,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,isProtectedExplorerHeirloom,isProtectedMilestoneKeepsake,isProtectedEchoSignet,echoReturnWave,echoReturnEnemies,echoReturn,echoReturnEligible,activeEchoReturn,awardEchoReturn,atlasSealObjectiveCount,atlasSealBonusPerRealm,atlasSealBanner,atlasSealProgress,atlasSealEligible,atlasSealCount,atlasSealBonus,reconcileAtlasSeals,awardAtlasSeals,startWaveForTier,echoStartSelected:()=>echoStartSelected,keepsakeWaves,milestoneKeepsake,reconcileMilestoneKeepsakes,canSellGear,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,lostSignalWaves,lostSignal,lostSignalGuardians,cartographerRouteWaves,cartographerOath,activeCartographerOath,awardCartographerOath,explorerSetStatus,explorerSetLabel,activeLostSignal,awardLostSignal,renderLostSignalLedger,scoutSignalsSelected:()=>scoutSignalsSelected,setScoutSignalsSelected:v=>(scoutSignalsSelected=!!v),scoutRouteWaystone,scoutRouteOptions,selectedScoutRoute,selectScoutRoute,renderScoutRoutebook,selectedScoutRouteId:()=>selectedScoutRouteId,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,castFocus:()=>castFocus,castFocusKind:()=>castFocusKind,castFocusActive,castFocusColors,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,clarityLensKey,clarityLensEnabled:()=>clarityLensEnabled,setClarityLens,toggleClarityLens,syncClarityLens,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,battlefieldComparisonName,buildBattlefieldComparison,shareBattlefieldComparison,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+const recoveredKeepsakes=reconcileMilestoneKeepsakes(),recoveredSeals=reconcileAtlasSeals();if(saveRecoveryStatus==='recovered'||recoveredKeepsakes||recoveredSeals)save();resetDeviceCheck();initRun();syncBattleControls();syncClarityLens();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={earnedWaystones,nearestEarnedWaystone,selectEarnedWaystone,focusUnclaimedMilestone,renderWaystoneNavigator,resetWaystoneNavigation,selectedWaystoneWave:()=>selectedWaystoneWave,selectedMilestoneTarget:()=>selectedMilestoneTarget,siegeGuardKey,siegeGuard, siegeGuardSettings,setSiegeGuardOption,siegeGuardWaveRest,pauseForSiegeGuard,tick,bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,siegeHistoryLimit,safeHistoryCount,earnedProgressTotals,normalizeSiegeHistory,siegeHistoryForTier,renderSiegeHistory,recoveryCheckpointKey,recoveryCadence,recoveryDigest,parseCharacterRaw,readRecoveryCheckpoint,saveRecoverySummary,restoreVerifiedCheckpoint,renderSaveRecoveryPanel,damagedOriginalKey,damagedOriginalRaw,save,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,renderHeroHall,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,isProtectedExplorerHeirloom,isProtectedMilestoneKeepsake,isProtectedEchoSignet,echoReturnWave,echoReturnEnemies,echoReturn,echoReturnEligible,activeEchoReturn,awardEchoReturn,atlasSealObjectiveCount,atlasSealBonusPerRealm,atlasSealBanner,atlasSealProgress,atlasSealEligible,atlasSealCount,atlasSealBonus,reconcileAtlasSeals,awardAtlasSeals,startWaveForTier,echoStartSelected:()=>echoStartSelected,keepsakeWaves,milestoneKeepsake,reconcileMilestoneKeepsakes,canSellGear,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,lostSignalWaves,lostSignal,lostSignalGuardians,cartographerRouteWaves,cartographerOath,activeCartographerOath,awardCartographerOath,explorerSetStatus,explorerSetLabel,activeLostSignal,awardLostSignal,renderLostSignalLedger,scoutSignalsSelected:()=>scoutSignalsSelected,setScoutSignalsSelected:v=>(scoutSignalsSelected=!!v),scoutRouteWaystone,scoutRouteOptions,selectedScoutRoute,selectScoutRoute,renderScoutRoutebook,selectedScoutRouteId:()=>selectedScoutRouteId,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,castFocus:()=>castFocus,castFocusKind:()=>castFocusKind,castFocusActive,castFocusColors,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,clarityLensKey,clarityLensEnabled:()=>clarityLensEnabled,setClarityLens,toggleClarityLens,syncClarityLens,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,battlefieldComparisonName,buildBattlefieldComparison,shareBattlefieldComparison,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
