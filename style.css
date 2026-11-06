@@ -2747,3 +2747,12 @@
  .lost-signal-list{grid-template-columns:1fr}.lost-signals>p{font-size:10px}
  .lost-signal-choice button{min-width:66px;min-height:44px}
 }
+
+/* Alpha 0.13.1 — finite explorer heirloom set identity, consistent in Forge and Battle. */
+.explorer-bond{margin:8px 0;padding:8px 10px;border:1px solid #ddc386;
+ color:#ffeabb;background:linear-gradient(95deg,#403b31d9,#203a38e8);
+ font:800 10px/1.45 Arial,sans-serif;letter-spacing:.3px;text-wrap:pretty}
+.armory-explorer-bond{margin:10px 3px 9px}
+.lost-signal-entry strong{color:#fff0ce}
+.lost-signal-entry small{letter-spacing:.1px}
+@media(max-width:680px){.explorer-bond{font-size:10px;letter-spacing:0}}
