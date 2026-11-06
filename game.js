@@ -3692,7 +3692,7 @@ function deviceCheckReport(){
   ['No completed five-minute active-play checkpoints yet.'];
  return ['PRIMAL KNIGHT · ALPHA 0.12.24 · IPHONE ENDURANCE REVIEW',
   'Mode: '+deviceCheckMode()+' · Tier '+roman(run.tier)+' · Wave '+formatWave(run.wave),
-  'Visual profile now: '+visualQualityProfiles[visualQuality].name+' · active paint target '+effectiveVisualHz()+'Hz',
+  'Visual profile: '+visualQualityProfiles[visualQuality].name+' · active paint target '+effectiveVisualHz()+'Hz',
   'Requested canvas paints/s: '+(s?s.drawRate.toFixed(1):'WARMING UP'),
   'Animation callbacks/s: '+(s?s.frameRate.toFixed(1):'WARMING UP'),
   'Gaps ≥34ms per 2s sample (all visible modes): '+(s?s.slow:0)+' · Worst: '+(s?s.worst.toFixed(0):'—')+'ms',
