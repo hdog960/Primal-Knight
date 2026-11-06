@@ -2979,3 +2979,13 @@
 @media(max-width:560px){.waystone-navigator>summary{align-items:flex-start}
  .waystone-navigator-options{grid-template-columns:repeat(2,minmax(0,1fr))}
  .waystone-goals{grid-template-columns:1fr}.waystone-choice,.waystone-goal{min-height:44px}}
+
+/* Alpha 0.14.4: responsive in-game portable backup panel; no new art style. */
+.portable-backup-panel{margin:13px 0;padding:15px 16px;border:1px solid rgba(192,158,99,.48);
+ border-radius:11px;background:linear-gradient(135deg,rgba(27,44,48,.97),rgba(17,31,43,.98));color:#e9e1d0}
+.portable-backup-panel>strong{display:block;color:#edd097;font-size:.85rem;letter-spacing:.06em}
+.portable-backup-panel p{font-size:.8rem;line-height:1.5;color:#c3d6d1;margin:9px 0 13px}
+.portable-backup-panel .wide-btn{min-height:45px}
+.portable-backup-panel .wide-btn:disabled{opacity:.5;cursor:not-allowed}
+.portable-backup-panel>small{display:block;color:#afc5c1;line-height:1.5;margin-top:12px}
+@media(max-width:600px){.portable-backup-panel{padding:12px}}
