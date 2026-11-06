@@ -181,10 +181,11 @@ function normalizeRestoredProgress(){
  p.combatLoadouts=normalizeCombatLoadouts(p.combatLoadouts);
  p.siegeHistory=normalizeSiegeHistory(p.siegeHistory);
  p.siegeHistorySeq=Math.max(safeHistoryCount(p.siegeHistorySeq),...p.siegeHistory.map(e=>e.id),0);
+ lastSiegeReport=p.siegeHistory[0]||null;
 }
 function restoreProgressBackup(data,keepRecoveryCopy=false){
  validateProgressBackup(data);
- const old=p,previousTier=chosenTier,previousWaystone=useWaystone,previousEcho=echoStartSelected,previousRoute=selectedScoutRouteId,previousScout=scoutSignalsSelected,previousBlock=saveWriteBlocked,previousStatus=saveRecoveryStatus,previousVerified=lastVerifiedSaveRaw;
+ const old=p,previousTier=chosenTier,previousWaystone=useWaystone,previousEcho=echoStartSelected,previousRoute=selectedScoutRouteId,previousScout=scoutSignalsSelected,previousBlock=saveWriteBlocked,previousStatus=saveRecoveryStatus,previousVerified=lastVerifiedSaveRaw,previousReport=lastSiegeReport;
  try{
   // Refuse a destructive import if iPhone storage cannot hold a safety copy.
   if(keepRecoveryCopy){
@@ -206,7 +207,7 @@ function restoreProgressBackup(data,keepRecoveryCopy=false){
   if(!save())throw Error('Could not save restored progress');
   return true;
  }catch(error){
-  p=old;chosenTier=previousTier;useWaystone=previousWaystone;echoStartSelected=previousEcho;selectedScoutRouteId=previousRoute;scoutSignalsSelected=previousScout;saveWriteBlocked=previousBlock;saveRecoveryStatus=previousStatus;lastVerifiedSaveRaw=previousVerified;
+  p=old;chosenTier=previousTier;useWaystone=previousWaystone;echoStartSelected=previousEcho;selectedScoutRouteId=previousRoute;scoutSignalsSelected=previousScout;saveWriteBlocked=previousBlock;saveRecoveryStatus=previousStatus;lastVerifiedSaveRaw=previousVerified;lastSiegeReport=previousReport;
   throw error;
  }
 }
