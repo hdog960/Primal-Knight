@@ -99,6 +99,8 @@ assert(loneBroken.el('tierDescription').textContent.includes('AUTOSAVE LOCKED'))
 assert.equal(loneBroken.h.restoreVerifiedCheckpoint(),false);
 // Explicit validated player import releases write lock without altering old save key.
 assert.equal(loneBroken.h.restoreProgressBackup(backup,true),true);
+assert.equal(loneBroken.store[loneBroken.h.damagedOriginalKey],'{cut off','Original invalid save bytes are quarantined before manual import');
+assert.equal(loneBroken.h.damagedOriginalRaw(),'{cut off');
 assert.equal(loneBroken.h.saveRecoverySummary().blocked,false);
 assert.equal(loneBroken.h.p().gold,restoredGold);
 assert.equal(JSON.parse(loneBroken.store[SAVE]).gold,restoredGold);
