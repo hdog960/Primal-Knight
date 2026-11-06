@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.24. Living Territories - iPhone Endurance Checkpoints: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.25. Living Territories - At-the-Wall Breach Readability: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -2618,6 +2618,15 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  territoryBossStaging(ctx,sceneTier,run,reduceMotion);
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
  for(const e of sortedRenderEnemies()){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'||e.type==='banneret'?1.18:1);let im=sprites[e.type==='warlord'&&e.bossStyle?'warlord_'+e.bossStyle:e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;ctx.drawImage(im,e.x-sw/2,py,sw,sh);ctx.restore();
+ if(e===frontlineFocus&&run.phase==='fighting'){
+  // Static high-contrast ring and caret around only the lead wall threat.
+  // Does not alter enemy collision, animations, shadows, rewards or speed.
+  ctx.strokeStyle='#ff845f';ctx.lineWidth=Math.max(2,3*s);
+  ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,Math.max(17,sw*.56),Math.max(6,9*s),0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ffd7a0';ctx.beginPath();ctx.moveTo(e.x,py-27);
+  ctx.lineTo(e.x-8,py-16);ctx.lineTo(e.x+8,py-16);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#4d3029';ctx.fillRect(e.x-1,py-24,2,5);
+ }
  if(e.nativeVanguard){
   ctx.fillStyle='#f1c878';ctx.fillRect(e.x-4,py-22,8,3);
   ctx.fillStyle='#fff0b1';ctx.fillRect(e.x-1,py-25,2,9);
@@ -2752,6 +2761,25 @@ function activeEncounterThreat(){
  }
  return highest?{priority:highest.priority,text:highest.text}:null;
 }
+// Alpha 0.12.25: show actual last-65-units wall danger; breach occurs at y>430.
+// Stable first-in tie, no guessed seconds-to-impact and no additional entities.
+let frontlineFocus=null;
+function frontlineBreachRisk(enemies=run.enemies){
+ if(run.phase!=='fighting')return null;
+ let lead=null,count=0;
+ for(const enemy of enemies){
+  if(!enemy||enemy.dead||!(enemy.hp>0)||!Number.isFinite(enemy.y)||enemy.y<365)continue;
+  count++;
+  if(!lead||enemy.y>lead.y)lead=enemy;
+ }
+ if(!lead)return null;
+ const x=Number.isFinite(lead.x)?lead.x:480;
+ const lane=x<370?'LEFT':x>590?'RIGHT':'CENTER';
+ const critical=lead.y>=395;
+ const title=critical?'BREACH IMMINENT':'BREACH WATCH';
+ return {enemy:lead,count,lane,critical,
+  text:title+' · '+lane+' FLANK · '+count+' '+(count===1?'FOE':'FOES')+' NEAR WALL'};
+}
 let lastResourceMarkup='';
 function bossTelegraph(boss){
  if(!boss||boss.dead)return null;
@@ -2821,19 +2849,22 @@ function refreshHUD(){
   }
  }
  const encounterRibbon=$('encounterRibbon');
+ frontlineFocus=null;
  if(encounterRibbon){
   const active=run.phase==='fighting'||run.phase==='intermission';
   const encounter=active?(run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier)):null;
   encounterRibbon.hidden=!encounter;
-  const tip=$('encounterHint');if(!encounter&&tip){tip.hidden=true;encounterRibbon.dataset.threat='false';}
+  const tip=$('encounterHint');if(!encounter&&tip){tip.hidden=true;encounterRibbon.dataset.threat='false';encounterRibbon.dataset.breach='false';}
   if(encounter){
    encounterRibbon.dataset.kind=encounter.kind;
    $('encounterType').textContent=hasNativeVanguard(encounter)?'NATIVE VANGUARD':encounter.label;
    $('encounterFaction').textContent=encounter.faction;
    $('encounterChapter').textContent='CHAPTER '+roman(encounter.chapter);
-   const tip=$('encounterHint'),threat=activeEncounterThreat();
-    encounterRibbon.dataset.threat=threat?'true':'false';
-    if(tip){const advice=threat?.text||(hasNativeVanguard(encounter)?territoryVanguard(encounter.tier).name+' · '+nativeMarchOrder(encounter.tier).name+' · '+territoryVanguard(encounter.tier).counter:encounterAdvice(encounter.kind));tip.hidden=!advice;tip.textContent=advice;}
+   const tip=$('encounterHint'),threat=activeEncounterThreat(),breach=frontlineBreachRisk();
+   frontlineFocus=!threat&&breach?breach.enemy:null;
+   encounterRibbon.dataset.threat=threat?'true':'false';
+   encounterRibbon.dataset.breach=!threat&&breach?'true':'false';
+   if(tip){const advice=threat?.text||(!threat&&breach?.text)||(hasNativeVanguard(encounter)?territoryVanguard(encounter.tier).name+' · '+nativeMarchOrder(encounter.tier).name+' · '+territoryVanguard(encounter.tier).counter:encounterAdvice(encounter.kind));tip.hidden=!advice;tip.textContent=advice;}
    const goal=$('encounterGoal');if(goal){const challenge=chapterChallenge(encounter)||relicChallenge(encounter);goal.hidden=!challenge;goal.textContent=challenge?'✦ '+challenge.desc+(run.breaches?' · FAILED':' · UNBROKEN'):'';goal.dataset.failed=run.breaches?'true':'false';}
   }
  }
@@ -3974,5 +4005,5 @@ $('deviceCheckReset').onclick=restartDeviceEndurance;
 $('deviceCheckFrame').onclick=shareBattlefieldFrame;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
