@@ -61,6 +61,7 @@ function startStage(tier,wave){
 }
 function finishStage(breaches=0){
  for(let n=0;n<r.total;n++){r.spawned=n;h.spawnEnemy();}
+ r.spawned=r.total;
  assert.equal(r.enemies.length,r.total,'Oath never adds a spawned foe');
  assert(r.total<=24,'Mobile encounter cap retained');
  r.enemies.forEach(e=>{e.dead=true;});
