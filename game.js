@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.12.25. Living Territories - At-the-Wall Breach Readability: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.12.26. Living Territories - Single Threat Focus Beacons: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -2618,6 +2618,15 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  territoryBossStaging(ctx,sceneTier,run,reduceMotion);
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
  for(const e of sortedRenderEnemies()){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'||e.type==='banneret'?1.18:1);let im=sprites[e.type==='warlord'&&e.bossStyle?'warlord_'+e.bossStyle:e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;ctx.drawImage(im,e.x-sw/2,py,sw,sh);ctx.restore();
+ if(e===castFocus&&run.phase==='fighting'&&castFocusActive(e,castFocusKind)){
+  // One static cast-specific target marker; no extra images or HUD panel.
+  const color=castFocusColors[castFocusKind]||'#ffd899',by=Math.max(114,py-32);
+  ctx.strokeStyle=color;ctx.lineWidth=Math.max(2,3*s);
+  ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,Math.max(17,sw*.57),Math.max(6,9*s),0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#1c222e';ctx.fillRect(e.x-10,by-2,20,8);
+  ctx.fillStyle=color;ctx.fillRect(e.x-9,by,18,4);
+  ctx.fillRect(e.x-2,by-6,4,16);
+ }
  if(e===frontlineFocus&&run.phase==='fighting'){
   // Static high-contrast ring and caret around only the lead wall threat.
   // Does not alter enemy collision, animations, shadows, rewards or speed.
@@ -2748,18 +2757,36 @@ function activeEncounterThreat(){
  let highest=null;
  for(const e of run.enemies){
   if(!e||e.dead)continue;
-  let priority=0,text='';
-  if(e.type==='sapper'&&e.fuseTime>0){priority=120;text='FUSE LIT · STOP THE SAPPER';}
-  else if(e.type==='siegebeast'&&e.crushWindup>0){priority=110;text='CRUSHER WINDUP · FOCUS THE BOSS';}
-  else if(e.type==='warlord'&&e.bossFuryWindup>0){priority=108;text='EMBER CHARGE · INTERRUPT THE BOSS';}
-  else if(e.type==='warlord'&&e.bossBlinkWindup>0){priority=106;text='VOID STEP · INTERRUPT THE BOSS';}
-  else if(e.type==='riftstalker'&&e.blinkWindup>0){priority=95;text='RIFT OPENING · FOCUS THE STALKER';}
-  else if(e.type==='frostbinder'&&e.frostWindup>0){priority=83;text='FROST RITE · INTERRUPT THE CASTER';}
-  else if(e.type==='thornweaver'&&e.thornWindup>0){priority=80;text='THORN WARD · STOP THE CAST';}
-  else if(e.type==='warlord'&&e.bossWardTimer>0){priority=65;text='IRON WARD · BREAK ITS DEFENSE';}
-  if(priority&&(!highest||priority>highest.priority||(priority===highest.priority&&e.y>highest.y)))highest={priority,text,y:e.y};
+  let priority=0,text='',kind='';
+  if(e.type==='sapper'&&e.fuseTime>0){priority=120;kind='fuse';text='FUSE LIT · STOP THE SAPPER';}
+  else if(e.type==='siegebeast'&&e.crushWindup>0){priority=110;kind='crush';text='CRUSHER WINDUP · FOCUS THE BOSS';}
+  else if(e.type==='warlord'&&e.bossFuryWindup>0){priority=108;kind='ember';text='EMBER CHARGE · INTERRUPT THE BOSS';}
+  else if(e.type==='warlord'&&e.bossBlinkWindup>0){priority=106;kind='void';text='VOID STEP · INTERRUPT THE BOSS';}
+  else if(e.type==='riftstalker'&&e.blinkWindup>0){priority=95;kind='rift';text='RIFT OPENING · FOCUS THE STALKER';}
+  else if(e.type==='frostbinder'&&e.frostWindup>0){priority=83;kind='frost';text='FROST RITE · INTERRUPT THE CASTER';}
+  else if(e.type==='thornweaver'&&e.thornWindup>0){priority=80;kind='thorn';text='THORN WARD · STOP THE CAST';}
+  else if(e.type==='warlord'&&e.bossWardTimer>0){priority=65;kind='iron';text='IRON WARD · BREAK ITS DEFENSE';}
+  if(priority&&(!highest||priority>highest.priority||(priority===highest.priority&&e.y>highest.y)))highest={priority,text,y:e.y,enemy:e,kind};
  }
- return highest?{priority:highest.priority,text:highest.text}:null;
+ return highest?{priority:highest.priority,text:highest.text,enemy:highest.enemy,kind:highest.kind}:null;
+}
+// Alpha 0.12.26: a real spell enemy gets one static, high-contrast field beacon.
+// Never guess timers, allocate combat effects, persist data, or mark dead foes.
+const castFocusColors={fuse:'#ffa06e',crush:'#ffbf7d',ember:'#ff996e',
+ void:'#ccaaff',rift:'#c6afff',frost:'#94e5ff',thorn:'#bfea90',iron:'#a3d9fa'};
+let castFocus=null,castFocusKind='';
+function castFocusActive(enemy,kind){
+ if(!enemy||enemy.dead||!(enemy.hp>0)||run.phase!=='fighting')return false;
+ let remaining=0;
+ if(kind==='fuse'&&enemy.type==='sapper')remaining=enemy.fuseTime;
+ else if(kind==='crush'&&enemy.type==='siegebeast')remaining=enemy.crushWindup;
+ else if(kind==='ember'&&enemy.type==='warlord')remaining=enemy.bossFuryWindup;
+ else if(kind==='void'&&enemy.type==='warlord')remaining=enemy.bossBlinkWindup;
+ else if(kind==='rift'&&enemy.type==='riftstalker')remaining=enemy.blinkWindup;
+ else if(kind==='frost'&&enemy.type==='frostbinder')remaining=enemy.frostWindup;
+ else if(kind==='thorn'&&enemy.type==='thornweaver')remaining=enemy.thornWindup;
+ else if(kind==='iron'&&enemy.type==='warlord')remaining=enemy.bossWardTimer;
+ return Number.isFinite(remaining)&&remaining>0;
 }
 // Alpha 0.12.25: show actual last-65-units wall danger; breach occurs at y>430.
 // Stable first-in tie, no guessed seconds-to-impact and no additional entities.
@@ -2849,12 +2876,12 @@ function refreshHUD(){
   }
  }
  const encounterRibbon=$('encounterRibbon');
- frontlineFocus=null;
+ frontlineFocus=null;castFocus=null;castFocusKind='';
  if(encounterRibbon){
   const active=run.phase==='fighting'||run.phase==='intermission';
   const encounter=active?(run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier)):null;
   encounterRibbon.hidden=!encounter;
-  const tip=$('encounterHint');if(!encounter&&tip){tip.hidden=true;encounterRibbon.dataset.threat='false';encounterRibbon.dataset.breach='false';}
+  const tip=$('encounterHint');if(!encounter&&tip){tip.hidden=true;encounterRibbon.dataset.threat='false';encounterRibbon.dataset.breach='false';encounterRibbon.dataset.focus='false';}
   if(encounter){
    encounterRibbon.dataset.kind=encounter.kind;
    $('encounterType').textContent=hasNativeVanguard(encounter)?'NATIVE VANGUARD':encounter.label;
@@ -2862,6 +2889,8 @@ function refreshHUD(){
    $('encounterChapter').textContent='CHAPTER '+roman(encounter.chapter);
    const tip=$('encounterHint'),threat=activeEncounterThreat(),breach=frontlineBreachRisk();
    frontlineFocus=!threat&&breach?breach.enemy:null;
+   castFocus=threat?.enemy||null;castFocusKind=threat?.kind||'';
+   encounterRibbon.dataset.focus=castFocus?'true':'false';
    encounterRibbon.dataset.threat=threat?'true':'false';
    encounterRibbon.dataset.breach=!threat&&breach?'true':'false';
    if(tip){const advice=threat?.text||(!threat&&breach?.text)||(hasNativeVanguard(encounter)?territoryVanguard(encounter.tier).name+' · '+nativeMarchOrder(encounter.tier).name+' · '+territoryVanguard(encounter.tier).counter:encounterAdvice(encounter.kind));tip.hidden=!advice;tip.textContent=advice;}
@@ -4005,5 +4034,5 @@ $('deviceCheckReset').onclick=restartDeviceEndurance;
 $('deviceCheckFrame').onclick=shareBattlefieldFrame;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+resetDeviceCheck();initRun();syncBattleControls();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,castFocus:()=>castFocus,castFocusKind:()=>castFocusKind,castFocusActive,castFocusColors,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
