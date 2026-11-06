@@ -96,6 +96,6 @@ assert.equal(h.restoreProgressBackup(bad,false),true);
 assert.equal(h.p().doctrineTactic,'rapid','Untrusted stored strategy is normalized');
 assert(css.includes('.doctrine-tactics-options')&&css.includes('min-height:48px'),
  'Mobile strategy touch controls have accessible height');
-assert(html.includes('ALPHA 0.13.4')&&html.includes('game.js?v=0.13.4')&&html.includes('style.css?v=0.13.4'),
+assert(html.includes('ALPHA 0.13.5')&&html.includes('game.js?v=0.13.5')&&html.includes('style.css?v=0.13.5'),
  'Safari cache busting matches current release');
 console.log('PASS: tactical auto-cast gates, preserved Rapid baseline, no cooldown exploits, actual iPhone Battle click, saved strategy presets, old-save and backup migration, HUD and mobile controls.');
