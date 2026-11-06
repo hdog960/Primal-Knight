@@ -2795,3 +2795,20 @@
  border-color:#efc981;
  box-shadow:inset 0 0 0 1px #f1d59b85;
 }
+
+/* Alpha 0.13.5 — completed territorial mastery, consistent with the bronze/teal Atlas. */
+.lost-signal-entry.atlas-seal-entry{
+ border:1px solid #bcaa75;border-left:4px solid #e4c476;
+ background:linear-gradient(105deg,#493c33ed,#273e45ec);
+ box-shadow:inset 0 1px #f9e7b32c;
+}
+.lost-signal-entry.atlas-seal-entry strong{color:#ffefb7}
+.lost-signal-entry.atlas-seal-entry>span{
+ color:#f3d28d;background:radial-gradient(circle,#695638,#283443);
+ border-color:#d9b875;
+}
+.lost-signal-entry.atlas-seal-entry.claimed{
+ border-color:#98d5ac;border-left-color:#9de6bc;
+ background:linear-gradient(105deg,#2f4a3dec,#243b43ec);
+}
+.lost-signal-entry.atlas-seal-entry.claimed>span{color:#d0ffe0}

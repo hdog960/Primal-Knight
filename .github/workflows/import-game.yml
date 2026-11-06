@@ -97,3 +97,4 @@ jobs:
           node tests/cartographer-oath.js
           node tests/ancestral-keepsakes.js
           node tests/echo-returns.js
+          node tests/atlas-seals.js
