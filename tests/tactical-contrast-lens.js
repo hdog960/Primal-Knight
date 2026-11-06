@@ -1,4 +1,4 @@
-// Alpha 0.14.7 — real-game opt-in high-contrast lens; render-only invariants.
+// Alpha 0.15.0 — real-game opt-in high-contrast lens; render-only invariants.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -16,7 +16,7 @@ function make(initial=''){
  vm.runInNewContext(source,sandbox,{filename:'game.js'});
  return{h:sandbox.window.__PK_TEST_TOOLS__,el,saved,paints,images};
 }
-assert(html.includes('ALPHA 0.14.7')&&html.includes('game.js?v=0.14.7')&&html.includes('style.css?v=0.14.7'),'Cache versions all match');
+assert(html.includes('ALPHA 0.15.0')&&html.includes('game.js?v=0.15.0')&&html.includes('style.css?v=0.15.0'),'Cache versions all match');
 assert(html.includes('id="clarityLensToggle"')&&html.includes('aria-pressed="false"'),'Optional lens has a real battlefield control');
 assert(css.includes('.clarity-lens-toggle:focus-visible')&&css.includes('min-height:44px'),'Keyboard and iPhone portrait target are visible');
 const w=make(),{h,el,saved,paints,images}=w,r=h.run(),p=h.p(),characterBefore=JSON.stringify(p),imageCount=images.length;
