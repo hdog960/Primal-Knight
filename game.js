@@ -4501,8 +4501,8 @@ $('milestoneList').addEventListener('click',e=>{
   return;
  }
  const routeButton=e.target.closest('[data-scout-route]');
- if(routeButton){
-  if(routeButton.disabled||!selectScoutRoute(chosenTier,routeButton.dataset?.scoutRoute))return;
+ if(routeButton&&typeof routeButton.dataset?.scoutRoute==='string'){
+  if(routeButton.disabled||!selectScoutRoute(chosenTier,routeButton.dataset.scoutRoute))return;
   const scroll=$('milestoneList').scrollTop;
   renderTierLobby();$('milestoneList').scrollTop=scroll;
   return;
