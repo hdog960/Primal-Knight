@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.14.5. Long-Run Quality of Life - Verified Import Rollback & Write-Failure Safety: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.14.6. Long-Run Quality of Life - Cross-Session Save Conflict Protection: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -106,10 +106,11 @@ function newerCharacterSave(raw){
   }catch{return false;}
  }
  let p,saveRecoveryStatus='healthy',saveWriteBlocked=false,
-  lastVerifiedSaveRaw=null,unrecoverableSaveRaw=null,recoveryWrites=0,
+  lastVerifiedSaveRaw=null,lastObservedPrimaryRaw=null,unrecoverableSaveRaw=null,recoveryWrites=0,
   recoverySnapshotFailed=false,saveWriteIssue=null;
  try{
   const raw=localStorage.getItem(storageKey),data=parseCharacterRaw(raw);
+  lastObservedPrimaryRaw=raw;
   if(data){p={...defaultState(),...data};lastVerifiedSaveRaw=raw;}
   else if(raw!=null){
    unrecoverableSaveRaw=raw;
@@ -278,9 +279,15 @@ function renderPortableBackupPanel(){
 function restoreProgressBackup(data,keepRecoveryCopy=false){
  validateProgressBackup(data);
  const old=p,previousTier=chosenTier,previousWaystone=useWaystone,previousCustomWaystone=selectedWaystoneWave,previousGoal=selectedMilestoneTarget,previousEcho=echoStartSelected,previousRoute=selectedScoutRouteId,previousScout=scoutSignalsSelected,previousBlock=saveWriteBlocked,previousStatus=saveRecoveryStatus,previousVerified=lastVerifiedSaveRaw,previousReport=lastSiegeReport;
- const previousIssue=saveWriteIssue,previousWrites=recoveryWrites,previousCheckpointFailure=recoverySnapshotFailed;
+ const previousIssue=saveWriteIssue,previousWrites=recoveryWrites,previousCheckpointFailure=recoverySnapshotFailed,previousObserved=lastObservedPrimaryRaw;
  // Failure to READ the original bytes must abort before any state is changed.
  const primaryBefore=localStorage.getItem(storageKey);
+ // A stale tab must not import over another session's newer character.
+ if(primaryBefore!==lastObservedPrimaryRaw){
+  saveWriteBlocked=true;saveRecoveryStatus='write-failed';
+  saveWriteIssue='PRIMARY SAVE CHANGED OUTSIDE THIS SESSION · AUTOSAVE LOCKED';
+  throw Error('Primary save changed outside this session; reload before importing');
+ }
  const undoBefore=keepRecoveryCopy?localStorage.getItem(safetyBackupKey):null;
  const quarantineBefore=keepRecoveryCopy?localStorage.getItem(damagedOriginalKey):null;
  let undoTouched=false,quarantineTouched=false;
@@ -322,7 +329,9 @@ function restoreProgressBackup(data,keepRecoveryCopy=false){
  }catch(error){
   // If a setItem wrote partial bytes before failing, try to restore exactly
   // what was stored before the import. Never report success without readback.
-  const primaryRestored=restoreSlot(storageKey,primaryBefore);
+  // Do not roll stale bytes back over a newly detected concurrent writer.
+  const externalConflict=saveWriteIssue==='PRIMARY SAVE CHANGED OUTSIDE THIS SESSION · AUTOSAVE LOCKED';
+  const primaryRestored=externalConflict?false:restoreSlot(storageKey,primaryBefore);
   const undoRestored=!undoTouched||restoreSlot(safetyBackupKey,undoBefore);
   // On an unverified primary rollback KEEP the quarantined original.
   const quarantineRestored=!quarantineTouched||!primaryRestored||
@@ -331,11 +340,15 @@ function restoreProgressBackup(data,keepRecoveryCopy=false){
   selectedWaystoneWave=previousCustomWaystone;selectedMilestoneTarget=previousGoal;
   echoStartSelected=previousEcho;selectedScoutRouteId=previousRoute;
   scoutSignalsSelected=previousScout;lastVerifiedSaveRaw=previousVerified;
+  lastObservedPrimaryRaw=primaryRestored?primaryBefore:previousObserved;
   lastSiegeReport=previousReport;recoveryWrites=previousWrites;
   recoverySnapshotFailed=previousCheckpointFailure;
   saveWriteBlocked=previousBlock;saveRecoveryStatus=previousStatus;
   saveWriteIssue=previousIssue;
-  if(!primaryRestored){
+  if(externalConflict){
+   saveWriteBlocked=true;saveRecoveryStatus='write-failed';
+   saveWriteIssue='PRIMARY SAVE CHANGED OUTSIDE THIS SESSION · AUTOSAVE LOCKED';
+  }else if(!primaryRestored){
    saveWriteBlocked=true;saveRecoveryStatus='write-failed';
    saveWriteIssue='ROLLBACK UNVERIFIED · EXPORT YOUR AVAILABLE CHARACTER BACKUP';
   }else if(!undoRestored||!quarantineRestored){
@@ -1953,8 +1966,8 @@ function retreatFromSiege(){
 function legacyCost(row){return Math.ceil(row[3]*(1+lr(row[0])*.35+Math.pow(lr(row[0]),1.35)*.26));}
 const lvlNeed=()=>Math.floor(65*Math.pow(p.level,1.34));const n=(obj,key)=>obj[key]||0;const skill=id=>n(p.skills,id);const station=id=>n(p.stations,id);const t=id=>n(p.training,id);const res=id=>n(p.research,id);const sup=id=>n(p.suppression,id);
 function xpAdd(amount){p.xp+=Math.floor(amount*(1+t('xp')*.025+skill('wisdom')*.07)*(1+Math.min(16,res('almanac'))*.015)*(1+dominionBonus('xp')));while(p.xp>=lvlNeed()){p.xp-=lvlNeed();p.level++;p.points+=2;notice('LEVEL UP! +2 SKILL POINTS');}}
-// Alpha 0.14.5: a successful primary JSON readback is the commit point.
-// Never rotate away the last verified checkpoint before that commit succeeds.
+// Alpha 0.14.6: check prior observed primary before writing, then verify readback.
+// Never rotate away the last verified checkpoint before a successful write.
 function save(){
  if(saveWriteBlocked)return false;
  let serialized;
@@ -1966,6 +1979,18 @@ function save(){
   return false;
  }
  const previous=lastVerifiedSaveRaw;
+ // Best-effort synchronous preflight. localStorage has no cross-tab CAS.
+ try{
+  if(localStorage.getItem(storageKey)!==lastObservedPrimaryRaw){
+   saveWriteBlocked=true;saveRecoveryStatus='write-failed';
+   saveWriteIssue='PRIMARY SAVE CHANGED OUTSIDE THIS SESSION · AUTOSAVE LOCKED';
+   return false;
+  }
+ }catch{
+  saveWriteBlocked=true;saveRecoveryStatus='write-failed';
+  saveWriteIssue='PRIMARY SAVE PREFLIGHT UNREADABLE · AUTOSAVE LOCKED';
+  return false;
+ }
  let stored;
  try{
   localStorage.setItem(storageKey,serialized);
@@ -1977,7 +2002,7 @@ function save(){
   // be retried. Unknown/partial bytes require a manual recovery decision.
   try{
    stored=localStorage.getItem(storageKey);
-   if(stored!==previous){
+   if(stored!==lastObservedPrimaryRaw){
     saveWriteBlocked=true;saveRecoveryStatus='write-failed';
     saveWriteIssue='PRIMARY SAVE UNVERIFIED · AUTOSAVE LOCKED';
    }
@@ -1988,6 +2013,7 @@ function save(){
   return false;
  }
  const rotate=!!previous&&(recoveryWrites===0||recoveryWrites>=recoveryCadence);
+ lastObservedPrimaryRaw=serialized;
  lastVerifiedSaveRaw=serialized;saveWriteIssue=null;
  if(rotate){
   recoverySnapshotFailed=!writeRecoveryCheckpoint(previous);
@@ -2022,7 +2048,9 @@ function renderSaveRecoveryPanel(){
   info.hasCheckpoint?'CHECKPOINT VERIFIED · CHARACTER SAVE HEALTHY':
   'SAVE HEALTHY · CHECKPOINT NOT YET AVAILABLE';
  const detail=info.status==='write-failed'?
-  'The device did not confirm the latest save or a required rollback. Autosave is locked to avoid overwriting uncertain bytes. Export your current in-memory character JSON and inspect your older verified backup or undo copy. No automatic recovery is claimed.':
+  (info.writeIssue&&info.writeIssue.includes('OUTSIDE THIS SESSION')?
+   'Another tab or window changed this device\'s saved character while this game was open. This session did NOT overwrite those bytes. Autosave is locked. Export any progress from this tab before reloading to inspect the updated device save. Do not keep playing in this tab.':
+   'The device did not confirm the latest save or a required rollback. Autosave is locked to avoid overwriting uncertain bytes. Export your current in-memory character JSON and inspect your older verified backup or undo copy. No automatic recovery is claimed.'):
   info.writeIssue?'The most recent storage operation was not fully verified ('+info.writeIssue+'). Recent waves or purchases may exist only in memory. Export a JSON backup before leaving the game.':
   info.status==='future'?
   'This device contains a character saved by a newer game version. The exact original is untouched, and automatic writes are BLOCKED to prevent downgrading. Export the original text below. Prefer opening it in the newer game; importing an older backup is an explicit replacement.':
