@@ -13,3 +13,8 @@ The new `tests/first-watch-defensive-balance.js` runs the actual production engi
 
 ## Future work
 Follow with broader policies and longer earned-progression cohorts, expense breakdowns and mid/late bottleneck audits. Neither a complete 12.5-hour real-player cohort nor the 1,250-hour conquest target has been validated; real iPhone graphics/touch/thermal QA stays pending at user direction.
+
+## Verified seeded outcomes and remaining bottleneck
+GitHub's 71-check quality gate passed the matched first-siege comparison and the up-to-three legitimate-earned-attempt cohorts. Under identical initial seeds, **Blade First** was 6/7/7 before and after; **Even Watch** was 6/6/6 before and after; **Stoneguard** rose from 6/5/6 to **7/6/6** genuine clears. After up to three attempts, old-versus-new Stoneguard clear counts were **8/8/8** versus **10/8/9**. This shows a real, bounded improvement, not parity with the offense path.
+
+The second First Watch chapter demands **seven active minutes and eleven unique first-clears**. All six Blade First/Even Watch scripted cohorts earned it by their third attempt; **none of the three Stoneguard cohorts** earned it despite 10.36–12.29 real active minutes, because their best unique wave clears were only **10, 8, and 9**. The absence of that reward is an important diagnostic. No artificial time/unique clear flag or Sigils should be granted; subsequent Alpha 0.15.3 work should focus on more effective, fairly priced recovery choices for defense-oriented players. This does not validate the full 750-minute First Watch or 1,250-hour conquest target.
