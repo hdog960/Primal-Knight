@@ -159,7 +159,7 @@ const invalid={...snapshot,combatDoctrine:'unknown-dangerous-ability'};
 restored.h.restoreProgressBackup(invalid,false);
 assert.equal(restored.h.p().combatDoctrine,'vanguard','Invalid imported combat ability is never equipped');
 
-assert(html.includes('ALPHA 0.12.24')&&html.includes('game.js?v=0.12.24'),'Safari Home Screen receives cache-busted doctrine implementation');
+assert(html.includes('ALPHA 0.12.25')&&html.includes('game.js?v=0.12.25'),'Safari Home Screen receives cache-busted doctrine implementation');
 assert(html.includes('id="doctrineHud"'),'Battle canvas has a real doctrine cooldown HUD');
 assert(css.includes('.hall-doctrine-grid')&&css.includes('.doctrine-hud'),'Visual design and accessibility classes exist');
 assert(css.includes('grid-template-columns:1fr;gap:7px'),'Doctrine selector stacks into one-column mobile layout');
