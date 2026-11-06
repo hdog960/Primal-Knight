@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.14.0. Long-Run Quality of Life - Verified Save Checkpoints: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.14.1. Long-Run Quality of Life - Persistent Siege Chronicle: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -45,7 +45,7 @@ const gearNames={
  charm:['Copper Locket','Hunter Sigil','Wolfsbane Charm','Goldheart Pendant','Dragon Eye','Oracle Stone','Elder Star','Celestial Mark','Eonstone'],
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
-function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},explorationFinds:{},cartographerOaths:{},echoReturns:{},atlasSeals:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',doctrineTactic:'rapid',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
+function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},explorationFinds:{},cartographerOaths:{},echoReturns:{},atlasSeals:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],siegeHistory:[],siegeHistorySeq:0,battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',doctrineTactic:'rapid',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
 // Alpha 0.14.0: keep the original readable character JSON and save key.
  // An older checksum-verified checkpoint protects it from truncated or broken saves.
  const storageKey='primal_knight_onslaught_save_v1';
@@ -109,7 +109,10 @@ function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence
     p=defaultState();saveWriteBlocked=true;saveRecoveryStatus='blocked';
    }
   }else p=defaultState();
- }catch{p=defaultState();saveWriteBlocked=true;saveRecoveryStatus='blocked';}for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.explorationFinds=validSaveObject(p.explorationFinds)?p.explorationFinds:{};p.cartographerOaths=validSaveObject(p.cartographerOaths)?p.cartographerOaths:{};p.echoReturns=validSaveObject(p.echoReturns)?p.echoReturns:{};p.atlasSeals=validSaveObject(p.atlasSeals)?p.atlasSeals:{};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
+ }catch{p=defaultState();saveWriteBlocked=true;saveRecoveryStatus='blocked';}for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.explorationFinds=validSaveObject(p.explorationFinds)?p.explorationFinds:{};p.cartographerOaths=validSaveObject(p.cartographerOaths)?p.cartographerOaths:{};p.echoReturns=validSaveObject(p.echoReturns)?p.echoReturns:{};p.atlasSeals=validSaveObject(p.atlasSeals)?p.atlasSeals:{};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];
+p.siegeHistory=normalizeSiegeHistory(p.siegeHistory);
+p.siegeHistorySeq=Math.max(safeHistoryCount(p.siegeHistorySeq),...p.siegeHistory.map(e=>e.id),0);
+p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -150,7 +153,7 @@ function validateProgressBackup(data){
  for(const key of ['equipped','training','skills','stations','research','suppression','socketed','bestByTier','milestones','chapterChallenges','relicHunts','explorationFinds','cartographerOaths','echoReturns','atlasSeals','ascension','dominionCrests','sovereignOaths','legacy']){
   if(data[key]!==undefined&&!validSaveObject(data[key]))throw Error('Invalid '+key);
  }
- for(const key of ['runes','pendingRelics','pendingGear','firstWatchClaimed','banners','combatLoadouts']){
+ for(const key of ['runes','pendingRelics','pendingGear','firstWatchClaimed','banners','combatLoadouts','siegeHistory']){
   if(data[key]!==undefined&&!Array.isArray(data[key]))throw Error('Invalid '+key);
  }
  if(data.unlockedTier!==undefined&&!Number.isFinite(Number(data.unlockedTier)))throw Error('Invalid tier');
@@ -176,6 +179,8 @@ function normalizeRestoredProgress(){
  p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';
  p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
  p.combatLoadouts=normalizeCombatLoadouts(p.combatLoadouts);
+ p.siegeHistory=normalizeSiegeHistory(p.siegeHistory);
+ p.siegeHistorySeq=Math.max(safeHistoryCount(p.siegeHistorySeq),...p.siegeHistory.map(e=>e.id),0);
 }
 function restoreProgressBackup(data,keepRecoveryCopy=false){
  validateProgressBackup(data);
@@ -215,7 +220,7 @@ function undoProgressImport(){
 }
 
 let ctx=$('game').getContext('2d'),c=$('game'),background=new Image();background.src='assets/battlefield.png';const foreground=new Image();foreground.src='assets/foreground.png';let sprites={};for(const type of ['hero','goblin','skeleton','warg','imp','ogre','guardian','raider','shaman','siegebeast','warlord','warlord_iron','warlord_ember','warlord_rift','frostbinder','sapper','banneret','thornweaver','riftstalker']){const i=new Image();i.src='assets/'+type+(['guardian','raider','shaman','siegebeast','warlord','warlord_iron','warlord_ember','warlord_rift','frostbinder','sapper','banneret','thornweaver','riftstalker'].includes(type)?'.svg':'.png');sprites[type]=i;}
-let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,heroChill:0,rewardTimer:0,shakes:0,flashes:0,encounter:null,reinforcementPhase:false,bossCounters:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0,lastSiegeReport=null;
+let run={wave:1,tier:1,health:0,maxHealth:0,phase:'ready',enemies:[],shots:[],particles:[],floats:[],spawned:0,total:0,kills:0,breaches:0,spawnClock:0,shotClock:0,stationClock:0,time:0,speed:1,freeze:0,heroChill:0,rewardTimer:0,shakes:0,flashes:0,encounter:null,reinforcementPhase:false,bossCounters:0};let tab='battle',storedSpeed=1,pausedForPanel=false,saveClock=0,toastTimer=0,lastSiegeReport=p.siegeHistory[0]||null;
 // The first Hero Combat Depth layer: one active, automatically casting doctrine.
 // Disciplines are earned at low hero levels, not via additional paid currencies.
 const combatDoctrineData={
