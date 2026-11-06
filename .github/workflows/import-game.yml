@@ -107,3 +107,4 @@ jobs:
           node tests/save-write-rollback.js
           node tests/save-session-conflicts.js
           node tests/save-live-continuity.js
+          node tests/first-watch-onboarding-cadence.js
