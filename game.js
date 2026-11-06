@@ -1205,6 +1205,7 @@ function renderSiegeCodex(){
       <p><strong>Hero Combat Doctrines:</strong> Visit Hero → Battle Doctrines to select Hunter's Volley (level 1), Arcane Chain (level 3) or Aegis Pulse (level 5). Each ability auto-casts during an active fight when it has eligible targets. Marksman talents boost Volley; Arcane Chain now pierces 35% of enemy armor, while Spark talents and Storm runes increase its damage. Station damage crests only strengthen actual fortress station attacks, not hero magic. Stone/Bulwark talents improve Aegis. Switching is free, but cannot reset a live cooldown.</p>
       <p><strong>Century Boss:</strong> Iron Tyrant → Cinder Regent → Void Monarch. Breaking a warned charge or warp, or shattering an Iron Ward, briefly exposes the boss to +12% damage. The auto-hero focuses an active Iron Ward; the boss timer also shows the real percentage of damage needed to break an attack or ward. Siege Beast crusher windups can be interrupted too. After the siege, the Chronicle credits only bosses actually defeated; a boss that reaches the wall is reported separately as a breach.</p>
       <p><strong>Native Vanguard:</strong> Each territory contributes two regional troop slots to ordinary vanguard waves from wave 35. Their eight role-matched march orders alter real on-field spacing, with casters further back and raiders on the flanks. The gold crest identifies true native troops; all specialist caps remain in force and no extra enemies or rewards are created.</p>
+      <p><strong>Lost Signals (Exploration):</strong> From the Battle lobby, choose SCOUT to voluntarily challenge hidden shield wardens at waves 47, 147, 347 and 747 in each tier. Each guardian replaces one ordinary enemy. Defeat it and clear without a breach to earn a named one-time heirloom. Gear is saved in the Equipment Vault if your bag is full. Return to any older tier for missed discoveries; rewards cannot be claimed twice.</p>
       <p><strong>Relic Hunt:</strong> Protect the wall without a breach to earn one non-farmable rune and bonus Knowledge.</p>
       <p><strong>Standard Assault:</strong> Break support banners for +20% wave Gold.</p>
       <p><strong>Arcane Convergence:</strong> Caster-focused formations offer +18% wave Knowledge; at most three enemy casters may be active at once.</p>
@@ -2952,7 +2953,7 @@ function refreshHUD(){
   const tip=$('encounterHint');if(!encounter&&tip){tip.hidden=true;encounterRibbon.dataset.threat='false';encounterRibbon.dataset.breach='false';encounterRibbon.dataset.focus='false';}
   if(encounter){
    encounterRibbon.dataset.kind=encounter.kind;
-   $('encounterType').textContent=hasNativeVanguard(encounter)?'NATIVE VANGUARD':encounter.label;
+   $('encounterType').textContent=run.discoveryCurrent?'LOST SIGNAL':hasNativeVanguard(encounter)?'NATIVE VANGUARD':encounter.label;
    $('encounterFaction').textContent=encounter.faction;
    $('encounterChapter').textContent='CHAPTER '+roman(encounter.chapter);
    const tip=$('encounterHint'),threat=activeEncounterThreat(),breach=frontlineBreachRisk();
@@ -2961,7 +2962,7 @@ function refreshHUD(){
    encounterRibbon.dataset.focus=castFocus?'true':'false';
    encounterRibbon.dataset.threat=threat?'true':'false';
    encounterRibbon.dataset.breach=!threat&&breach?'true':'false';
-   if(tip){const advice=threat?.text||(!threat&&breach?.text)||(hasNativeVanguard(encounter)?territoryVanguard(encounter.tier).name+' · '+nativeMarchOrder(encounter.tier).name+' · '+territoryVanguard(encounter.tier).counter:encounterAdvice(encounter.kind));tip.hidden=!advice;tip.textContent=advice;}
+   if(tip){const advice=threat?.text||(!threat&&breach?.text)||(run.discoveryCurrent?'LOST WARDEN · HOLD THE WALL WITHOUT BREACHES':hasNativeVanguard(encounter)?territoryVanguard(encounter.tier).name+' · '+nativeMarchOrder(encounter.tier).name+' · '+territoryVanguard(encounter.tier).counter:encounterAdvice(encounter.kind));tip.hidden=!advice;tip.textContent=advice;}
    const goal=$('encounterGoal');if(goal){const challenge=chapterChallenge(encounter)||relicChallenge(encounter);goal.hidden=!challenge;goal.textContent=challenge?'✦ '+challenge.desc+(run.breaches?' · FAILED':' · UNBROKEN'):'';goal.dataset.failed=run.breaches?'true':'false';}
   }
  }
