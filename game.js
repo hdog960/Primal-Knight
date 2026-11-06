@@ -600,6 +600,14 @@ function renderLostSignalLedger(tier,startWave){
    '</small></div></div>';
  }).join('');
  const found=lostSignalWaves.reduce((count,w)=>count+(p.explorationFinds[tier+':'+w]?1:0),0);
+ const oath=cartographerOath(tier),oathClaimed=!!p.cartographerOaths[tier];
+ const oathRow='<div class="lost-signal-entry '+(oathClaimed?'claimed':'')+'"><span>'+
+  (oathClaimed?'✓':oath.end<startWave?'◌':'✦')+'</span><div><strong>WAVES '+
+  formatWave(oath.start)+'–'+formatWave(oath.end)+" · CARTOGRAPHER'S OATH"+'</strong><small>'+
+  (oathClaimed?'COMPLETED · UNIQUE BANNER & RUNE CLAIMED':
+   oath.end<startWave?'BEFORE WAYSTONE · REVISIT FROM WAVE 1':
+   'SCOUT ONLY · THREE BREACH-FREE WAVES · UNIQUE BANNER + TIER '+oath.rune.tier+
+   ' '+oath.rune.type.toUpperCase()+' RUNE')+'</small></div></div>';
  return '<section class="lost-signals" aria-label="Optional exploration and rare guarded discoveries">'+
   '<div class="lost-signals-heading"><div><small>✦ THE LOST SIGNALS · EXPLORER\'S CHARTER</small>'+
   '<strong>'+found+' / '+lostSignalWaves.length+' DISCOVERIES · TIER '+roman(tier)+'</strong></div>'+
@@ -608,8 +616,8 @@ function renderLostSignalLedger(tier,startWave){
   '" class="'+(!scoutSignalsSelected?'selected':'')+'">NORMAL</button>'+
   '<button type="button" data-exploration-choice="on" aria-pressed="'+scoutSignalsSelected+
   '" class="'+(scoutSignalsSelected?'selected':'')+'">SCOUT</button></div></div>'+
-  '<p>Optional route this siege. A hidden guardian replaces one ordinary enemy on rare waves. Defeat it without a wall breach to earn a distinct heirloom once. Unclaimed discoveries remain on revisits. Existing milestones and Sigils cannot be farmed.</p>'+
-  '<div class="explorer-bond">'+explorerSetLabel()+'</div>'+ '<div class="lost-signal-list">'+rows+'</div></section>';
+  '<p>Optional SCOUT route: defeat rare guardians for heirlooms, and survive the Cartographer’s Oath at waves 1,001–1,003 without a breach across all three waves. Earn a unique equippable banner and a vault-protected rune per territory. NORMAL remains unchanged; one-time rewards never repeat.</p>'+
+  '<div class="explorer-bond">'+explorerSetLabel()+'</div>'+ '<div class="lost-signal-list">'+rows+oathRow+'</div></section>';
 }
 function awardLostSignal(){
  const signal=run.discoveryCurrent;
@@ -3033,7 +3041,7 @@ function refreshHUD(){
   const tip=$('encounterHint');if(!encounter&&tip){tip.hidden=true;encounterRibbon.dataset.threat='false';encounterRibbon.dataset.breach='false';encounterRibbon.dataset.focus='false';}
   if(encounter){
    encounterRibbon.dataset.kind=encounter.kind;
-   $('encounterType').textContent=run.discoveryCurrent?'LOST SIGNAL':hasNativeVanguard(encounter)?'NATIVE VANGUARD':encounter.label;
+   $('encounterType').textContent=run.discoveryCurrent?'LOST SIGNAL':run.cartographerCurrent?'CARTOGRAPHER OATH':hasNativeVanguard(encounter)?'NATIVE VANGUARD':encounter.label;
    $('encounterFaction').textContent=encounter.faction;
    $('encounterChapter').textContent='CHAPTER '+roman(encounter.chapter);
    const tip=$('encounterHint'),threat=activeEncounterThreat(),breach=frontlineBreachRisk();
@@ -3042,8 +3050,8 @@ function refreshHUD(){
    encounterRibbon.dataset.focus=castFocus?'true':'false';
    encounterRibbon.dataset.threat=threat?'true':'false';
    encounterRibbon.dataset.breach=!threat&&breach?'true':'false';
-   if(tip){const advice=threat?.text||(!threat&&breach?.text)||(run.discoveryCurrent?run.discoveryCurrent.guardian.name+' · HOLD THE WALL WITHOUT BREACHES':hasNativeVanguard(encounter)?territoryVanguard(encounter.tier).name+' · '+nativeMarchOrder(encounter.tier).name+' · '+territoryVanguard(encounter.tier).counter:encounterAdvice(encounter.kind));tip.hidden=!advice;tip.textContent=advice;}
-   const goal=$('encounterGoal');if(goal){const challenge=run.discoveryCurrent?{desc:run.discoveryCurrent.guardian.name+' · '+(run.discoveryWardenKilled?'GUARDIAN DEFEATED':'DEFEAT GUARDIAN')+' · ZERO BREACHES'}:chapterChallenge(encounter)||relicChallenge(encounter);goal.hidden=!challenge;goal.textContent=challenge?'✦ '+challenge.desc+(run.breaches?' · FAILED':' · UNBROKEN'):'';goal.dataset.failed=run.breaches?'true':'false';}
+   if(tip){const advice=threat?.text||(!threat&&breach?.text)||(run.discoveryCurrent?run.discoveryCurrent.guardian.name+' · HOLD THE WALL WITHOUT BREACHES':run.cartographerCurrent?'THREE CONSECUTIVE WAVES · ZERO BREACHES · UNIQUE BANNER + RUNE':hasNativeVanguard(encounter)?territoryVanguard(encounter.tier).name+' · '+nativeMarchOrder(encounter.tier).name+' · '+territoryVanguard(encounter.tier).counter:encounterAdvice(encounter.kind));tip.hidden=!advice;tip.textContent=advice;}
+   const goal=$('encounterGoal');if(goal){const challenge=run.discoveryCurrent?{desc:run.discoveryCurrent.guardian.name+' · '+(run.discoveryWardenKilled?'GUARDIAN DEFEATED':'DEFEAT GUARDIAN')+' · ZERO BREACHES'}:run.cartographerCurrent?{desc:'CARTOGRAPHER OATH · STAGE '+run.cartographerCurrent.step+' / 3 · ZERO BREACHES'}:chapterChallenge(encounter)||relicChallenge(encounter);goal.hidden=!challenge;goal.textContent=challenge?'✦ '+challenge.desc+(run.breaches?' · FAILED':' · UNBROKEN'):'';goal.dataset.failed=run.breaches?'true':'false';}
   }
  }
  $('waveFill').style.width=(run.phase==='fighting'?100*run.kills/(run.total||1):run.phase==='intermission'?100:0)+'%';
