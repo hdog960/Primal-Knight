@@ -4928,14 +4928,14 @@ $('milestoneList').addEventListener('click',e=>{
   return;
  }
  const waypoint=e.target.closest('[data-waystone-wave]');
- if(waypoint){
+ if(waypoint&&typeof waypoint.dataset?.waystoneWave==='string'){
   if(waypoint.disabled||!selectEarnedWaystone(chosenTier,waypoint.dataset.waystoneWave))return;
   const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;
   notice('WAYSTONE · EARNED WAVE '+formatWave(startWaveForTier(chosenTier)));
   return;
  }
  const target=e.target.closest('[data-milestone-target]');
- if(target){
+ if(target&&typeof target.dataset?.milestoneTarget==='string'){
   if(target.disabled||!focusUnclaimedMilestone(chosenTier,target.dataset.milestoneTarget))return;
   const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;
   notice('MILESTONE FOCUS · WAVE '+formatWave(Number(target.dataset.milestoneTarget)));
