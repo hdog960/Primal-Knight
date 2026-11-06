@@ -66,7 +66,7 @@ assert(el('tierDescription').textContent.includes(first.name),
  'Actual Battle selector displays the chosen region atmosphere');
 assert.equal(JSON.stringify(p),before,'Previewing a tier never changes resources, gear or saves');
 assert.equal(r.time,previousTime,'Weather preview does not advance battle physics');
-assert(html.includes('ALPHA 0.13.2')&&html.includes('game.js?v=0.13.2')&&html.includes('style.css?v=0.13.2'),
+assert(html.includes('ALPHA 0.13.3')&&html.includes('game.js?v=0.13.3')&&html.includes('style.css?v=0.13.3'),
  'iPhone Home Screen asset cache identifiers are updated');
 console.log('PASS: thirty unique tier vistas, 7+ lighting and 6+ weather families, deterministic background-only pixel ambience, reduced-motion static mode, bounded 19-rectangle render, no save/economy effects.');
 console.log('LIMIT: this is a first atmospheric layer using original backdrop, not 30 independently painted battlefields or real iPhone device acceptance.');
