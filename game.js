@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.13.2. Exploration & Rewards - Cartographer's Oath: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.13.3. Exploration & Rewards - Ancestral Keepsakes: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -123,6 +123,7 @@ function restoreProgressBackup(data,keepRecoveryCopy=false){
   p={...defaultState(),...data};
   normalizeRestoredProgress();
   migrateEquipmentSave();
+  reconcileMilestoneKeepsakes();
   chosenTier=p.selectedTier;useWaystone=true;
   if(!save())throw Error('Could not save restored progress');
   return true;
@@ -1050,6 +1051,40 @@ function decorateTierGate(tier,wave,prize){
  return prize;
 }
 function tierMilestones(tier){return milestonesAt.filter(w=>tier>=17||!outerMilestones.has(w));}
+// Alpha 0.13.3: 90 genuinely useful one-time deep-milestone equipment
+// rewards, using the existing item stats, inventory, enhancement and Vault.
+const keepsakeWaves=[1500,3000,6000];
+const keepsakeTraits=[
+ {slot:'boots',name:'Waystone Striders',rarity:2},
+ {slot:'ring',name:'Chronicle Signet',rarity:3},
+ {slot:'chest',name:'Fallen Kingdom Regalia',rarity:4}
+];
+function milestoneKeepsake(tier,wave){
+ const t=Number(tier),w=Number(wave);
+ if(!Number.isInteger(t)||t<1||t>MAX_TIER||!Number.isInteger(w))return null;
+ const index=keepsakeWaves.indexOf(w);
+ if(index<0||!tierMilestones(t).includes(w))return null;
+ const trait=keepsakeTraits[index];
+ return {id:'keepsake_'+t+'_'+w,slot:trait.slot,
+  rarity:Math.min(8,trait.rarity+Math.floor((t-1)/10)),plus:0,
+  legacyName:trait.name+' · '+tierNames[t-1]};
+}
+function reconcileMilestoneKeepsakes(){
+ // A player who already earned the original currency-only milestone receives
+ // its new unique equipment on load/import, never a duplicated Sigil payout.
+ let restored=0;
+ for(let tier=1;tier<=MAX_TIER;tier++){
+  for(const wave of keepsakeWaves){
+   if(!p.milestones[tier+':'+wave])continue;
+   const item=milestoneKeepsake(tier,wave);
+   if(!item||p.inventory.some(g=>g&&g.id===item.id)||
+      p.pendingGear.some(g=>g&&g.id===item.id))continue;
+   const placement=storeEarnedGear(item);
+   if(placement==='claimed'||placement==='reserved')restored++;
+  }
+ }
+ return restored;
+}
 function tierMilestone(tier,wave){
  const trial=dominionTrial(tier);
  const scale=1+(tier-1)*.6;
@@ -1090,7 +1125,12 @@ function tierMilestone(tier,wave){
   return {icon:['✦','◇','✧','❖'][outerIndex%4],name:trial.trial+' · Trial '+(outerIndex+1),detail:fmt(reward)+' Sigils · A unique conquest marker on the road to '+trial.crest,kind:'frontier',amount:reward};
  }
  const milestoneNames={250:'Warfront Waystone',500:'The Fifth Seal',750:'Veteran Vanguard',1500:'Ancestral Waystone',2000:'Siege of Ages',3000:'Chronicle of Valor',4000:'Echo of the Citadel',6000:'Fallen Kingdom',7500:'High Sovereignty',8000:'Eternal Waystone',9000:'Final Trial'};
- return {icon:'💠',name:milestoneNames[wave]||'Ascension Tribute',detail:fmt(sigils)+' Primal Sigils · One-time tier achievement'+(wave===6000?' · Eternal equipment can now drop':''),kind:'deepSigils',amount:sigils};
+ const keepsake=milestoneKeepsake(tier,wave);
+ return {icon:keepsake?'◆':'💠',name:milestoneNames[wave]||'Ascension Tribute',
+  detail:fmt(sigils)+' Primal Sigils · One-time tier achievement'+
+   (keepsake?' · UNIQUE '+rarities[keepsake.rarity].toUpperCase()+' '+gearSlotLabels[keepsake.slot].toUpperCase()+' · '+keepsake.legacyName:'')+
+   (wave===6000?' · Eternal equipment can now drop':''),
+  kind:'deepSigils',amount:sigils};
 }
 function milestoneKey(tier,wave){return tier+':'+wave;}
 function nextMilestone(tier,wave){const list=tierMilestones(tier);return list.find(w=>w>=wave&&!p.milestones[milestoneKey(tier,w)])||list.find(w=>w>=wave)||null;}
@@ -1109,7 +1149,7 @@ function rewardMilestone(tier,wave){
  const key=milestoneKey(tier,wave);
  if(p.milestones[key]||!tierMilestones(tier).includes(wave))return false;
  const prize=tierMilestone(tier,wave);
- let runeReserved=false;
+ let runeReserved=false,gearReserved=false;
  p.milestones[key]=true;
  if(prize.kind==='starter'){p.gold+=prize.gold;p.essence+=prize.essence;p.knowledge+=prize.knowledge;p.points+=prize.points;}
  if(prize.kind==='gold')p.gold+=prize.amount;
@@ -1123,6 +1163,8 @@ function rewardMilestone(tier,wave){
   const rune={id:'milestone_'+key,type:['ember','storm','frost','fortune'][(tier-1)%4],tier:Math.min(12,2+Math.floor(tier/3))};
   runeReserved=storeEarnedRune(rune)==='reserved';
  }
+ const keepsake=milestoneKeepsake(tier,wave);
+ if(keepsake)gearReserved=storeEarnedGear(keepsake)==='reserved';
  if(prize.kind==='banner'){const banner='Banner of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
  if(prize.kind==='eternal'){const banner='Eternal Victor of '+tierNames[tier-1];if(!p.banners.includes(banner))p.banners.push(banner);}
  if(prize.kind==='century'){p.essence+=prize.amount;p.sigils+=12+tier*3;}
@@ -1132,7 +1174,7 @@ function rewardMilestone(tier,wave){
   notice(tierNames[tier-1].toUpperCase()+' · CREST RANK '+prize.crestRank);
  }
  notice('MILESTONE '+formatWave(wave)+' • '+prize.name.toUpperCase());
- message(runeReserved?'✦ WAVE '+formatWave(wave)+' · RUNE SAFELY RESERVED IN VAULT':'✦ WAVE '+formatWave(wave)+' MILESTONE UNLOCKED');
+ message(gearReserved?'✦ WAVE '+formatWave(wave)+' · UNIQUE KEEPSAKE RESERVED IN EQUIPMENT VAULT':runeReserved?'✦ WAVE '+formatWave(wave)+' · RUNE SAFELY RESERVED IN VAULT':keepsake?'✦ WAVE '+formatWave(wave)+' · UNIQUE EQUIPMENT EARNED':'✦ WAVE '+formatWave(wave)+' MILESTONE UNLOCKED');
  save();return true;
 }
 let chosenTier=p.selectedTier;
@@ -1324,15 +1366,16 @@ function renderTierLobby(){
  const rewards=tierLadder.map(w=>{
   const prize=tierMilestone(tier,w),claimed=!!p.milestones[milestoneKey(tier,w)];
   const reservedRune=claimed&&prize.kind==='rune'&&p.pendingRelics.some(r=>r&&r.id==='milestone_'+milestoneKey(tier,w));
+  const reservedKeepsake=claimed&&p.pendingGear.some(g=>g&&g.id==='keepsake_'+tier+'_'+w);
   if(claimed)claimedCount++;
   const reached=best>=w;
-  return `<div class="milestone-entry ${claimed?'claimed':''} ${w>100?'milestone-deep':''} ${prize.kind==='path'?'milestone-path':''} ${prize.unlockNext?'milestone-gate':''} ${prize.kind==='dominion'?'milestone-dominion':''} ${outerMilestones.has(w)?'milestone-new':''} ${newBeginningMilestones.has(w)?'milestone-first':''} ${w===MAX_WAVE?'milestone-final':''}">
+  return `<div class="milestone-entry ${claimed?'claimed':''} ${milestoneKeepsake(tier,w)?'milestone-keepsake':''} ${w>100?'milestone-deep':''} ${prize.kind==='path'?'milestone-path':''} ${prize.unlockNext?'milestone-gate':''} ${prize.kind==='dominion'?'milestone-dominion':''} ${outerMilestones.has(w)?'milestone-new':''} ${newBeginningMilestones.has(w)?'milestone-first':''} ${w===MAX_WAVE?'milestone-final':''}">
     <div class="milestone-medal">${claimed?'✓':prize.icon}</div>
     <div class="milestone-copy"><strong>Wave ${formatWave(w)} · ${prize.name}</strong><small>${prize.detail}</small></div>
-    <span class="milestone-status">${reservedRune?'IN RUNE VAULT':claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
+    <span class="milestone-status">${reservedKeepsake?'IN EQUIPMENT VAULT':reservedRune?'IN RUNE VAULT':claimed?'CLAIMED':reached?'AVAILABLE NEXT RUN':'TARGET'}</span>
    </div>`;
  }).join('');
- const gearNotice=p.pendingGear.length?`<div class="rune-vault-notice" role="status"><strong>⚒ ${p.pendingGear.length} EARNED EQUIPMENT REWARD${p.pendingGear.length===1?'':'S'} RESERVED</strong><small>Your equipment bag was full when First Watch granted gear. Go to <b>Gear → Equipment</b>, free a slot, and claim the saved items.</small></div>`:'';
+ const gearNotice=p.pendingGear.length?`<div class="rune-vault-notice" role="status"><strong>⚒ ${p.pendingGear.length} EARNED EQUIPMENT REWARD${p.pendingGear.length===1?'':'S'} RESERVED</strong><small>Your equipment bag was full when First Watch, exploration or a milestone granted unique gear. Go to <b>Gear → Equipment</b>, free a slot, and claim the saved items.</small></div>`:'';
  const vaultNotice=p.pendingRelics.length?`<div class="rune-vault-notice" role="status"><strong>✦ ${p.pendingRelics.length} EARNED RUNE${p.pendingRelics.length===1?'':'S'} RESERVED</strong><small>Your rune pouch was full. Nothing was lost. Go to <b>Gear → Rune Workshop</b>, free a rune slot, then claim your reward.</small></div>`:'';
  $('milestoneList').innerHTML=renderWarCouncil(tier,useWaystone?stone:1)+renderCombatLoadouts(true)+gearNotice+vaultNotice+renderFirstWatch()+renderLostSignalLedger(tier,useWaystone?stone:1)+renderEncounterIntel(tier)+renderSiegeCodex()+renderDominionPreview(tier)+waystone+`<div class="milestone-ladder-heading"><span>✧ THE 10,000-WAVE CHRONICLE</span><small>${claimedCount} / ${tierLadder.length} CLAIMED</small></div>`+rewards;
  $('launchTierButton').disabled=tier>p.unlockedTier;
@@ -3093,7 +3136,17 @@ function isProtectedExplorerHeirloom(g){
  const signal=lostSignal(Number(match[1]),Number(match[2]));
  return !!signal&&signal.slot===g.slot&&!!p.explorationFinds[signal.key];
 }
-function canSellGear(g){return !!g&&!Object.values(p.equipped).includes(g.id)&&!isProtectedExplorerHeirloom(g);}
+function isProtectedMilestoneKeepsake(g){
+ if(!g||typeof g.id!=='string')return false;
+ const match=/^keepsake_(\d+)_(1500|3000|6000)$/.exec(g.id);
+ if(!match)return false;
+ const item=milestoneKeepsake(Number(match[1]),Number(match[2]));
+ return !!item&&item.slot===g.slot&&!!p.milestones[match[1]+':'+match[2]];
+}
+function canSellGear(g){
+ return !!g&&!Object.values(p.equipped).includes(g.id)&&
+  !isProtectedExplorerHeirloom(g)&&!isProtectedMilestoneKeepsake(g);
+}
 
 const currencyGlyph={gold:'🟡',essence:'🔷',knowledge:'📖',sigils:'💠',points:'✦'};
 const currencyFor=action=>({train:'essence',skill:'points',station:'gold',research:'knowledge',suppress:'knowledge',enhance:'gold',fuse:'gold'}[String(action).split(':')[0]]||'gold');
@@ -3291,11 +3344,11 @@ function renderArmoryDrawer(){
  <section class="armory-rarity-group rarity-group-${group.i}" aria-label="${group.rarity} equipment">
   <h3><span class="armory-rarity-sigil rarity-${group.i}">◆</span>${group.rarity.toUpperCase()} <small>${group.items.length} ${group.items.length===1?'ITEM':'ITEMS'}</small></h3>
   <div class="armory-inventory-grid">${group.items.map(g=>{
-   const inUse=Object.values(p.equipped).includes(g.id),active=ringSlots.includes(armoryDrawerSlot)?p.equipped[armoryDrawerSlot]===g.id:inUse,protectedHeirloom=isProtectedExplorerHeirloom(g),price=gearSellPrice(g),cost=gearCost(g);
+   const inUse=Object.values(p.equipped).includes(g.id),active=ringSlots.includes(armoryDrawerSlot)?p.equipped[armoryDrawerSlot]===g.id:inUse,protectedHeirloom=isProtectedExplorerHeirloom(g)||isProtectedMilestoneKeepsake(g),price=gearSellPrice(g),cost=gearCost(g);
    return `<article class="armory-inventory-item rarity-outline-${g.rarity}" data-item-id="${g.id}">
     <div class="armory-item-icon">${forgePixelIcon("gear_"+g.slot)}</div>
     <div class="armory-item-details"><small class="rarity-${g.rarity}">${rarities[g.rarity]} · ${gearSlotLabels[g.slot]}</small><strong>${gearTitle(g)}</strong><em>Enhancement +${g.plus} / 50 ${inUse?'· CURRENTLY EQUIPPED':''}</em></div>
-    <div class="armory-item-buttons"><button type="button" data-action="equip:${g.id}" ${active?'disabled':''}>${active?'✓ EQUIPPED':'EQUIP'}</button><button type="button" data-action="enhance:${g.id}" ${g.plus>=50||p.gold<cost?'disabled':''}>${g.plus>=50?'MAXED':`UPGRADE · 🟡${fmt(cost)}`}</button><button type="button" class="armory-sell-item" data-gear-sell="${g.id}" ${protectedHeirloom?'disabled title="One-time heirloom cannot be sold"':inUse?'disabled title="Unequip before selling"':''}>${protectedHeirloom?'HEIRLOOM · SAFE':inUse?'EQUIPPED · SAFE':`SELL · 🟡${fmt(price)}`}</button></div>
+    <div class="armory-item-buttons"><button type="button" data-action="equip:${g.id}" ${active?'disabled':''}>${active?'✓ EQUIPPED':'EQUIP'}</button><button type="button" data-action="enhance:${g.id}" ${g.plus>=50||p.gold<cost?'disabled':''}>${g.plus>=50?'MAXED':`UPGRADE · 🟡${fmt(cost)}`}</button><button type="button" class="armory-sell-item" data-gear-sell="${g.id}" ${protectedHeirloom?'disabled title="One-time unique reward cannot be sold"':inUse?'disabled title="Unequip before selling"':''}>${protectedHeirloom?'HEIRLOOM · SAFE':inUse?'EQUIPPED · SAFE':`SELL · 🟡${fmt(price)}`}</button></div>
    </article>`;}).join('')}</div>
  </section>`).join('');
  const rarityCounts=rarities.map((name,i)=>({name,i,count:p.inventory.filter(g=>g.rarity===i&&canSellGear(g)).length}));
@@ -4283,5 +4336,5 @@ $('deviceCheckFrame').onclick=shareBattlefieldFrame;
 $('deviceCheckCompare').onclick=shareBattlefieldComparison;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-resetDeviceCheck();initRun();syncBattleControls();syncClarityLens();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,isProtectedExplorerHeirloom,canSellGear,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,lostSignalWaves,lostSignal,lostSignalGuardians,cartographerRouteWaves,cartographerOath,activeCartographerOath,awardCartographerOath,explorerSetStatus,explorerSetLabel,activeLostSignal,awardLostSignal,renderLostSignalLedger,scoutSignalsSelected:()=>scoutSignalsSelected,setScoutSignalsSelected:v=>(scoutSignalsSelected=!!v),territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,castFocus:()=>castFocus,castFocusKind:()=>castFocusKind,castFocusActive,castFocusColors,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,clarityLensKey,clarityLensEnabled:()=>clarityLensEnabled,setClarityLens,toggleClarityLens,syncClarityLens,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,battlefieldComparisonName,buildBattlefieldComparison,shareBattlefieldComparison,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+if(reconcileMilestoneKeepsakes())save();resetDeviceCheck();initRun();syncBattleControls();syncClarityLens();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,isProtectedExplorerHeirloom,isProtectedMilestoneKeepsake,keepsakeWaves,milestoneKeepsake,reconcileMilestoneKeepsakes,canSellGear,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,lostSignalWaves,lostSignal,lostSignalGuardians,cartographerRouteWaves,cartographerOath,activeCartographerOath,awardCartographerOath,explorerSetStatus,explorerSetLabel,activeLostSignal,awardLostSignal,renderLostSignalLedger,scoutSignalsSelected:()=>scoutSignalsSelected,setScoutSignalsSelected:v=>(scoutSignalsSelected=!!v),territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,castFocus:()=>castFocus,castFocusKind:()=>castFocusKind,castFocusActive,castFocusColors,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,clarityLensKey,clarityLensEnabled:()=>clarityLensEnabled,setClarityLens,toggleClarityLens,syncClarityLens,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,battlefieldComparisonName,buildBattlefieldComparison,shareBattlefieldComparison,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
