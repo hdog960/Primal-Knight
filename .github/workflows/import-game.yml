@@ -89,3 +89,4 @@ jobs:
           node tests/long-siege-allocation.js
           node tests/iphone-endurance.js
           node tests/breach-readability.js
+          node tests/cast-focus-beacons.js
