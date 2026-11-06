@@ -99,3 +99,4 @@ jobs:
           node tests/echo-returns.js
           node tests/atlas-seals.js
           node tests/scout-routebook.js
+          node tests/save-checkpoint-recovery.js

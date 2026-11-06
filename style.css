@@ -2862,3 +2862,27 @@
  .scout-route-option{min-height:56px;padding:8px 9px}
  .scout-route-option strong{font-size:12px}
 }
+
+/* Alpha 0.14.0 — honest local save-integrity status, in the original parchment UI.
+   The warning is informational, not a success badge or an obstructive modal. */
+.save-recovery-panel{
+ margin:10px 0 14px;padding:12px;
+ border:1px solid #bca274;border-left:4px solid #dac086;
+ border-radius:4px;
+ background:linear-gradient(112deg,#393d3ce8,#243a43ea);
+ box-shadow:inset 0 1px #f8dfaa29;
+}
+.save-recovery-panel>strong{
+ display:block;color:#f7e3b1;font:800 13px/1.4 Georgia,serif;
+ letter-spacing:.15px;
+}
+.save-recovery-panel>p{
+ margin:7px 0 9px;color:#e2e0d8;
+ font:12px/1.55 Arial,sans-serif;
+}
+.save-recovery-panel .wide-btn{min-height:44px;margin-top:7px;max-width:100%}
+.save-recovery-panel.save-recovery-danger{
+ border-color:#dc9f89;border-left-color:#eeac87;
+ background:linear-gradient(110deg,#573d36ed,#293b43ed);
+}
+.save-recovery-panel.save-recovery-danger>strong{color:#ffe0b7}
