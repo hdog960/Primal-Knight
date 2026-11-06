@@ -2812,3 +2812,53 @@
  background:linear-gradient(105deg,#2f4a3dec,#243b43ec);
 }
 .lost-signal-entry.atlas-seal-entry.claimed>span{color:#d0ffe0}
+
+/* Alpha 0.13.6 — compact touch-first Scout Routebook, styled as a field chart. */
+.scout-routebook{
+ margin:10px 0;padding:11px;border:1px solid #ad966e;border-radius:4px;
+ background:linear-gradient(126deg,#45372fe8,#203c44ef 62%,#26303ce8);
+ box-shadow:inset 0 1px #f9dfab39,0 4px 10px #050a1380;
+}
+.scout-route-heading{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.scout-route-heading strong{
+ font:800 13px Georgia,serif;color:#ffe5a7;letter-spacing:.4px;
+}
+.scout-route-heading span{
+ color:#e1c99b;font:800 10px Arial,sans-serif;letter-spacing:.35px;
+}
+.scout-routebook>p{color:#d2d8d1;font:11px/1.45 Arial,sans-serif;margin:8px 0 10px}
+.scout-routebook b{color:#ffe1a4}
+.scout-route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.scout-route-option{
+ cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;
+ justify-content:center;min-width:0;min-height:66px;padding:9px 10px;gap:4px;
+ text-align:left;border:1px solid #9c8662;border-left:3px solid #d5b67b;
+ background:linear-gradient(115deg,#3a3c42e6,#223742e8);color:#ffedcd;
+ touch-action:manipulation;
+}
+.scout-route-option strong{color:#ffe7b5;font:bold 12px/1.25 Georgia,serif}
+.scout-route-option small{font:800 9px/1.35 Arial,sans-serif;color:#bccdc8;letter-spacing:.12px}
+.scout-route-option.selected{
+ border-color:#f2d595;border-left-color:#ffe3a0;
+ background:linear-gradient(105deg,#655036ed,#2b4850e9);
+ box-shadow:inset 0 0 0 1px #ffe8b750;
+}
+.scout-route-option:focus-visible{outline:2px solid #fff3ca;outline-offset:2px}
+.scout-route-option:disabled{cursor:default;opacity:.6;filter:saturate(.7)}
+.scout-route-option.claimed{border-left-color:#7bc2a3}
+.scout-route-ready{
+ margin-top:9px;padding:8px 9px;border:1px solid #dfc080;
+ background:#293f3ad9;color:#ffe5af;
+ font:800 10px/1.45 Arial,sans-serif;letter-spacing:.3px;
+}
+.scout-waystone-active{
+ display:flex;align-items:center;min-height:44px;padding:6px 9px;
+ border:1px solid #d9ba7b;background:#364239d9;
+ color:#ffe4ad;font:bold 10px/1.3 Arial,sans-serif;
+}
+@media(max-width:680px){
+ .scout-routebook{padding:10px}
+ .scout-route-grid{grid-template-columns:1fr}
+ .scout-route-option{min-height:56px;padding:8px 9px}
+ .scout-route-option strong{font-size:12px}
+}
