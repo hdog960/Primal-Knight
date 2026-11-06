@@ -1,0 +1,15 @@
+# Alpha 0.15.2 — Fortitude Breach Ward and Paired Earned Retry Comparisons
+
+**Phase:** First Watch & Progression Balancing, slice 3. **Release gate:** 71 required automated checks, including JS syntax.
+
+## Reason
+0.15.1 real-engine seeded first attempts with six permanent Training ranks showed Blade First clearing 6/7/7 waves for 51 Essence, Even Watch 6/6/6 for 52, and Stoneguard 6/5/6 for 59. Offense already prevented breaches and kept scaling into the next wave; Fortitude's +12 maximum wall HP per rank improved wall capacity but did not directly mitigate individual breaches. An explicit small defensive effect offers more meaningful investment choice without granting currencies or reducing enemy difficulty for every build.
+
+## Actual production change
+Fortitude Training retains **+12 maximum wall HP per purchased rank**. Its first six ranks now additionally reduce the *incoming damage from each fortress breach by 4%*, cumulative and capped at **24%** at rank six. Ranks seven through the permanent cap continue to add HP, without increasing breach ward further. This modifier multiplies the existing enemy suppression/Rampart/Wardkeeper/Sentinel factors; it does not bypass or weaken other defensive paths. No new skill-point ranks, reward triggers, spend automation, bought gear, enemy health, damage-per-wave rewards or save fields. The character's original `training.fort` rank drives the modifier, including for older existing characters. Rank prices remain unchanged, and both the Power training description and Battle Quartermaster explain the exact mechanic.
+
+## How measured
+The new `tests/first-watch-defensive-balance.js` runs the actual production engine with the new ward and an otherwise identical test instance with only the `*(1-fortitudeBreachWard())` multiplier removed (the prior 0.15.1 formula). It buys the original priced six-rank investment plans, starts genuine Tier I sieges at wave 1 with deterministic random seeds, and checks actual combat and save integrity; after real defeats it spends only already-earned Essence for a second attempt. Matched seed comparisons distinguish formula effects from arbitrary build-fixture advantages; no timers, Sigils, XP, ranks or one-time rewards are fabricated. No-Fortitude controls must remain unchanged. Numeric cap tests confirm that higher Fortitude ranks never create more than 24% ward. The log measures but does not guarantee Stoneguard parity with Blade First.
+
+## Future work
+Follow with broader policies and longer earned-progression cohorts, expense breakdowns and mid/late bottleneck audits. Neither a complete 12.5-hour real-player cohort nor the 1,250-hour conquest target has been validated; real iPhone graphics/touch/thermal QA stays pending at user direction.
