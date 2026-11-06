@@ -2997,3 +2997,20 @@
 }
 .save-recovery-panel.save-recovery-danger strong{color:#ffe2bf}
 .save-recovery-panel.save-recovery-danger p{color:#ffe6d8;line-height:1.55}
+
+/* Alpha 0.15.1 — optional earned-investment choices; illustrated Quartermaster palette. */
+.watch-investment{margin:10px 0 12px;padding:11px;border:1px solid #b69b66;background:linear-gradient(145deg,#263943,#1a2b37 68%,#293b3a);box-shadow:inset 0 1px #f2d49744}
+.watch-investment-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px 10px}
+.watch-investment-head strong{font:800 12px Georgia,serif;color:#ffdf9c;letter-spacing:.45px}
+.watch-investment-head small,.watch-investment-note{font:800 10px/1.45 Arial,sans-serif;color:#b8d8cb}
+.watch-investment>p{font:11px/1.5 Arial,sans-serif;color:#d7ddd7;margin:7px 0 10px}
+.watch-investment-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.watch-investment-card{min-width:0;padding:10px 9px;border:1px solid #7e7864;background:linear-gradient(180deg,#34413e,#222f38);display:flex;flex-direction:column;gap:6px}
+.watch-investment-card>small{font:800 10px Arial,sans-serif;letter-spacing:.5px;color:#ffdc96}
+.watch-investment-card>strong{font:700 12px/1.3 Georgia,serif;color:#f6ebd7}
+.watch-investment-card>p{font:11px/1.35 Arial,sans-serif;color:#d2ddd6;margin:0;flex:1}
+.watch-investment-card>span{font:800 10px/1.35 Arial,sans-serif;color:#b6dcd2}
+.watch-investment-card button{display:block;width:100%;min-height:44px;padding:8px 5px;border:1px solid #b49a65;background:linear-gradient(#795e3e,#483728);color:#fff0ce;font:800 10px/1.3 Arial,sans-serif;letter-spacing:.25px;touch-action:manipulation}
+.watch-investment-card button:disabled{opacity:.55;cursor:not-allowed;background:#2b343a;color:#ced2d1}
+.watch-investment-note{display:block;margin-top:9px;font-weight:400}
+@media(max-width:610px){.watch-investment-grid{grid-template-columns:1fr}.watch-investment-card{gap:4px}.watch-investment-card button{min-height:44px}}

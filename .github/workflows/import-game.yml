@@ -108,3 +108,4 @@ jobs:
           node tests/save-session-conflicts.js
           node tests/save-live-continuity.js
           node tests/first-watch-onboarding-cadence.js
+          node tests/first-watch-investment-paths.js
