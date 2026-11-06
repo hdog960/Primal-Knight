@@ -3696,14 +3696,14 @@ function deviceCheckReport(){
   'Requested canvas paints/s: '+(s?s.drawRate.toFixed(1):'WARMING UP'),
   'Animation callbacks/s: '+(s?s.frameRate.toFixed(1):'WARMING UP'),
   'Gaps ≥34ms per 2s sample (all visible modes): '+(s?s.slow:0)+' · Worst: '+(s?s.worst.toFixed(0):'—')+'ms',
-  'Total paint calls: '+d.totalDraws+' · Total visible callback gaps ≥34ms: '+d.totalSlow,
+  'Total paint calls: '+d.totalDraws+' · Total RAF callback gaps ≥34ms: '+d.totalSlow,
   'Active siege time: '+progress.elapsedSeconds+'s · '+(progress.complete?'30-MIN TARGET REACHED':'30-MIN TARGET NOT YET REACHED'),
   'Active-only callback gaps ≥34ms: '+d.activeSlow+' · Worst active callback gap: '+d.activeWorst.toFixed(0)+'ms',
   'Completed five-minute checkpoints: '+d.checkpointCount,
   ...checkpoints,
   'Manual iPhone observations (fill in after testing):',
   'Battery start/end: ____% / ____% · Device warmth: ____ · Visual problems: ____',
-  'RAF callbacks and canvas paint calls are NOT actual GPU FPS, battery draw or temperature.',
+  'Canvas paint calls are not GPU FPS, battery draw or temperature; RAF callbacks are not rendered frame rate.',
   'Time excludes paused/hidden intervals and callback gaps ≥250ms; no data saved or uploaded.'
  ].join('\n');
 }
