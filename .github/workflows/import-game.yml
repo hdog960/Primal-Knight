@@ -94,3 +94,4 @@ jobs:
           node tests/lens-comparison.js
           node tests/lost-signals.js
           node tests/secret-guardians-bonds.js
+          node tests/cartographer-oath.js
