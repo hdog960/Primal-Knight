@@ -2989,3 +2989,11 @@
 .portable-backup-panel .wide-btn:disabled{opacity:.5;cursor:not-allowed}
 .portable-backup-panel>small{display:block;color:#afc5c1;line-height:1.5;margin-top:12px}
 @media(max-width:600px){.portable-backup-panel{padding:12px}}
+
+/* Alpha 0.14.5: urgent, readable save-write warnings, no change to art assets. */
+.save-recovery-panel.save-recovery-danger{
+ border-color:rgba(234,134,88,.83);box-shadow:inset 0 0 0 1px rgba(234,134,88,.28);
+ background:linear-gradient(135deg,rgba(72,35,34,.95),rgba(43,29,36,.97));
+}
+.save-recovery-panel.save-recovery-danger strong{color:#ffe2bf}
+.save-recovery-panel.save-recovery-danger p{color:#ffe6d8;line-height:1.55}

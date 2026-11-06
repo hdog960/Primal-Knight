@@ -104,3 +104,4 @@ jobs:
           node tests/siege-guard.js
           node tests/waystone-navigator.js
           node tests/portable-backup-migration.js
+          node tests/save-write-rollback.js
