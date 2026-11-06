@@ -2717,3 +2717,33 @@
 @media(orientation:landscape) and (max-height:460px){
  .device-check-compare{min-height:40px;padding:5px 7px;font-size:9px;margin-top:4px}
 }
+
+/* Alpha 0.13.0: optional lost signals, readable in iPhone Battle preparation. */
+.lost-signals{margin:12px 0;padding:12px 14px;border:2px solid #85ac9c;
+ background:linear-gradient(125deg,#213d3de9,#202737ef);color:#e8ebdf;
+ box-shadow:inset 0 0 0 1px #b8e0ce24,0 4px 10px #0a1321a6}
+.lost-signals-heading{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap}
+.lost-signals-heading>div:first-child{display:grid;gap:3px}
+.lost-signals-heading small{font:800 10px/1.3 Arial,sans-serif;color:#a4e2d0;letter-spacing:.8px}
+.lost-signals-heading strong{font:800 15px/1.25 Georgia,serif;color:#f8e4ad}
+.lost-signals>p{margin:9px 0;color:#d2dcd4;font:11px/1.45 Arial,sans-serif}
+.lost-signal-choice{display:flex;gap:5px;align-items:center}
+.lost-signal-choice button{min-width:72px;min-height:44px;padding:8px 10px;
+ border:2px solid #688d8c;background:#20313e;color:#d1e9e2;
+ font:800 11px Arial,sans-serif;letter-spacing:.65px;cursor:pointer}
+.lost-signal-choice button.selected{border-color:#f0cd83;color:#ffefbd;background:linear-gradient(#5a5540,#343b37)}
+.lost-signal-choice button:focus-visible{outline:3px solid #ffe9ad;outline-offset:2px}
+.lost-signal-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.lost-signal-entry{display:flex;align-items:center;gap:8px;padding:8px;
+ border:1px solid #536d6d;background:#14262dd9;min-width:0}
+.lost-signal-entry>span{font:800 18px Georgia,serif;color:#a7e9dc}
+.lost-signal-entry>div{min-width:0;display:grid;gap:2px}
+.lost-signal-entry strong{font:800 10px/1.3 Arial,sans-serif;color:#f5e5b9}
+.lost-signal-entry small{font:700 9px/1.35 Arial,sans-serif;color:#c0d7d1}
+.lost-signal-entry.claimed{border-color:#82b69e;background:#213b36bd}
+.lost-signal-entry.claimed>span{color:#a1f3bc}
+@media(max-width:680px){
+ .lost-signals{padding:10px}.lost-signals-heading strong{font-size:13px}
+ .lost-signal-list{grid-template-columns:1fr}.lost-signals>p{font-size:10px}
+ .lost-signal-choice button{min-width:66px;min-height:44px}
+}
