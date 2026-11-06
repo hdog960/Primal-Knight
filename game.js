@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.14.4. Long-Run Quality of Life - Verified Backup & Forward-Format Protection: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.14.5. Long-Run Quality of Life - Verified Import Rollback & Write-Failure Safety: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -107,7 +107,7 @@ function newerCharacterSave(raw){
  }
  let p,saveRecoveryStatus='healthy',saveWriteBlocked=false,
   lastVerifiedSaveRaw=null,unrecoverableSaveRaw=null,recoveryWrites=0,
-  recoverySnapshotFailed=false;
+  recoverySnapshotFailed=false,saveWriteIssue=null;
  try{
   const raw=localStorage.getItem(storageKey),data=parseCharacterRaw(raw);
   if(data){p={...defaultState(),...data};lastVerifiedSaveRaw=raw;}
@@ -271,19 +271,44 @@ function renderPortableBackupPanel(){
   '>DOWNLOAD VERIFIED BACKUP</button><small>Checksums detect accidental corruption, not intentional tampering. Your original plain JSON export remains available below.</small></section>';
 }
 
+// Alpha 0.14.5: a failed import cannot claim success merely because a write
+// returned. Keep the original stored bytes and undo slot stable on failure.
+// These are localStorage operations, not a claim of transactional browser storage:
+// a device that refuses rollback enters write-protected recovery mode.
 function restoreProgressBackup(data,keepRecoveryCopy=false){
  validateProgressBackup(data);
  const old=p,previousTier=chosenTier,previousWaystone=useWaystone,previousCustomWaystone=selectedWaystoneWave,previousGoal=selectedMilestoneTarget,previousEcho=echoStartSelected,previousRoute=selectedScoutRouteId,previousScout=scoutSignalsSelected,previousBlock=saveWriteBlocked,previousStatus=saveRecoveryStatus,previousVerified=lastVerifiedSaveRaw,previousReport=lastSiegeReport;
+ const previousIssue=saveWriteIssue,previousWrites=recoveryWrites,previousCheckpointFailure=recoverySnapshotFailed;
+ // Failure to READ the original bytes must abort before any state is changed.
+ const primaryBefore=localStorage.getItem(storageKey);
+ const undoBefore=keepRecoveryCopy?localStorage.getItem(safetyBackupKey):null;
+ const quarantineBefore=keepRecoveryCopy?localStorage.getItem(damagedOriginalKey):null;
+ let undoTouched=false,quarantineTouched=false;
+ function restoreSlot(key,raw){
+  try{
+   if(localStorage.getItem(key)===raw)return true;
+   if(raw===null){if(typeof localStorage.removeItem!=='function')return false;localStorage.removeItem(key);}
+   else localStorage.setItem(key,raw);
+   return localStorage.getItem(key)===raw;
+  }catch{return false;}
+ }
  try{
-  // Refuse a destructive import if iPhone storage cannot hold a safety copy.
+  // Record an undo backup before mutation; a silent/no-op storage write is
+  // not sufficient. An incompatible primary is quarantined as raw text.
   if(keepRecoveryCopy){
    if(saveWriteBlocked&&unrecoverableSaveRaw!==null){
-    // A damaged primary is NOT a valid undo-import backup. Preserve its exact
-    // original bytes in a separate quarantine slot before importing instead.
+    quarantineTouched=true;
     localStorage.setItem(damagedOriginalKey,unrecoverableSaveRaw);
     if(localStorage.getItem(damagedOriginalKey)!==unrecoverableSaveRaw)
-     throw Error('Could not preserve damaged original save');
-   }else localStorage.setItem(safetyBackupKey,JSON.stringify(p));
+     throw Error('Could not verify original incompatible save quarantine');
+   }else{
+    const copy=JSON.stringify(p);
+    if(!parseCharacterRaw(copy))throw Error('Cannot back up current character before import');
+    undoTouched=true;
+    localStorage.setItem(safetyBackupKey,copy);
+    if(localStorage.getItem(safetyBackupKey)!==copy)
+     throw Error('Could not verify pre-import undo backup');
+   }
   }
   p={...defaultState(),...data};
   saveWriteBlocked=false;saveRecoveryStatus='healthy';
@@ -292,10 +317,30 @@ function restoreProgressBackup(data,keepRecoveryCopy=false){
   reconcileMilestoneKeepsakes();
   reconcileAtlasSeals();
   chosenTier=p.selectedTier;useWaystone=true;resetWaystoneNavigation();echoStartSelected=false;selectedScoutRouteId=null;
-  if(!save())throw Error('Could not save restored progress');
+  if(!save())throw Error('Imported character did not persist and pass readback');
   return true;
  }catch(error){
-  p=old;chosenTier=previousTier;useWaystone=previousWaystone;selectedWaystoneWave=previousCustomWaystone;selectedMilestoneTarget=previousGoal;echoStartSelected=previousEcho;selectedScoutRouteId=previousRoute;scoutSignalsSelected=previousScout;saveWriteBlocked=previousBlock;saveRecoveryStatus=previousStatus;lastVerifiedSaveRaw=previousVerified;lastSiegeReport=previousReport;
+  // If a setItem wrote partial bytes before failing, try to restore exactly
+  // what was stored before the import. Never report success without readback.
+  const primaryRestored=restoreSlot(storageKey,primaryBefore);
+  const undoRestored=!undoTouched||restoreSlot(safetyBackupKey,undoBefore);
+  // On an unverified primary rollback KEEP the quarantined original.
+  const quarantineRestored=!quarantineTouched||!primaryRestored||
+   restoreSlot(damagedOriginalKey,quarantineBefore);
+  p=old;chosenTier=previousTier;useWaystone=previousWaystone;
+  selectedWaystoneWave=previousCustomWaystone;selectedMilestoneTarget=previousGoal;
+  echoStartSelected=previousEcho;selectedScoutRouteId=previousRoute;
+  scoutSignalsSelected=previousScout;lastVerifiedSaveRaw=previousVerified;
+  lastSiegeReport=previousReport;recoveryWrites=previousWrites;
+  recoverySnapshotFailed=previousCheckpointFailure;
+  saveWriteBlocked=previousBlock;saveRecoveryStatus=previousStatus;
+  saveWriteIssue=previousIssue;
+  if(!primaryRestored){
+   saveWriteBlocked=true;saveRecoveryStatus='write-failed';
+   saveWriteIssue='ROLLBACK UNVERIFIED · EXPORT YOUR AVAILABLE CHARACTER BACKUP';
+  }else if(!undoRestored||!quarantineRestored){
+   saveWriteIssue='IMPORT FAILED · PREVIOUS UNDO OR QUARANTINE COPY NOT VERIFIED';
+  }
   throw error;
  }
 }
@@ -304,7 +349,15 @@ function undoProgressImport(){
  if(!backup)return false;
  const data=JSON.parse(backup);
  restoreProgressBackup(data,false);
- if(typeof localStorage.removeItem==='function')localStorage.removeItem(safetyBackupKey);
+ // Removal only follows a VERIFIED restored primary. A cleanup failure should
+ // not misreport the restoration itself as failed; warn and retain the copy.
+ try{
+  if(typeof localStorage.removeItem==='function'){
+   localStorage.removeItem(safetyBackupKey);
+   if(localStorage.getItem(safetyBackupKey)!==null)
+    saveWriteIssue='UNDO RESTORED · OLD UNDO COPY COULD NOT BE CLEARED';
+  }
+ }catch{saveWriteIssue='UNDO RESTORED · OLD UNDO COPY COULD NOT BE CLEARED';}
  return true;
 }
 
@@ -1842,7 +1895,9 @@ function renderTierLobby(){
  $('tierDescription').textContent=`Enemy strength ×${tierThreat(tier).toFixed(2)} · Gold & XP ×${(1+(tier-1)*.32).toFixed(2)} · Record ${formatWave(best)} / ${formatWave(MAX_WAVE)} · ${best>=MAX_WAVE?'ETERNALLY CONQUERED':'Continue your legacy'} · ${territoryVista(tier).name}`;
   updateTerritoryPreview(tier);
   if(saveWriteBlocked){
-   $('tierDescription').textContent=saveRecoveryStatus==='future'?
+   $('tierDescription').textContent=saveRecoveryStatus==='write-failed'?
+    '⚠ STORAGE READBACK OR IMPORT ROLLBACK FAILED · AUTOSAVE LOCKED · EXPORT YOUR CHARACTER IN SETTINGS.':
+    saveRecoveryStatus==='future'?
     '⚠ NEWER SAVE VERSION FOUND · NO AUTOMATIC DOWNGRADE · AUTOSAVE LOCKED · OPEN SETTINGS & SAVES TO EXPORT ORIGINAL.':
     '⚠ SAVED CHARACTER MAY BE DAMAGED · AUTOSAVE LOCKED TO PROTECT THE ORIGINAL FILE · OPEN SETTINGS & SAVES FOR RECOVERY OR IMPORT.';
   }else if(saveRecoveryStatus==='recovered'){
@@ -1898,31 +1953,56 @@ function retreatFromSiege(){
 function legacyCost(row){return Math.ceil(row[3]*(1+lr(row[0])*.35+Math.pow(lr(row[0]),1.35)*.26));}
 const lvlNeed=()=>Math.floor(65*Math.pow(p.level,1.34));const n=(obj,key)=>obj[key]||0;const skill=id=>n(p.skills,id);const station=id=>n(p.stations,id);const t=id=>n(p.training,id);const res=id=>n(p.research,id);const sup=id=>n(p.suppression,id);
 function xpAdd(amount){p.xp+=Math.floor(amount*(1+t('xp')*.025+skill('wisdom')*.07)*(1+Math.min(16,res('almanac'))*.015)*(1+dominionBonus('xp')));while(p.xp>=lvlNeed()){p.xp-=lvlNeed();p.level++;p.points+=2;notice('LEVEL UP! +2 SKILL POINTS');}}
+// Alpha 0.14.5: a successful primary JSON readback is the commit point.
+// Never rotate away the last verified checkpoint before that commit succeeds.
 function save(){
  if(saveWriteBlocked)return false;
+ let serialized;
  try{
-  const serialized=JSON.stringify(p);
-  if(!parseCharacterRaw(serialized))return false;
-  // Save the previous known-good character before replacing the live JSON.
-  // Rotate every twelve verified saves, not on every canvas frame.
-  if(lastVerifiedSaveRaw&&(recoveryWrites===0||recoveryWrites>=recoveryCadence)){
-   recoverySnapshotFailed=!writeRecoveryCheckpoint(lastVerifiedSaveRaw);
-   recoveryWrites=0;
-  }
+  serialized=JSON.stringify(p);
+  if(!parseCharacterRaw(serialized))throw Error('Invalid character snapshot');
+ }catch{
+  saveWriteIssue='INVALID CURRENT CHARACTER · EXPORT A BACKUP';
+  return false;
+ }
+ const previous=lastVerifiedSaveRaw;
+ let stored;
+ try{
   localStorage.setItem(storageKey,serialized);
-  if(localStorage.getItem(storageKey)!==serialized)return false;
-  lastVerifiedSaveRaw=serialized;recoveryWrites++;
-  if(!readRecoveryCheckpoint()&&recoveryWrites===1){
-   recoverySnapshotFailed=!writeRecoveryCheckpoint(serialized);
+  stored=localStorage.getItem(storageKey);
+  if(stored!==serialized)throw Error('Primary write readback mismatch');
+ }catch{
+  saveWriteIssue='PRIMARY SAVE WRITE FAILED · LATEST PROGRESS NOT CONFIRMED';
+  // A rejected/quota write that left the previous primary unchanged may
+  // be retried. Unknown/partial bytes require a manual recovery decision.
+  try{
+   stored=localStorage.getItem(storageKey);
+   if(stored!==previous){
+    saveWriteBlocked=true;saveRecoveryStatus='write-failed';
+    saveWriteIssue='PRIMARY SAVE UNVERIFIED · AUTOSAVE LOCKED';
+   }
+  }catch{
+   saveWriteBlocked=true;saveRecoveryStatus='write-failed';
+   saveWriteIssue='PRIMARY SAVE READBACK FAILED · AUTOSAVE LOCKED';
   }
-  return true;
- }catch{return false;}
+  return false;
+ }
+ const rotate=!!previous&&(recoveryWrites===0||recoveryWrites>=recoveryCadence);
+ lastVerifiedSaveRaw=serialized;saveWriteIssue=null;
+ if(rotate){
+  recoverySnapshotFailed=!writeRecoveryCheckpoint(previous);
+  recoveryWrites=0;
+ }
+ recoveryWrites++;
+ if(!readRecoveryCheckpoint()&&recoveryWrites===1)
+  recoverySnapshotFailed=!writeRecoveryCheckpoint(serialized);
+ return true;
 }
 function saveRecoverySummary(){
  const snapshot=readRecoveryCheckpoint();
  return {status:saveRecoveryStatus,blocked:saveWriteBlocked,
   hasCheckpoint:!!snapshot,checkpointAt:snapshot?.createdAt||null,
-  checkpointFailed:recoverySnapshotFailed};
+  checkpointFailed:recoverySnapshotFailed,writeIssue:saveWriteIssue};
 }
 function restoreVerifiedCheckpoint(){
  const snapshot=readRecoveryCheckpoint();
@@ -1934,12 +2014,17 @@ function damagedOriginalRaw(){
 }
 function renderSaveRecoveryPanel(){
  const info=saveRecoverySummary();
- const headline=info.status==='future'?'NEWER SAVE VERSION · WRITE-LOCKED':
+ const headline=info.status==='write-failed'?'SAVE STORAGE UNVERIFIED · AUTOSAVE LOCKED':
+  info.writeIssue?'LATEST SAVE WAS NOT VERIFIED':
+  info.status==='future'?'NEWER SAVE VERSION · WRITE-LOCKED':
   info.blocked?'SAVE PROTECTION ACTIVE · AUTOSAVE LOCKED':
   info.status==='recovered'?'RECOVERED FROM A VERIFIED CHECKPOINT':
   info.hasCheckpoint?'CHECKPOINT VERIFIED · CHARACTER SAVE HEALTHY':
   'SAVE HEALTHY · CHECKPOINT NOT YET AVAILABLE';
- const detail=info.status==='future'?
+ const detail=info.status==='write-failed'?
+  'The device did not confirm the latest save or a required rollback. Autosave is locked to avoid overwriting uncertain bytes. Export your current in-memory character JSON and inspect your older verified backup or undo copy. No automatic recovery is claimed.':
+  info.writeIssue?'The most recent storage operation was not fully verified ('+info.writeIssue+'). Recent waves or purchases may exist only in memory. Export a JSON backup before leaving the game.':
+  info.status==='future'?
   'This device contains a character saved by a newer game version. The exact original is untouched, and automatic writes are BLOCKED to prevent downgrading. Export the original text below. Prefer opening it in the newer game; importing an older backup is an explicit replacement.':
   info.blocked?
   'The saved character is damaged and no valid checkpoint was found. Its original bytes were NOT overwritten. Export the damaged save or import a known-good JSON backup.':
@@ -1948,7 +2033,7 @@ function renderSaveRecoveryPanel(){
   info.checkpointFailed?'This device rejected a checkpoint write. Keep an exported JSON backup as well.':
   info.hasCheckpoint?'An older copy was checksum-verified. It may trail current progress by several successful saves.':
   'The first successful save creates a checkpoint. An exported JSON backup provides extra protection.';
- return '<section class="save-recovery-panel '+(info.blocked?'save-recovery-danger':'')+
+ return '<section class="save-recovery-panel '+(info.blocked||info.writeIssue?'save-recovery-danger':'')+
   '" role="status" aria-label="Local save integrity and recovery">'+
   '<strong>✦ '+headline+'</strong><p>'+detail+'</p>'+
   (info.hasCheckpoint?'<button class="wide-btn" data-action="restoreCheckpoint">RESTORE LAST VERIFIED CHECKPOINT</button>':'')+
@@ -4326,7 +4411,7 @@ function renderPanel(){
   html+=renderPortableBackupPanel();
   html+=renderSiegeHistory();
   html+=siegeGuardSettings();
-  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Save or share a clean 960×540 PNG of the current battlefield art, including terrain, flags, creatures and projectiles. The HUD is not included; the image is never uploaded automatically.</span><button class="wide-btn" data-action="battleSnapshot">SHARE BATTLEFIELD PNG</button></div><div class="setting-row"><span>Compare the same live battlefield twice in one PNG: original artwork on the left, tactical LENS on the right. Your current visual setting is restored after capture.</span><button class="wide-btn" data-action="battleCompare">COMPARE LENS PNG</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.14.4 · Verified Portable Saves · Free to play · No purchases or subscriptions.</p>`;
+  html+=`<div class="setting-row"><span>Download a JSON backup of permanent progression</span><button class="wide-btn" data-action="export">EXPORT SAVE</button></div><div class="setting-row"><span>Restore a saved backup from your device (up to Tier XXX)</span><input id="importFile" aria-label="Import save backup" type="file" accept="application/json,.json"></div>${hasImportRecovery()?'<div class="setting-row"><span>Made an import by mistake? Your previous save is safely available.</span><button class="wide-btn" data-action="undoImport">UNDO LAST IMPORT</button></div>':''}<div class="setting-row"><span>Current combat: ${run.phase} · Autosaved on upgrades and wave clears</span><button class="wide-btn" data-action="save">SAVE NOW</button></div>${renderVisualSettings()}<div class="setting-row"><span>Save or share a clean 960×540 PNG of the current battlefield art, including terrain, flags, creatures and projectiles. The HUD is not included; the image is never uploaded automatically.</span><button class="wide-btn" data-action="battleSnapshot">SHARE BATTLEFIELD PNG</button></div><div class="setting-row"><span>Compare the same live battlefield twice in one PNG: original artwork on the left, tactical LENS on the right. Your current visual setting is restored after capture.</span><button class="wide-btn" data-action="battleCompare">COMPARE LENS PNG</button></div><div class="setting-row"><span>Optional iPhone Device Check: track canvas paints, animation callbacks and frame gaps on this device. No upload or saved telemetry.</span><button class="wide-btn" data-action="deviceCheck">${deviceCheckEnabled?'STOP DEVICE CHECK':'START DEVICE CHECK'}</button></div><p class="lead">Alpha 0.14.5 · Transactional Save Recovery · Free to play · No purchases or subscriptions.</p>`;
  }
  // Keep the Sigil Ledger expanded while permanent ranks are purchased.
  // UI-only preference: no new save schema or persistent field.
@@ -4344,7 +4429,7 @@ function renderPanel(){
    restoreProgressBackup(inspected.data,true);
    initRun();run.speed=1;storedSpeed=1;syncBattleControls();
    showLobby();refreshHUD();renderPanel();notice('SAVE RESTORED · RECOVERY COPY STORED');
-  }catch(error){notice('IMPORT FAILED OR INCOMPATIBLE · ORIGINAL NOT REPLACED');}
+  }catch(error){notice(saveRecoveryStatus==='write-failed'?'IMPORT FAILED · STORAGE ROLLBACK UNVERIFIED · EXPORT BACKUP':'IMPORT FAILED · ORIGINAL SAVE RESTORED OR UNCHANGED');}
  };
 }
 function openTab(next,fromHub=false){
@@ -4429,7 +4514,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
    initRun();run.speed=1;storedSpeed=1;syncBattleControls();
    showLobby();refreshHUD();renderPanel();
    notice('VERIFIED CHECKPOINT RESTORED');
-  }catch(error){notice('CHECKPOINT RESTORE FAILED · SAVE PRESERVED');}
+  }catch(error){notice(saveRecoveryStatus==='write-failed'?'CHECKPOINT RESTORE FAILED · STORAGE UNVERIFIED':'CHECKPOINT RESTORE FAILED · ORIGINAL PRESERVED');}
   return;
  }
  else if(type==='exportDamaged'){
@@ -4445,7 +4530,7 @@ function action(text){let[type,id]=text.split(':');if(type==='train'){let row=tr
    if(!undoProgressImport()){notice('NO IMPORT RECOVERY COPY');return;}
    initRun();run.speed=1;storedSpeed=1;syncBattleControls();
    showLobby();notice('PREVIOUS SAVE RESTORED');
-  }catch(error){notice('RECOVERY FAILED · CURRENT SAVE PRESERVED');}
+  }catch(error){notice(saveRecoveryStatus==='write-failed'?'UNDO FAILED · STORAGE UNVERIFIED':'RECOVERY FAILED · ORIGINAL SAVE PRESERVED');}
  }
  else if(type==='guardWaves'||type==='guardMinutes'||type==='guardWall'){
   const ok=setSiegeGuardOption(type,id);
@@ -5059,5 +5144,5 @@ $('deviceCheckFrame').onclick=shareBattlefieldFrame;
 $('deviceCheckCompare').onclick=shareBattlefieldComparison;
 window.addEventListener('pagehide',pauseBattleInBackground);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseBattleInBackground();});
-const recoveredKeepsakes=reconcileMilestoneKeepsakes(),recoveredSeals=reconcileAtlasSeals();if(saveRecoveryStatus==='recovered'||recoveredKeepsakes||recoveredSeals)save();resetDeviceCheck();initRun();syncBattleControls();syncClarityLens();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={portableBackupFormat,newerCharacterSave,createVerifiedBackup,inspectBackupImport,backupImportSummary,renderPortableBackupPanel,earnedWaystones,nearestEarnedWaystone,selectEarnedWaystone,focusUnclaimedMilestone,renderWaystoneNavigator,resetWaystoneNavigation,selectedWaystoneWave:()=>selectedWaystoneWave,selectedMilestoneTarget:()=>selectedMilestoneTarget,siegeGuardKey,siegeGuard, siegeGuardSettings,setSiegeGuardOption,siegeGuardWaveRest,pauseForSiegeGuard,tick,bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,siegeHistoryLimit,safeHistoryCount,earnedProgressTotals,normalizeSiegeHistory,siegeHistoryForTier,renderSiegeHistory,recoveryCheckpointKey,recoveryCadence,recoveryDigest,parseCharacterRaw,readRecoveryCheckpoint,saveRecoverySummary,restoreVerifiedCheckpoint,renderSaveRecoveryPanel,damagedOriginalKey,damagedOriginalRaw,save,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,renderHeroHall,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,isProtectedExplorerHeirloom,isProtectedMilestoneKeepsake,isProtectedEchoSignet,echoReturnWave,echoReturnEnemies,echoReturn,echoReturnEligible,activeEchoReturn,awardEchoReturn,atlasSealObjectiveCount,atlasSealBonusPerRealm,atlasSealBanner,atlasSealProgress,atlasSealEligible,atlasSealCount,atlasSealBonus,reconcileAtlasSeals,awardAtlasSeals,startWaveForTier,echoStartSelected:()=>echoStartSelected,keepsakeWaves,milestoneKeepsake,reconcileMilestoneKeepsakes,canSellGear,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,lostSignalWaves,lostSignal,lostSignalGuardians,cartographerRouteWaves,cartographerOath,activeCartographerOath,awardCartographerOath,explorerSetStatus,explorerSetLabel,activeLostSignal,awardLostSignal,renderLostSignalLedger,scoutSignalsSelected:()=>scoutSignalsSelected,setScoutSignalsSelected:v=>(scoutSignalsSelected=!!v),scoutRouteWaystone,scoutRouteOptions,selectedScoutRoute,selectScoutRoute,renderScoutRoutebook,selectedScoutRouteId:()=>selectedScoutRouteId,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,castFocus:()=>castFocus,castFocusKind:()=>castFocusKind,castFocusActive,castFocusColors,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,clarityLensKey,clarityLensEnabled:()=>clarityLensEnabled,setClarityLens,toggleClarityLens,syncClarityLens,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,battlefieldComparisonName,buildBattlefieldComparison,shareBattlefieldComparison,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
+const recoveredKeepsakes=reconcileMilestoneKeepsakes(),recoveredSeals=reconcileAtlasSeals();if(saveRecoveryStatus==='recovered'||recoveredKeepsakes||recoveredSeals)save();resetDeviceCheck();initRun();syncBattleControls();syncClarityLens();refreshHUD();showLobby();if(window.__PK_TEST__)window.__PK_TEST_TOOLS__={saveWriteIssue:()=>saveWriteIssue,saveWriteBlocked:()=>saveWriteBlocked,saveRecoveryStatus:()=>saveRecoveryStatus,portableBackupFormat,newerCharacterSave,createVerifiedBackup,inspectBackupImport,backupImportSummary,renderPortableBackupPanel,earnedWaystones,nearestEarnedWaystone,selectEarnedWaystone,focusUnclaimedMilestone,renderWaystoneNavigator,resetWaystoneNavigation,selectedWaystoneWave:()=>selectedWaystoneWave,selectedMilestoneTarget:()=>selectedMilestoneTarget,siegeGuardKey,siegeGuard, siegeGuardSettings,setSiegeGuardOption,siegeGuardWaveRest,pauseForSiegeGuard,tick,bossTelegraph,syncBattleControls,cycleBattleSpeed,toggleBattlePause,pauseBattleInBackground,hasImportRecovery,validateProgressBackup,restoreProgressBackup,undoProgressImport,safetyBackupKey,siegeHistoryLimit,safeHistoryCount,earnedProgressTotals,normalizeSiegeHistory,siegeHistoryForTier,renderSiegeHistory,recoveryCheckpointKey,recoveryCadence,recoveryDigest,parseCharacterRaw,readRecoveryCheckpoint,saveRecoverySummary,restoreVerifiedCheckpoint,renderSaveRecoveryPanel,damagedOriginalKey,damagedOriginalRaw,save,completeWave,beginWave,enterSiege,showLobby,retreatFromSiege,buildSiegeReport,renderSiegeReport,finishSiege,siegeReport:()=>lastSiegeReport,run:()=>run,p:()=>p,renderTierLobby,renderPanel,renderHeroHall,openTab,action,factionWarCouncil,trainingCouncil,warCouncilFit,warCouncilPlan,applyWarCouncil,renderWarCouncil,doctrineTacticModes,normalizeDoctrineTactic,chooseDoctrineTactic,doctrineTacticAssessment,doctrineCanCastNow,doctrineTacticEligible,renderDoctrineTactics,warChestOffers,purchaseWarChest,renderWarChest,councilTrainingOffers,purchaseCouncilTraining,renderCouncilQuartermaster,councilRecoveryAdvice,renderCouncilRecovery,combatPassiveData,passiveTrait,chooseCombatPassive,combatLoadoutNames,normalizeCombatLoadouts,saveCombatLoadout,loadoutReadiness,applyCombatLoadout,renderCombatLoadouts,combatDoctrineData,chosenDoctrine,chooseCombatDoctrine,doctrineCooldown,castCombatDoctrine,advanceCombatDoctrine,refreshDoctrineHud,awardFirstWatch,renderFirstWatch,storeEarnedRune,storeEarnedGear,claimPendingGear,gearSellPrice,completeGearSale,renderArmoryDrawer,isProtectedExplorerHeirloom,isProtectedMilestoneKeepsake,isProtectedEchoSignet,echoReturnWave,echoReturnEnemies,echoReturn,echoReturnEligible,activeEchoReturn,awardEchoReturn,atlasSealObjectiveCount,atlasSealBonusPerRealm,atlasSealBanner,atlasSealProgress,atlasSealEligible,atlasSealCount,atlasSealBonus,reconcileAtlasSeals,awardAtlasSeals,startWaveForTier,echoStartSelected:()=>echoStartSelected,keepsakeWaves,milestoneKeepsake,reconcileMilestoneKeepsakes,canSellGear,maxWall,damage,socketValue,xpAdd,researchCost,randomGear,tierMilestone,tierMilestones,tierAdvanceWave,oathRank,oathCost,oathUnlocked,sigilMilestoneAmount,sigilLedgerSummary,renderSigilLedger,encounterDirector,encounterUnit,lostSignalWaves,lostSignal,lostSignalGuardians,cartographerRouteWaves,cartographerOath,activeCartographerOath,awardCartographerOath,explorerSetStatus,explorerSetLabel,activeLostSignal,awardLostSignal,renderLostSignalLedger,scoutSignalsSelected:()=>scoutSignalsSelected,setScoutSignalsSelected:v=>(scoutSignalsSelected=!!v),scoutRouteWaystone,scoutRouteOptions,selectedScoutRoute,selectScoutRoute,renderScoutRoutebook,selectedScoutRouteId:()=>selectedScoutRouteId,territoryVanguards,territoryVanguard,hasNativeVanguard,nativeMarchOrders,nativeMarchOrder,nativeMarchPosition,formationPosition,activeEncounterThreat,frontlineBreachRisk,frontlineFocus:()=>frontlineFocus,castFocus:()=>castFocus,castFocusKind:()=>castFocusKind,castFocusActive,castFocusColors,specialistTelegraph,currentSpecialistAlert,renderEncounterIntel,renderSiegeCodex,refreshHUD,advanceBattleVisuals,drawInterval,visualQualityProfiles,visualQualityKey,clarityLensKey,clarityLensEnabled:()=>clarityLensEnabled,setClarityLens,toggleClarityLens,syncClarityLens,visualQualityMode:()=>visualQuality,setVisualQuality,effectiveVisualHz,territoryWeatherCount,renderVisualSettings,toggleDeviceCheck,sampleDeviceCheck,deviceCheckMode,deviceCheckReport,deviceEnduranceProgress,deviceEnduranceStatus,recordDeviceEnduranceCheckpoint,restartDeviceEndurance,deviceCheckSnapshot:()=>deviceCheckState,copyDeviceCheck,battlefieldSnapshotName,shareBattlefieldFrame,battlefieldComparisonName,buildBattlefieldComparison,shareBattlefieldComparison,territoryVistas,territoryVista,drawTerritoryAtmosphere,territoryWeatherSignature,terrainBiomes,terrainColors,terrainRelicMotifs,terrainSceneSvg,territorySceneImage,territoryLore,territoryBossStaging,bossStageTemplates,bossStageEdges,heraldrySigils,fortressHeraldrySvg,fortressHeraldryImage,renderWorldAtlas,openWorldAtlas,closeWorldAtlas,stepWorldAtlas,toggleAtlasComparison,toggleAtlasZoom,atlasBossStageSvg,chooseAtlasBossStyle,toggleAtlasBossPhase,atlasWeatherSvg,toggleAtlasWeather,atlasWeatherSnapshot:()=>({enabled:atlasWeatherOn,tier:atlasCurrentTier}),atlasExportFilename,paintAtlasExport,shareAtlasArtwork,atlasBossSnapshot:()=>({style:atlasBossStyle,phase:atlasBossPhase,tier:atlasCurrentTier}),atlasPointerDown,atlasPointerMove,atlasPointerUp,atlasPointerCancel,updateTerritoryPreview,visibleTerritoryTier,collectAliveSorted,sortedRenderEnemies,sortedTargetEnemies,renderScratch:()=>renderEnemyScratch,targetScratch:()=>targetEnemyScratch,draw,loop,encounterKnowledgeBonus,encounterAdvice,allowedSpecialist,healShamanAllies,nearestShockTarget,shoot,recordShotTrail,shieldAuraReduction,thornWardReduction,rallyAuraFactor,threatPriority,chapterChallenge,relicChallenge,awardRelicChallenge,claimPendingRelics,attackInterval,encounterSpecialBonus,isSiegeBoss,sapperBlastDamage,specialEnemyMotion,bossCounterplay,specialistCast,specialistCounterplay,awardChapterChallenge,dominionTrial,dominionBonus,dominionSeals,dominionResonance,tierThreat,outerDepthPressure,tierReward,renderFirstWatch,renderDominionPreview,earlyWatchChapters,waveThreat,waveArmor,enemySpeedFactor,waveEnemyCount,waystoneForTier,ascCost,ascUnlocked,projectileCount,spawnEnemy,hurt,tick,rewardMilestone};requestAnimationFrame(loop);
 })();
