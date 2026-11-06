@@ -74,9 +74,15 @@ assert.equal(p.banners.length,sealsBefore+1);
 assert(p.banners.includes('Atlas Keeper of '+h.cartographerOath(1).banner.slice('Cartographer of '.length)));
 assert.equal(p.gold>=oldGold,true); // normal combat gold is preserved
 assert.equal(p.sigils,oldSigils,'No Sigils granted by seal');
-assert.equal(p.points,oldPoints,'No synthetic Hero levels or points granted');
-assert(h.damage()>baseDamage,'Atlas Seal affects real hero damage');
-assert(h.maxWall()>baseWall,'Atlas Seal affects real fortress health');
+const pointsAfterCombat=p.points;
+assert(pointsAfterCombat>=oldPoints,'Genuine normal combat may legitimately level up the hero');
+const earnedSeal=p.atlasSeals[1];p.atlasSeals[1]=false;
+const unsealedDamage=h.damage(),unsealedWall=h.maxWall();
+p.atlasSeals[1]=earnedSeal;
+assert(h.damage()>unsealedDamage,'Atlas Seal improves the real damage formula');
+assert(h.maxWall()>unsealedWall,'Atlas Seal improves the real fortress HP formula');
+assert(h.damage()>baseDamage,'Normal combat and earned mastery improve damage');
+assert(h.maxWall()>baseWall,'Mastery retains earlier training bonuses');
 assert(h.renderLostSignalLedger(1,100).includes('ATLAS SEAL · 6 / 6 OBJECTIVES'));
 assert(h.renderLostSignalLedger(1,100).includes('ATLAS KEEPER BANNER'));
 h.renderTierLobby();
@@ -97,7 +103,7 @@ assert.equal(h.atlasSealBonus(),.075);
 assert.equal(p.banners.filter(n=>n.startsWith('Atlas Keeper of ')).length,30);
 assert.equal(h.reconcileAtlasSeals(),0);
 assert.equal(p.sigils,oldSigils);
-assert.equal(p.points,oldPoints);
+assert.equal(p.points,pointsAfterCombat,'No extra skill points from seal reconciliation');
 assert.equal(h.atlasSealCount(),30,'Exactly thirty mastery positions exist');
 // Validate and save back the new ledger, without losing old rewards or item provenance.
 const backup=JSON.parse(JSON.stringify(p));
