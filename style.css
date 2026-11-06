@@ -2706,3 +2706,14 @@
 @media(orientation:landscape) and (max-height:460px){
  .fight-actions .clarity-lens-toggle{min-width:48px;min-height:42px;padding:5px}
 }
+
+/* Alpha 0.12.28 — side-by-side visual review is optional and tap accessible. */
+.device-check-compare{display:block;width:100%;margin-top:6px;min-height:44px;
+ padding:8px 10px;color:#def8ec;font:800 10px/1.3 Arial,sans-serif;
+ letter-spacing:.4px;border:2px solid #81b6a8;
+ background:linear-gradient(120deg,#31534f,#1b343d);
+ box-shadow:inset 0 1px #d4ffe21f,0 3px 7px #0007}
+.device-check-compare:focus-visible{outline:3px solid #fff0b5;outline-offset:2px}
+@media(orientation:landscape) and (max-height:460px){
+ .device-check-compare{min-height:40px;padding:5px 7px;font-size:9px;margin-top:4px}
+}

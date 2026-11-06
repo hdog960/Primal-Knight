@@ -91,3 +91,4 @@ jobs:
           node tests/breach-readability.js
           node tests/cast-focus-beacons.js
           node tests/tactical-contrast-lens.js
+          node tests/lens-comparison.js
