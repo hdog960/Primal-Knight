@@ -93,7 +93,7 @@ function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence
  try{
   const raw=localStorage.getItem(storageKey),data=parseCharacterRaw(raw);
   if(data){p={...defaultState(),...data};lastVerifiedSaveRaw=raw;}
-  else if(raw!==null){
+  else if(raw!=null){
    unrecoverableSaveRaw=raw;
    const checkpoint=readRecoveryCheckpoint();
    if(checkpoint){
