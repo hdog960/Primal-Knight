@@ -55,5 +55,5 @@ assert(!paint.images.some(e=>e.src.startsWith('data:image/svg+xml')&&decodeURICo
  'Tier I retains the exact original three painted red banners');
 assert.equal(JSON.stringify({currency:[p.gold,p.essence,p.knowledge,p.sigils],inventory:p.inventory,runes:p.runes,
 unlocked:p.unlockedTier,selected:p.selectedTier}),previous,'Banner art cannot alter save, unlocks, equipment or money');
-assert(html.includes('ALPHA 0.12.26')&&html.includes('game.js?v=0.12.26')&&html.includes('style.css?v=0.12.26'));
+assert(html.includes('ALPHA 0.12.27')&&html.includes('game.js?v=0.12.27')&&html.includes('style.css?v=0.12.27'));
 console.log('PASS: all three physically painted banners recolor in 30 deterministic realms, central guild flag no longer left red, proper actual canvas layering, one image despite 75 redraws, original Tier I and resources intact.');
