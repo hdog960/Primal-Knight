@@ -64,7 +64,7 @@ assert.equal(newer.h.p().milestones['1:100'],true);
 assert(newer.h.p().runes.some(x=>x.id==='custom_forever'));
 assert.equal(newer.h.saveRecoverySummary().hasCheckpoint,true);
 // Deliberately corrupt the live character: boot must recover from validated older snapshot.
-const damaged=boot({...store,[SAVE]:'{broken JSON...');
+const damaged=boot({...store,[SAVE]:'{broken JSON...'});
 assert.equal(damaged.h.saveRecoverySummary().status,'recovered');
 assert.equal(damaged.h.saveRecoverySummary().blocked,false);
 const restoredGold=JSON.parse(envelope.raw).gold;
