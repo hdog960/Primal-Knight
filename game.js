@@ -1524,9 +1524,10 @@ function renderTierLobby(){
  const activeRoute=selectedScoutRoute(tier);
   const waystone=stone>1?`<div class="milestone-waystone" role="group" aria-label="Siege starting checkpoint"><div><strong>✦ UNLOCKED WAYSTONE · WAVE ${formatWave(stone)}</strong><small>Resume an earlier tier without replaying its first ${formatWave(stone-1)} waves. Milestone rewards are earned once per tier.</small></div>
   <div class="milestone-waystone-choices">
-   <button type="button" data-start-mode="fresh" ${!useWaystone&&!echoStartSelected?'aria-pressed="true"':''} class="${!useWaystone&&!echoStartSelected&&!activeRoute?'selected':''}">WAVE 1</button>
-   <button type="button" data-start-mode="waystone" ${useWaystone&&!echoStartSelected?'aria-pressed="true"':''} class="${useWaystone&&!echoStartSelected&&!activeRoute?'selected':''}">WAYSTONE ${formatWave(stone)}</button>
+   <button type="button" data-start-mode="fresh" ${!useWaystone&&!echoStartSelected&&!activeRoute?'aria-pressed="true"':''} class="${!useWaystone&&!echoStartSelected&&!activeRoute?'selected':''}">WAVE 1</button>
+   <button type="button" data-start-mode="waystone" ${useWaystone&&!echoStartSelected&&!activeRoute?'aria-pressed="true"':''} class="${useWaystone&&!echoStartSelected&&!activeRoute?'selected':''}">WAYSTONE ${formatWave(stone)}</button>
     ${echoReturnEligible(tier)&&stone>=250? `<button type="button" data-start-mode="echo" ${echoStartSelected?'aria-pressed="true"':''} class="${echoStartSelected&&!activeRoute?'selected':''}">REVISIT WAVE 100</button>`:''}
+    ${activeRoute?`<span class="scout-waystone-active" role="status">SCOUT ROUTE · START ${formatWave(activeRoute.start)} → ${formatWave(activeRoute.wave)}</span>`:''}
   </div></div>`:`<div class="milestone-waystone milestone-waystone-empty"><strong>✧ YOUR FIRST WAYSTONE AWAITS AT WAVE 100</strong><small>Push deeper to permanently unlock restart checkpoints and more powerful Ascension routes.</small></div>`;
  let claimedCount=0;
  const tierLadder=tierMilestones(tier);
@@ -4499,16 +4500,23 @@ $('milestoneList').addEventListener('click',e=>{
   const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;
   return;
  }
+ const routeButton=e.target.closest('[data-scout-route]');
+ if(routeButton){
+  if(routeButton.disabled||!selectScoutRoute(chosenTier,routeButton.dataset?.scoutRoute))return;
+  const scroll=$('milestoneList').scrollTop;
+  renderTierLobby();$('milestoneList').scrollTop=scroll;
+  return;
+ }
  const scout=e.target.closest('[data-exploration-choice]');
  if(scout&&['on','off'].includes(scout.dataset.explorationChoice)){
-  scoutSignalsSelected=scout.dataset.explorationChoice==='on';
+  scoutSignalsSelected=scout.dataset.explorationChoice==='on';if(!scoutSignalsSelected)selectedScoutRouteId=null;
   const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;
   return;
  }
  const b=e.target.closest('[data-start-mode]');if(!b)return;
  const mode=b.dataset.startMode;
  if(!['fresh','waystone','echo'].includes(mode)||mode==='echo'&&!echoReturnEligible(chosenTier))return;
- echoStartSelected=mode==='echo';useWaystone=mode!=='fresh';
+ selectedScoutRouteId=null;echoStartSelected=mode==='echo';useWaystone=mode!=='fresh';
  const scroll=$('milestoneList').scrollTop;renderTierLobby();$('milestoneList').scrollTop=scroll;
 });
 $('speedButton').onclick=cycleBattleSpeed;
