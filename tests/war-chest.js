@@ -68,6 +68,6 @@ const current=h.sigilLedgerSummary();
 assert.equal(current.eventualCapacity,initialSigilCapacity-(5-p.sigils),'No repeat-claim increases total budget');
 assert(css.includes('.war-chest-offer button')&&css.includes('min-height:44px')&&css.includes('max-width:750px'),
  'Large iPhone portrait tap controls and compact narrow layout exist');
-assert(html.includes('ALPHA 0.12.22')&&html.includes('game.js?v=0.12.22')&&html.includes('style.css?v=0.12.22'),
+assert(html.includes('ALPHA 0.12.23')&&html.includes('game.js?v=0.12.23')&&html.includes('style.css?v=0.12.23'),
  'Release banner and cache-busting assets use current version');
 console.log('PASS: one-tap genuine Battle Sigil purchases, actual unlocks/caps/prices, zero duplication, original saves, first-view UI, scroll and touch sizes.');
