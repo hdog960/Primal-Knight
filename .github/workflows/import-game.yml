@@ -98,3 +98,4 @@ jobs:
           node tests/ancestral-keepsakes.js
           node tests/echo-returns.js
           node tests/atlas-seals.js
+          node tests/scout-routebook.js
