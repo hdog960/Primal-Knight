@@ -44,8 +44,11 @@ assert.equal(unreadable.h.save(),false);assert.equal(unreadable.store[SAVE],orig
 assert.equal(unreadable.h.saveRecoverySummary().blocked,true);
 const quota=boot({...seed.store});quota.h.p().gold=4040;quota.rules.reject=SAVE;
 assert.equal(quota.h.save(),false);assert.equal(quota.h.saveRecoverySummary().blocked,false);
+assert.equal(quota.store[CK],checkpoint,'A rejected primary must not rotate checkpoint');
 delete quota.rules.reject;assert.equal(quota.h.save(),true);
-assert.equal(JSON.parse(quota.store[SAVE]).gold,4040);assert.equal(quota.store[CK],checkpoint);
+assert.equal(JSON.parse(quota.store[SAVE]).gold,4040);
+assert.equal(JSON.parse(quota.store[CK]).raw,original,'Successful retry can safely refresh a valid older checkpoint');
+assert.equal(JSON.parse(quota.store[CK]).digest,quota.h.recoveryDigest(original));
 const damaged='{interrupted write',recovered=boot({...seed.store,[SAVE]:damaged},{reject:SAVE});
 assert.equal(recovered.h.saveRecoverySummary().status,'recovered');
 assert.equal(recovered.h.saveRecoverySummary().blocked,false,'Rejected recovery must remain retryable');
