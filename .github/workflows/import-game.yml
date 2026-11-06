@@ -93,3 +93,4 @@ jobs:
           node tests/tactical-contrast-lens.js
           node tests/lens-comparison.js
           node tests/lost-signals.js
+          node tests/secret-guardians-bonds.js
