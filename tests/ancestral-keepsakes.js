@@ -72,7 +72,8 @@ p.equipped.chest=newChest.id;
 assert(h.maxWall()>wall0,'Keepsake chest uses real armor multiplier when equipped');
 assert(h.damage()>=d0,'Adding chest gear cannot harm offensive damage');
 // Full 200-gear pouch reserves a unique reward instead of discarding it.
-p.inventory=Array.from({length:200},(_,i)=>({id:'full_'+i,slot:'helm',rarity:0,plus:0}));
+const existingKeepsakes=p.inventory.filter(g=>String(g.id).startsWith('keepsake_'));
+p.inventory=existingKeepsakes.concat(Array.from({length:200-existingKeepsakes.length},(_,i)=>({id:'full_'+i,slot:'helm',rarity:0,plus:0})));
 const beforeVault=p.pendingGear.length,second=h.milestoneKeepsake(2,3000);
 const secondSigils=p.sigils;
 assert.equal(h.rewardMilestone(2,3000),true);
