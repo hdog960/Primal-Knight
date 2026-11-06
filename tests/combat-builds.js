@@ -179,7 +179,7 @@ assert.equal(legacy.h.p().combatLoadouts[0],null,'Malformed saved build is safel
 assert.throws(()=>legacy.h.validateProgressBackup({...prior,combatLoadouts:{bad:true}}),/Invalid combatLoadouts/,
  'Incorrect preset container structure is rejected by save validation');
 assert.equal(h.normalizeCombatLoadouts([null,null,null,null]).length,3,'Imported presets cannot exceed three slots');
-assert(html.includes('ALPHA 0.12.22')&&html.includes('game.js?v=0.12.22'),'Home Screen receives cache-busted iPhone build');
+assert(html.includes('ALPHA 0.12.23')&&html.includes('game.js?v=0.12.23'),'Home Screen receives cache-busted iPhone build');
 assert(css.includes('.hall-passive-grid')&&css.includes('.combat-build-grid'),'Hero Hall shows real passive and build visual sections');
 assert(css.includes('grid-template-columns:1fr;gap:7px'),'Portrait selector and quick-load buttons stack legibly');
 console.log('PASS: Alpha 0.11.1 one-slot passive damage and wall mechanics, three safe build presets, full owned-item validation, no duplication, iPhone quick loading, active-siege restrictions, and backwards-compatible saves.');

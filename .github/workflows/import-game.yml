@@ -86,3 +86,4 @@ jobs:
           node tests/low-allocation-combat.js
           node tests/native-vanguards.js
           node tests/native-formations.js
+          node tests/long-siege-allocation.js
