@@ -95,3 +95,4 @@ jobs:
           node tests/lost-signals.js
           node tests/secret-guardians-bonds.js
           node tests/cartographer-oath.js
+          node tests/ancestral-keepsakes.js
