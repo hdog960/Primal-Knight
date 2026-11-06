@@ -96,3 +96,4 @@ jobs:
           node tests/secret-guardians-bonds.js
           node tests/cartographer-oath.js
           node tests/ancestral-keepsakes.js
+          node tests/echo-returns.js
