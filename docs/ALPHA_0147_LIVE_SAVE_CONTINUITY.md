@@ -1,0 +1,16 @@
+# Alpha 0.14.7 — Live Save Continuity and Safe Siege Halt
+
+**Locked phase:** Alpha 0.14 Long-Run Quality of Life, slice 8. **Mandatory checks:** 68 including JavaScript syntax. Physical iPhone review deferred until development through Alpha 0.15.
+
+## Actual in-game safety behavior
+Alpha 0.14.6 checks the current primary character storage value immediately before saving. That prevents writes onto a save changed elsewhere, but a long-running siege could continue until its next automatic save attempt without knowing the storage had changed. Alpha 0.14.7 adds detection for the browser's **other-window** `storage` events, including storage-wide clearing, plus `pageshow` and **foreground** `visibilitychange` checks. Every check compares the actual live primary bytes against this session's last verified view; it does **not** trust event.newValue as proof of the current state. Changes to visual-quality preferences, Siege Guard settings, or checkpoint storage do not cause a false positive.
+
+A confirmed mismatch, missing original or failed read enters the existing write-protected state. If a siege is active it stops at the current instant: speed is set to zero, no new wave is cleared, no battle reward is fabricated, and the player sees a durable save-locked overlay. Resume is disabled while storage is unverified. The Battle lobby refuses to start a new siege when the original is write-locked, and checks primary continuity again even if browser events were delayed. Player actions to export the current session's in-memory character JSON remain available through Settings; reloading then reads the actual device save rather than overwriting it. No automatic import/merge is attempted.
+
+## Compatibility, edge cases and limits
+The original `primal_knight_onslaught_save_v1` character JSON, older checksum recovery checkpoints, verified portable backup, safety undo copy, incompatible-save quarantine, 24-run siege history and original 1,144 one-time milestone ledgers remain unchanged. Normal pauses, 1×/2× speed, background pause and all gameplay behavior are unchanged when no storage conflict is present. A rejected ordinary write that leaves the original untouched remains retryable and does not automatically halt progression.
+
+Browser events are **not** a guaranteed cross-tab lock and separate iPhone Home Screen containers may not share the same storage namespace. Synchronous exact-byte pre-write verification remains the final safeguard. There is no true atomic compare-and-swap provided by localStorage. This slice does not claim full multi-tab synchronization or physical iPhone acceptance.
+
+## Regression
+`tests/save-live-continuity.js` uses the real game controller in a Node VM to simulate cross-tab writes and notifications, unrelated storage events, stale or delayed events, foreground/pageshow recovery, unreadable storage and an in-progress siege. It confirms real battle pause/resume lock, warning visibility, no overwrite of the newer save, safe start refusal and untouched currencies/achievements. All previous 67 gates remain required; **68 checks including JS syntax** must pass in the pull request and merged main before declaring release and GitHub Pages deployment. 
