@@ -1,4 +1,4 @@
-// Alpha 0.12.24 — precise long-siege hotpath equivalence and fixed trail lifecycle.
+// Alpha 0.12.25 — precise long-siege hotpath equivalence and fixed trail lifecycle.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
@@ -90,6 +90,6 @@ h.shoot(target,20);assert.equal(run.shots.length,48,'Excess projectile cannot ex
 assert.equal(JSON.stringify(p),baseline,'Hotpath tests never mutate permanent currency or saved progression');
 assert.equal(saved.primal_knight_onslaught_save_v1,undefined,'Hotpath tests do not write saves');
 assert(!source.includes('s.trail.push([s.x,s.y])'),'Per-frame projectile pair allocations removed');
-assert(html.includes('ALPHA 0.12.24')&&html.includes('game.js?v=0.12.24')&&html.includes('style.css?v=0.12.24'),'Safari asset versions match the new release');
+assert(html.includes('ALPHA 0.12.25')&&html.includes('game.js?v=0.12.25')&&html.includes('style.css?v=0.12.25'),'Safari asset versions match the new release');
 console.log('PASS: 3,850 specialist choices vs legacy, 240 stable shaman rituals, 350 chain-target comparisons, 400 ring-trail updates and 48-shot cap; no permanent save changes.');
 console.log('LIMIT: reduced allocations are source/logic verified, not a measured iPhone FPS, battery or temperature result.');
