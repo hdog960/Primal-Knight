@@ -2660,3 +2660,13 @@
 
 /* Alpha 0.12.22 — small, readable field-order label in the native patrol briefing. */
 .encounter-intel-native em{font-style:normal;font-weight:800;letter-spacing:.25px;color:#ffe8b2}
+
+/* Alpha 0.12.24 — opt-in endurance summary stays compact on iPhone. */
+.device-check-buttons{display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap}
+.device-check-head .device-check-buttons button{min-height:44px;padding:7px 7px;font-size:9px;white-space:nowrap}
+.device-check-panel #deviceCheckEndurance{display:block;margin:6px 0 3px;
+ color:#ffe3a4;font:800 10px/1.4 Arial,sans-serif;letter-spacing:.25px}
+@media(orientation:landscape) and (max-height:460px){
+ .device-check-head .device-check-buttons button{min-height:36px;padding:4px 6px;font-size:8px}
+ .device-check-panel #deviceCheckEndurance{font-size:9px;margin:3px 0}
+}
