@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.13.6. Exploration & Rewards - Scout Routebook: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.14.0. Long-Run Quality of Life - Verified Save Checkpoints: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -46,7 +46,63 @@ const gearNames={
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
 function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},explorationFinds:{},cartographerOaths:{},echoReturns:{},atlasSeals:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',doctrineTactic:'rapid',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-const storageKey='primal_knight_onslaught_save_v1';let p;try{p={...defaultState(),...JSON.parse(localStorage.getItem(storageKey)||'null')}}catch{p=defaultState()}if(!p||!p.inventory)p=defaultState();for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.explorationFinds=validSaveObject(p.explorationFinds)?p.explorationFinds:{};p.cartographerOaths=validSaveObject(p.cartographerOaths)?p.cartographerOaths:{};p.echoReturns=validSaveObject(p.echoReturns)?p.echoReturns:{};p.atlasSeals=validSaveObject(p.atlasSeals)?p.atlasSeals:{};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
+// Alpha 0.14.0: keep the original readable character JSON and save key.
+ // An older checksum-verified checkpoint protects it from truncated or broken saves.
+ const storageKey='primal_knight_onslaught_save_v1';
+ const recoveryCheckpointKey='primal_knight_onslaught_checkpoint_v1';
+ const recoveryCadence=12;
+ function recoveryDigest(raw){
+  let hash=2166136261;
+  for(let i=0;i<raw.length;i++){hash^=raw.charCodeAt(i);hash=Math.imul(hash,16777619);}
+  return (hash>>>0).toString(16).padStart(8,'0');
+ }
+ function parseCharacterRaw(raw){
+  if(typeof raw!=='string'||!raw||raw.length>10*1024*1024)return null;
+  try{
+   const candidate=JSON.parse(raw);
+   if(!validSaveObject(candidate)||!Array.isArray(candidate.inventory))return null;
+   validateProgressBackup({...defaultState(),...candidate});
+   return candidate;
+  }catch{return null;}
+ }
+ function readRecoveryCheckpoint(){
+  try{
+   const raw=localStorage.getItem(recoveryCheckpointKey);
+   if(!raw)return null;
+   const envelope=JSON.parse(raw);
+   if(!validSaveObject(envelope)||envelope.schema!==1||
+      typeof envelope.raw!=='string'||typeof envelope.digest!=='string'||
+      recoveryDigest(envelope.raw)!==envelope.digest)return null;
+   const data=parseCharacterRaw(envelope.raw);
+   return data?{raw:envelope.raw,data,createdAt:envelope.createdAt}:null;
+  }catch{return null;}
+ }
+ function writeRecoveryCheckpoint(raw){
+  if(!parseCharacterRaw(raw))return false;
+  try{
+   const contents=JSON.stringify({schema:1,createdAt:Date.now(),
+    digest:recoveryDigest(raw),raw});
+   localStorage.setItem(recoveryCheckpointKey,contents);
+   return localStorage.getItem(recoveryCheckpointKey)===contents;
+  }catch{return false;}
+ }
+ let p,saveRecoveryStatus='healthy',saveWriteBlocked=false,
+  lastVerifiedSaveRaw=null,unrecoverableSaveRaw=null,recoveryWrites=0,
+  recoverySnapshotFailed=false;
+ try{
+  const raw=localStorage.getItem(storageKey),data=parseCharacterRaw(raw);
+  if(data){p={...defaultState(),...data};lastVerifiedSaveRaw=raw;}
+  else if(raw!==null){
+   unrecoverableSaveRaw=raw;
+   const checkpoint=readRecoveryCheckpoint();
+   if(checkpoint){
+    p={...defaultState(),...checkpoint.data};
+    lastVerifiedSaveRaw=checkpoint.raw;saveRecoveryStatus='recovered';
+   }else{
+    p=defaultState();saveWriteBlocked=true;saveRecoveryStatus='blocked';
+   }
+  }else p=defaultState();
+ }catch{p=defaultState();saveWriteBlocked=true;saveRecoveryStatus='blocked';}for(const k of ['training','skills','stations','research','suppression','socketed','equipped'])p[k]??={};p.runes??=[];p.bestByTier??={};p.milestones??={};p.chapterChallenges??={};p.relicHunts??={};p.explorationFinds=validSaveObject(p.explorationFinds)?p.explorationFinds:{};p.cartographerOaths=validSaveObject(p.cartographerOaths)?p.cartographerOaths:{};p.echoReturns=validSaveObject(p.echoReturns)?p.echoReturns:{};p.atlasSeals=validSaveObject(p.atlasSeals)?p.atlasSeals:{};p.pendingRelics=Array.isArray(p.pendingRelics)?p.pendingRelics:[];p.pendingGear=Array.isArray(p.pendingGear)?p.pendingGear:[];p.ascension??={};p.dominionCrests??={};p.sovereignOaths??={};p.firstWatchClaimed=Array.isArray(p.firstWatchClaimed)?p.firstWatchClaimed:[];p.battleSeconds=Math.max(0,Number(p.battleSeconds)||0);p.uniqueClears=Math.max(0,Number(p.uniqueClears)||0);p.sigils??=0;p.legacy??={};p.banners??=['Crimson Standard'];p.activeBanner??='Crimson Standard';p.unlockedTier=clamp(Number(p.unlockedTier)||1,1,30);if(p.milestones['16:20'])p.unlockedTier=Math.max(p.unlockedTier,17);p.selectedTier=clamp(Number(p.selectedTier)||1,1,p.unlockedTier);p.legacyUnlocked??=false;p.combatDoctrine=['vanguard','storm','aegis'].includes(p.combatDoctrine)&&(p.combatDoctrine==='vanguard'||Number(p.level)>=(p.combatDoctrine==='storm'?3:5))?p.combatDoctrine:'vanguard';p.combatPassive=['hunter','conductor','sentinel'].includes(p.combatPassive)&&(p.combatPassive==='hunter'||Number(p.level)>=(p.combatPassive==='conductor'?3:5))?p.combatPassive:'hunter';p.doctrineTactic=['rapid','horde','crisis'].includes(p.doctrineTactic)?p.doctrineTactic:'rapid';
 // One-time additive save migration. Gold, upgrades, achievements, plus levels and IDs are untouched.
 function migrateEquipmentSave(){
  if(Number(p.version)>=3)return;
@@ -1569,7 +1625,36 @@ function retreatFromSiege(){
 function legacyCost(row){return Math.ceil(row[3]*(1+lr(row[0])*.35+Math.pow(lr(row[0]),1.35)*.26));}
 const lvlNeed=()=>Math.floor(65*Math.pow(p.level,1.34));const n=(obj,key)=>obj[key]||0;const skill=id=>n(p.skills,id);const station=id=>n(p.stations,id);const t=id=>n(p.training,id);const res=id=>n(p.research,id);const sup=id=>n(p.suppression,id);
 function xpAdd(amount){p.xp+=Math.floor(amount*(1+t('xp')*.025+skill('wisdom')*.07)*(1+Math.min(16,res('almanac'))*.015)*(1+dominionBonus('xp')));while(p.xp>=lvlNeed()){p.xp-=lvlNeed();p.level++;p.points+=2;notice('LEVEL UP! +2 SKILL POINTS');}}
-function save(){try{localStorage.setItem(storageKey,JSON.stringify(p));return true;}catch{return false;}}
+function save(){
+ if(saveWriteBlocked)return false;
+ try{
+  const serialized=JSON.stringify(p);
+  if(!parseCharacterRaw(serialized))return false;
+  // Save the previous known-good character before replacing the live JSON.
+  // Rotate every twelve verified saves, not on every canvas frame.
+  if(lastVerifiedSaveRaw&&(recoveryWrites===0||recoveryWrites>=recoveryCadence)){
+   recoverySnapshotFailed=!writeRecoveryCheckpoint(lastVerifiedSaveRaw);
+   recoveryWrites=0;
+  }
+  localStorage.setItem(storageKey,serialized);
+  if(localStorage.getItem(storageKey)!==serialized)return false;
+  lastVerifiedSaveRaw=serialized;recoveryWrites++;
+  if(!readRecoveryCheckpoint()&&recoveryWrites===1){
+   recoverySnapshotFailed=!writeRecoveryCheckpoint(serialized);
+  }
+  return true;
+ }catch{return false;}
+}
+function saveRecoverySummary(){
+ const snapshot=readRecoveryCheckpoint();
+ return {status:saveRecoveryStatus,blocked:saveWriteBlocked,
+  hasCheckpoint:!!snapshot,checkpointAt:snapshot?.createdAt||null,
+  checkpointFailed:recoverySnapshotFailed};
+}
+function restoreVerifiedCheckpoint(){
+ const snapshot=readRecoveryCheckpoint();
+ return snapshot?restoreProgressBackup(snapshot.data,true):false;
+}
 function notice(s){let el=$('toast');el.textContent=s;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),2300)}
 function message(s){$('combatMessage').textContent=s;$('combatMessage').classList.add('show');setTimeout(()=>$('combatMessage').classList.remove('show'),1600)}
 function gearStat(slot){
