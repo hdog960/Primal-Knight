@@ -1420,6 +1420,73 @@ function rewardMilestone(tier,wave){
  save();return true;
 }
 let chosenTier=p.selectedTier;
+// Alpha 0.14.1 — a finite account journal, not a second reward source.
+// Imported records are read-only, type-normalized and capped to 24.
+const siegeHistoryLimit=24;
+const historyEarnedKeys=['firstClears','milestones','lostSignals','oaths','echoes','atlasSeals'];
+function safeHistoryCount(value){
+ const n=Number(value);
+ return Number.isSafeInteger(n)&&n>=0?Math.min(n,Number.MAX_SAFE_INTEGER-1):0;
+}
+function earnedProgressTotals(){
+ const count=obj=>Object.values(obj||{}).filter(Boolean).length;
+ return {firstClears:safeHistoryCount(p.uniqueClears),
+  milestones:count(p.milestones),lostSignals:count(p.explorationFinds),
+  oaths:count(p.cartographerOaths),echoes:count(p.echoReturns),
+  atlasSeals:count(p.atlasSeals)};
+}
+function normalizeSiegeHistory(value){
+ if(!Array.isArray(value))return [];
+ const valid=[];
+ for(const rec of value.slice(0,siegeHistoryLimit*2)){
+  if(!rec||typeof rec!=='object'||Array.isArray(rec)||
+   !['fallen','retreated','victory'].includes(rec.reason))continue;
+  const tier=Number(rec.tier),start=Number(rec.startWave),last=Number(rec.lastWave);
+  if(!Number.isInteger(tier)||tier<1||tier>30||
+   !Number.isInteger(start)||start<1||start>10000||
+   !Number.isInteger(last)||last<start||last>10000)continue;
+  const clean={id:safeHistoryCount(rec.id),finishedAt:safeHistoryCount(rec.finishedAt),
+   reason:rec.reason,tier,startWave:start,lastWave:last,
+   doctrineTactic:normalizeDoctrineTactic(rec.doctrineTactic)};
+  for(const key of ['cleared','enemies','bossBreaks','specialistBreaks',
+   'bosses','bossEscapes','breaches','sabotage','doctrineCasts','doctrineHoldEvents'])
+   clean[key]=safeHistoryCount(rec[key]);
+  const held=Number(rec.doctrineHeldSeconds);
+  clean.doctrineHeldSeconds=Number.isFinite(held)&&held>=0?Math.min(held,1e9):0;
+  clean.earned={};
+  for(const key of historyEarnedKeys)clean.earned[key]=safeHistoryCount(rec.earned?.[key]);
+  valid.push(clean);
+  if(valid.length>=siegeHistoryLimit)break;
+ }
+ return valid;
+}
+function siegeHistoryForTier(tier=null){
+ return p.siegeHistory.filter(entry=>tier===null||entry.tier===tier);
+}
+function renderSiegeHistory(tier=null){
+ const entries=siegeHistoryForTier(tier),scope=tier===null?'ALL TERRITORIES':'TIER '+roman(tier);
+ const cards=entries.map(entry=>{
+  const outcome={fallen:'FORTRESS FALLEN',retreated:'HONORABLE RETREAT',victory:'ETERNAL VICTORY'}[entry.reason];
+  const earned=historyEarnedKeys.filter(k=>entry.earned[k]>0).map(k=>
+   ({firstClears:'FIRST CLEARS',milestones:'MILESTONES',lostSignals:'LOST SIGNALS',
+     oaths:'OATHS',echoes:'ECHO RETURNS',atlasSeals:'ATLAS SEALS'}[k]+
+    ': '+formatWave(entry.earned[k]))).join(' · ');
+  const when=entry.finishedAt?new Date(entry.finishedAt).toLocaleDateString():'LEGACY RECORD';
+  return '<article class="siege-history-entry"><div><strong>TIER '+roman(entry.tier)+' · '+outcome+
+   '</strong><small>'+when+' · WAVE '+formatWave(entry.startWave)+' → '+
+   formatWave(entry.lastWave)+'</small></div>'+
+   '<p>'+formatWave(entry.cleared)+' WAVES · '+formatWave(entry.enemies)+
+   ' FOES · '+formatWave(entry.breaches)+' BREACHES · '+formatWave(entry.bosses)+
+   ' BOSSES</p>'+(earned?'<small class="siege-history-earned">EARNED · '+earned+
+   '</small>':'<small>NO NEW ONE-TIME OBJECTIVES THIS RUN</small>')+'</article>';
+ }).join('');
+ return '<details class="siege-history" aria-label="Persistent recent siege history"><summary>✦ SIEGE ARCHIVE · '+
+  scope+' <span>'+entries.length+' RECENT / '+siegeHistoryLimit+' MAX</span></summary>'+
+  '<div class="siege-history-body"><p>Recent '+siegeHistoryLimit+
+  ' completed sorties across all territories, newest first. Earned progress counts represent one-time achievements, not repeatable loot. Older versions did not log sieges.</p>'+
+  (cards||'<p class="siege-history-empty">NO RECORDED SIEGES HERE YET. COMPLETE A SIEGE TO ADD ITS RESULT.</p>')+
+  '</div></details>';
+}
 function buildSiegeReport(reason){
  return {reason,tier:run.tier,startWave:run.startWave||1,lastWave:run.wave,
   cleared:run.wavesCleared||0,enemies:run.enemiesDefeated||0,
