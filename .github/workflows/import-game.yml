@@ -101,3 +101,4 @@ jobs:
           node tests/scout-routebook.js
           node tests/save-checkpoint-recovery.js
           node tests/siege-history.js
+          node tests/siege-guard.js
