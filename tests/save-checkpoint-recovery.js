@@ -86,7 +86,7 @@ assert.equal(intact.h.p().gold,2012);
 assert.equal(intact.h.saveRecoverySummary().status,'healthy');
 assert.equal(intact.h.saveRecoverySummary().hasCheckpoint,false);
 // A broken primary plus invalid checksum must NOT result in silent character reset.
-const loneBroken=boot({[SAVE]:'{cut off",[CK]:invalidCheckpoint});
+const loneBroken=boot({[SAVE]:'{cut off',[CK]:invalidCheckpoint});
 assert.equal(loneBroken.h.saveRecoverySummary().status,'blocked');
 assert.equal(loneBroken.h.saveRecoverySummary().blocked,true);
 assert.equal(loneBroken.h.save(),false,'Unrecoverable save must not be overwritten by a fresh save');
