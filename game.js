@@ -46,7 +46,9 @@ const gearNames={
  ring:['Tin Band','Woodland Ring','Moonstone Ring','Royal Signet','Sunfire Ring','Mythic Loop','Ancient Seal','Celestial Band','Eternal Circle']
 };
 function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},explorationFinds:{},cartographerOaths:{},echoReturns:{},atlasSeals:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],siegeHistory:[],siegeHistorySeq:0,battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',doctrineTactic:'rapid',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
-// Alpha 0.14.0: keep the original readable character JSON and save key.
+const siegeHistoryLimit=24;
+const historyEarnedKeys=['firstClears','milestones','lostSignals','oaths','echoes','atlasSeals'];
+ // Alpha 0.14.0: keep the original readable character JSON and save key.
  // An older checksum-verified checkpoint protects it from truncated or broken saves.
  const storageKey='primal_knight_onslaught_save_v1';
  const recoveryCheckpointKey='primal_knight_onslaught_checkpoint_v1';
@@ -1423,8 +1425,6 @@ function rewardMilestone(tier,wave){
 let chosenTier=p.selectedTier;
 // Alpha 0.14.1 — a finite account journal, not a second reward source.
 // Imported records are read-only, type-normalized and capped to 24.
-const siegeHistoryLimit=24;
-const historyEarnedKeys=['firstClears','milestones','lostSignals','oaths','echoes','atlasSeals'];
 function safeHistoryCount(value){
  const n=Number(value);
  return Number.isSafeInteger(n)&&n>=0?Math.min(n,Number.MAX_SAFE_INTEGER-1):0;
