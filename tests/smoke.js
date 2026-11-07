@@ -346,13 +346,14 @@ const volleyBefore=hooks.projectileCount();
 for(let i=0;i<6;i++)clickButton({action:'ascension:volley'});
 assert.equal(hooks.p().ascension.volley,6,'Six Eternal Volley ranks purchased');
 assert.equal(hooks.projectileCount(),Math.min(12,volleyBefore+1),'Eternal Volley grants one extra projectile every six ranks');
-hooks.renderTierLobby();
+// Close the synthetic deep siege before selecting another territory: live combat may not switch tiers.
+hooks.retreatFromSiege();hooks.renderTierLobby();
 el('tierGrid').listeners.click({target:{closest:()=>({dataset:{tier:'1'},disabled:false})}});
 assert(el('tierGrid').innerHTML.includes('TIER XVI'),'Late-game lobby offers Tier XVI');
 assert(el('milestoneList').innerHTML.includes('Wave 10,000'),'Tier milestone ledger shows final wave');
 assert(el('milestoneList').innerHTML.includes('data-start-mode="waystone"'),'Return waystone restart button present');
 assert(el('milestoneList').innerHTML.includes('Ascension')||el('milestoneList').innerHTML.includes('Doctrine'),'Long-wave rewards show mastery routes');
-hooks.retreatFromSiege(); // inspect the lobby after a deep run
+// The deep run was already retired before selecting Tier I.
 const waystone=hooks.waystoneForTier(1);
 assert(waystone>=100&&waystone<=5000,'Cleared milestones unlock legal tier return checkpoints');
 el('milestoneList').listeners.click({target:{closest:()=>({dataset:{startMode:'waystone'}})}});
