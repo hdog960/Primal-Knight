@@ -10,3 +10,17 @@ The test then runs a separate deterministic, actual-engine **18 consecutive sieg
 
 ## Scope
 Report only Chapters VIII–X actually granted by the earned runs. Do not extrapolate these few scripted seeds into universal human player results, 750-minute First Watch completion or the ~1,250-active-hour full-game target. Physical iPhone visual, thermal, gesture and endurance testing remains deferred until the locked roadmap is finished, at player direction.
+
+## CI-verified earned Tier V/VI findings
+The green 78-check run completed two deterministic seeds × two route strategies × 18 consecutive genuine engine sieges = **72 real simulated sieges**. Every policy earned Chapter VII, paid **182 Gold** to enhance original earned Chapter III gear, and swapped the original earned Frost Rune for an Ember Rune dropped during real battle. All original saves, finite Sigils and first-clear ledgers were verified.
+
+| Seed | Route | Active minutes | Unique first clears | Chapters | Tier IV/V/VI best | Ending Essence / Knowledge / Gold |
+|---|---|---:|---:|---:|---|---|
+| 15411 | Repeat IV | 167.33 | 129 | 7 | 32 / 0 / 0 | 4,925 / 21,172 / 623,520 |
+| 15411 | Push V/VI | 165.67 | 177 | 8 | 28 / 28 / 24 | 3,591 / 21,151 / 640,251 |
+| 15423 | Repeat IV | 168.94 | 131 | 7 | 33 / 0 / 0 | 5,198 / 22,477 / 656,573 |
+| 15423 | Push V/VI | 166.06 | 181 | 8 | 30 / 28 / 25 | 3,892 / 22,113 / 665,618 |
+
+**Chapter VIII requires 108 active minutes and 162 genuinely unique first-cleared waves.** Both frontier policies earned it naturally and legally unlocked Tier VII after Tier VI wave 20. Neither repeated-Tier-IV policy earned VIII. Chapter IX requires 147 minutes and 221 unique first clears. The time gate is met in both frontier policies, with **44 / 40 additional unique victories** still needed. Chapters IX and X were not earned.
+
+**Actual-cost warning:** All policies paid 182 earned Gold to enhance their existing Chapter III equipment. Another Might rank was unaffordable at the intended upgrade checkpoint, so the optional Might purchase was correctly skipped in all four policies. This could be a meaningful midgame Essence affordability problem, but it is not proof of a systemic economy failure; a rank-specific price-versus-income study is needed. These are not universal success predictions. The same build decisions were applied to both routes, so this study does not isolate the combat effect of Ember vs Frost or enhanced gear. The full 750-minute First Watch, 1,250-hour goal, and manual iPhone visual/thermal acceptance remain unverified.
