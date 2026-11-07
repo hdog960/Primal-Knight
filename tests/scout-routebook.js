@@ -138,8 +138,12 @@ assert.equal(h.selectScoutRoute(1,'signal-347'),false);
 assert.equal(h.startWaveForTier(1),1500,'Stale chosen route no longer overrides normal waystone');
 assert.equal(p.sigils,startingSigils,'Routing grants no bonus Sigils');
 // Remaining routes stay selectable, and do not leak across tier changes.
+// End the test's Tier I siege: the real UI intentionally forbids live tier changes.
+h.retreatFromSiege();
 clickRoute('signal-747');assert.equal(h.startWaveForTier(1),500);
-p.milestones['2:100']=true;p.selectedTier=2;
+// This is an explicit fixture-only Tier II unlock and tier-specific waypoint,
+// not a claim of earned Tier II wave-100 combat; real unlocks are tested separately.
+p.unlockedTier=Math.max(p.unlockedTier,2);p.milestones['2:100']=true;assert(h.save());
 el('tierGrid').listeners.click({target:{closest(sel){
  return sel==='[data-tier]'?{dataset:{tier:'2'},disabled:false}:null;}}});
 assert.equal(h.selectedScoutRouteId(),null,'Tier switch invalidates any previous route');
