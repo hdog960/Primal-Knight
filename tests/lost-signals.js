@@ -1,4 +1,4 @@
-// Alpha 0.15.12 — real Lost Signals encounter and permanent reward regression.
+// Alpha 0.15.13 — real Lost Signals encounter and permanent reward regression.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('game.js','utf8');
@@ -21,7 +21,7 @@ const sandbox={Math,Date,Blob,Image,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test';},revokeObjectURL(){}}};
 vm.runInNewContext(source,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.12')&&html.includes('game.js?v=0.15.12')&&html.includes('style.css?v=0.15.12'));
+assert(html.includes('ALPHA 0.15.13')&&html.includes('game.js?v=0.15.13')&&html.includes('style.css?v=0.15.13'));
 assert(css.includes('.lost-signals')&&css.includes('min-height:44px'));
 assert.equal(h.scoutSignalsSelected(),false,'Original play path defaults to NORMAL');
 const waves=[47,147,347,747],slots=['helm','amulet','charm','gauntlets'],keys=new Set();
