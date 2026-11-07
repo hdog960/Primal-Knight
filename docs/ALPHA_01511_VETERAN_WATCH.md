@@ -18,4 +18,19 @@ Each scenario performs up to 36 full sequential, genuinely executed sieges (rath
 ## Known limits
 The complete 750-minute First Watch remains unverified until an earned run actually reaches it. The approximately 1,250-active-hour completion objective is a design target and remains unmeasured. Deep 30-territory economy viability, typical player spending, battery/thermal performance, and physical iPhone visual/touch acceptance are not established by deterministic Node/CI. Manual iPhone signoff is intentionally deferred until the locked Alpha 0.15 roadmap closes, as the player requested.
 
-**Status:** Development branch implementation prepared; release verification and observed earned-cohort results must be appended only after the actual CI run passes.
+## Verified PR CI observations (November 7, 2026)
+After correcting a read-only plan-ID reference bug caught by the first CI attempt, the next pull-request run passed **all 80 mandatory checks**, including the earlier 79 and new strategy suite. The green run performed **144 genuine engine-executed sieges** (two seeds × two policies × 36 consecutive sieges) with no injected first-clears, chapters, time or currencies.
+
+| Seed | Paid Training policy | Earned active minutes | Distinct first clears | Claimed chapters | Unlocked tiers | End Might / Reflexes / Fortitude ranks | Essence spent after siege 18 |
+|---|---|---:|---:|---:|---:|---:|---|---:|
+| 15411 | Reserve Might | 296.32 | 222 | 9 / 16 | VIII | 150 / 49 / 17 | 58,971 |
+| 15411 | Diversify | 306.31 | 341 | 10 / 16 | XIV | 154 / 92 / 51 | 93,276 |
+| 15423 | Reserve Might | 296.10 | 246 | 9 / 16 | IX | 152 / 59 / 15 | 63,947 |
+| 15423 | Diversify | 306.80 | 382 | 11 / 16 | XV | 165 / 91 / 51 | 120,995 |
+
+**Chapter XI was genuinely claimed only by seed 15423's diversified policy:** 382 actual distinct first-cleared waves and over 253 earned active minutes satisfied its 380-wave and 253-minute requirements. Seed 15411 diversified finished 39 distinct victories short of XI despite exceeding 253 active minutes. Neither reserve-Might policy earned X; its first-clear gate stayed 71/47 distinct waves away from 293. None of these cohorts reached Chapters XII–XVI.
+
+**Interpretation:** In both specific matched-seed scripted experiments the diversified Quartermaster policy produced stronger measured damage/wall/fire-rate profiles, unlocked more territories and claimed more chapters. However, diversified players also invested **more total earned Essence** and thereby accessed additional new first-clear opportunities. Differences are not an isolated causal estimate of equivalent-budget Might versus mixed spending, nor proof of typical human results, a globally superior build, or a permanent Essence bottleneck. The economy/prices remain unchanged. Next design work should match *total* actual Essence spent more tightly and test later gates under more independent seeds before tuning balance. Neither the 750-minute First Watch nor approximately 1,250-hour completion target has been verified.
+
+**Merge and production limitations:** These are verified pull-request CI findings, not yet a claim of deployed production code. After documentation changes, rerun PR CI; merge only if green, and verify main-branch CI plus GitHub Pages deployment. Physical iPhone touch/visual/thermal acceptance remains postponed until the locked roadmap's conclusion.
+
