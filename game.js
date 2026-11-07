@@ -5378,7 +5378,7 @@ $('siegeGuardLobby').addEventListener('click',e=>{
 $('tierGrid').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(!b||b.disabled)return;if(selectFrontierTier(b.dataset.tier))renderTierLobby();});
 $('milestoneList').addEventListener('click',e=>{
  const frontier=e.target.closest('[data-watch-frontier]');
- if(frontier){
+ if(frontier&&typeof frontier.dataset?.watchFrontier==='string'){
   if(frontier.disabled)return;
   const list=$('milestoneList'),scroll=list.scrollTop;
   if(selectFrontierTier(frontier.dataset.watchFrontier)){
