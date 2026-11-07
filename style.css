@@ -3092,3 +3092,19 @@
 .expedition-readiness-grid article button:disabled{background:#344149;color:#d6d7d2;opacity:.65;cursor:not-allowed}
 .expedition-readiness-foot{display:block;font-weight:400;padding:0 12px 11px}
 @media(max-width:610px){.expedition-readiness-grid{grid-template-columns:1fr}.expedition-readiness-grid article{gap:5px}}
+
+/* Alpha 0.15.8 — Long March read-only forecast, original charcoal/bronze language. */
+.long-march-ledger{margin:10px 0 12px;border:1px solid #ad9571;background:linear-gradient(145deg,#303d42,#1b2b38 70%,#293934);box-shadow:inset 0 1px #ffffff1a}
+.long-march-ledger summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:5px 12px;min-height:44px;padding:11px 12px;cursor:pointer;touch-action:manipulation}
+.long-march-ledger summary strong{font:800 12px/1.4 Georgia,serif;color:#fce2b0}
+.long-march-ledger summary small,.long-march-foot{font:700 10px/1.45 Arial,sans-serif;color:#c3ddc9}
+.long-march-ledger>p{padding:0 12px;margin:0 0 10px;font:11px/1.5 Arial,sans-serif;color:#dce7de}
+.long-march-goals,.long-march-economy{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 12px 10px}
+.long-march-goals article,.long-march-economy article{min-width:0;display:flex;flex-direction:column;gap:7px;padding:10px;border:1px solid #727a70;background:linear-gradient(#364540,#26323d)}
+.long-march-goals article small,.long-march-economy article small{font:800 10px/1.45 Arial,sans-serif;color:#e7c68d}
+.long-march-goals article strong,.long-march-economy article strong{font:700 13px/1.4 Georgia,serif;color:#f6edd8}
+.long-march-goals article span,.long-march-economy article span,.long-march-economy article em{font:11px/1.5 Arial,sans-serif;color:#d3e3d5;font-style:normal}
+.long-march-economy article button{min-height:44px;width:100%;padding:8px 7px;border:1px solid #a78c65;background:linear-gradient(#756145,#4b3d2a);font:800 10px/1.4 Arial,sans-serif;color:#fff4df;touch-action:manipulation}
+.long-march-ledger>p.long-march-caption{font-weight:600;color:#dcd4bc}
+.long-march-foot{display:block;padding:0 12px 11px;font-weight:400}
+@media(max-width:610px){.long-march-goals,.long-march-economy{grid-template-columns:1fr}}
