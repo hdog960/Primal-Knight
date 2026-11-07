@@ -15,3 +15,16 @@ The full existing 71 checks remain mandatory, plus this new regression = **72 ch
 
 ## Additional production save-load fix found during regression
 The genuinely persisted first siege has a nonempty `siegeHistory`. Reopening that history triggered a JavaScript temporal-dead-zone exception: `normalizeSiegeHistory()` executes during game initialization, but its call to `normalizeDoctrineTactic()` accessed the `doctrineTacticModes` constant before that catalogue had initialized. The production `normalizeDoctrineTactic` now validates the exact same three allowed policy IDs (`rapid`, `horde`, `crisis`) using primitive literal comparisons, which are safe during early startup. This changes neither player doctrine choices nor the save format. The new earned-cohort regression explicitly reboots a character with actual saved history, compares its normalized siege-history count and confirms the Breakthrough Rally quote survives a reload. This was a genuine preexisting save-load crash uncovered by the added test rather than a balance adjustment.
+
+## Verified release evidence, including limitations
+All 72 automated PR checks succeeded after the original saved-history load bug was corrected. Three paired seeded character journeys (same opening spend, matching RNG seed, exact earned skill-point investment) yielded:
+
+| Seed | Defense-only earned Chapter II | Rally earned Chapter II | Highest real unique cleared waves |
+| --- | --- | --- | --- |
+| 15311 | Third siege, 13.99 active min | Second siege, 8.86 active min | Defense 13 (3 attempts), Rally 13 (2 attempts) |
+| 15313 | Third siege, 13.94 active min | Second siege, 8.40 active min | Defense 14 (3 attempts), Rally 13 (2 attempts) |
+| 15317 | Third siege, 14.01 active min | Second siege, 7.89 active min | Defense 14 (3 attempts), Rally 12 (2 attempts) |
+
+The offensive Rally spends **115 genuine earned Essence** to add Might 1→8 and Reflexes 1→5 after the first defeat. Defense-only spends **272 Essence** before attempt two plus **646** before attempt three, strengthening Fortitude alone. These are distinct user-like policies with different opportunity costs and run counts; **not an apples-to-apples claim of top-wave power**. The evidence supports affordable, quicker second First Watch chapter access through player choice, not universal combat dominance. No original 11-wave gate or seven-minute active timer changed.
+
+**Separate bug fix:** The real save/reload regression found that valid nonempty `siegeHistory` records previously triggered `ReferenceError: Cannot access 'doctrineTacticModes' before initialization` during startup; `normalizeDoctrineTactic` now uses the same three literal whitelist values and is safe at initialization. Regression verifies the actual battle history survives reload alongside Rally guidance. Physical iPhone QA remains deferred.
