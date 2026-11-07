@@ -2,6 +2,8 @@
 // skills, legacy purchases, save and menu navigation, with no browser dependencies.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 let nextFrame=null,storedSave=null;
+// Faithful storage readback: route selection verifies writes and rejects stale saves.
+const mockStorage=new Map();
 const canvasContext=new Proxy({createLinearGradient(){return{addColorStop(){}}}}, {get(obj,key){return obj[key]||(()=>{});},set(obj,key,val){obj[key]=val;return true;}});
 class Element{
  constructor(id){this.id=id;this.style={};this.dataset={};this.className='';this.classList={add(){},remove(){},toggle(){}};this.innerHTML='';this.textContent='';this.disabled=false;this.hidden=false;this.onclick=null;this.listeners={};this.width=960;this.height=540;this.scrollTop=0;}
@@ -11,7 +13,7 @@ class Element{
 const elements=new Map(),el=id=>elements.get(id)||(elements.set(id,new Element(id)),elements.get(id));
 class MockImage{constructor(){this.complete=true;this.naturalWidth=120;this.naturalHeight=120;this.src='';}}
 let testMode=true;
-const sandbox={__testMode:testMode,Image:MockImage,document:{getElementById:el,querySelectorAll:()=>[],addEventListener(){}},window:{__PK_TEST__:true,addEventListener(){}},localStorage:{getItem(){return null},setItem(k,v){storedSave=v}},requestAnimationFrame(fn){nextFrame=fn},performance:{now:()=>1000},setTimeout:()=>0,clearTimeout(){},console,Math,Date,Blob,URL:{createObjectURL(){return'blob:demo'},revokeObjectURL(){}},confirm(){return true}};
+const sandbox={__testMode:testMode,Image:MockImage,document:{getElementById:el,querySelectorAll:()=>[],addEventListener(){}},window:{__PK_TEST__:true,addEventListener(){}},localStorage:{getItem(k){return mockStorage.has(k)?mockStorage.get(k):null},setItem(k,v){mockStorage.set(k,String(v));storedSave=String(v)},removeItem(k){mockStorage.delete(k)}},requestAnimationFrame(fn){nextFrame=fn},performance:{now:()=>1000},setTimeout:()=>0,clearTimeout(){},console,Math,Date,Blob,URL:{createObjectURL(){return'blob:demo'},revokeObjectURL(){}},confirm(){return true}};
 vm.runInNewContext(fs.readFileSync('game.js','utf8'),sandbox,{filename:'game.js'});
 const hooks=sandbox.window.__PK_TEST_TOOLS__,clickHub=hub=>el('nav').listeners.click({target:{closest:()=>({dataset:{hub}})}}),clickSub=tab=>el('subnav').listeners.click({target:{closest:()=>({dataset:{subtab:tab}})}}),clickButton=ds=>el('panelContent').listeners.click({target:{closest:()=>({dataset:ds,disabled:false})}});
 assert(hooks&&nextFrame,'Game initialized with test hooks and game loop');
@@ -344,13 +346,14 @@ const volleyBefore=hooks.projectileCount();
 for(let i=0;i<6;i++)clickButton({action:'ascension:volley'});
 assert.equal(hooks.p().ascension.volley,6,'Six Eternal Volley ranks purchased');
 assert.equal(hooks.projectileCount(),Math.min(12,volleyBefore+1),'Eternal Volley grants one extra projectile every six ranks');
-hooks.renderTierLobby();
+// Close the synthetic deep siege before selecting another territory: live combat may not switch tiers.
+hooks.retreatFromSiege();hooks.renderTierLobby();
 el('tierGrid').listeners.click({target:{closest:()=>({dataset:{tier:'1'},disabled:false})}});
 assert(el('tierGrid').innerHTML.includes('TIER XVI'),'Late-game lobby offers Tier XVI');
 assert(el('milestoneList').innerHTML.includes('Wave 10,000'),'Tier milestone ledger shows final wave');
 assert(el('milestoneList').innerHTML.includes('data-start-mode="waystone"'),'Return waystone restart button present');
 assert(el('milestoneList').innerHTML.includes('Ascension')||el('milestoneList').innerHTML.includes('Doctrine'),'Long-wave rewards show mastery routes');
-hooks.retreatFromSiege(); // inspect the lobby after a deep run
+// The deep run was already retired before selecting Tier I.
 const waystone=hooks.waystoneForTier(1);
 assert(waystone>=100&&waystone<=5000,'Cleared milestones unlock legal tier return checkpoints');
 el('milestoneList').listeners.click({target:{closest:()=>({dataset:{startMode:'waystone'}})}});

@@ -1,4 +1,4 @@
-// Alpha 0.15.5 — genuine earned-waystone selection and goal navigation.
+// Alpha 0.15.6 — genuine earned-waystone selection and goal navigation.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -19,7 +19,7 @@ const sandbox={Math,Date,Image,Blob,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.5')&&html.includes('game.js?v=0.15.5')&&html.includes('style.css?v=0.15.5'));
+assert(html.includes('ALPHA 0.15.6')&&html.includes('game.js?v=0.15.6')&&html.includes('style.css?v=0.15.6'));
 assert(css.includes('.waystone-navigator-options'));
 assert.equal(h.earnedWaystones(1).join(','),'1');
 assert.equal(h.renderWaystoneNavigator(1),'');
@@ -99,4 +99,4 @@ assert.equal(h.startWaveForTier(2),250,'Import returns to latest earned per impo
 assert.equal(JSON.stringify(h.earnedWaystones(1)),JSON.stringify([1,...fullOptions]));
 assert.equal(JSON.stringify(p).includes('selectedWaystoneWave'),false);
 assert.equal(JSON.stringify(p).includes('selectedMilestoneTarget'),false);
-console.log('PASS Alpha 0.15.5 Waystone Navigator: 10 real checkpoints, route priority, start-wave, target focus, save isolation');
+console.log('PASS Alpha 0.15.6 Waystone Navigator: 10 real checkpoints, route priority, start-wave, target focus, save isolation');
