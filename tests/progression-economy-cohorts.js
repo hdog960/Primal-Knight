@@ -1,4 +1,4 @@
-// Alpha 0.15.4: real-price three-currency ledger and longer earned economy cohorts.
+// Alpha 0.15.5: real-price three-currency ledger and longer earned economy cohorts.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -24,7 +24,7 @@ function world(seed0,saveSource){
  assert(sandbox.window.__PK_TEST_TOOLS__,'Actual game hooks loaded');
  return {h:sandbox.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.4')&&html.includes('game.js?v=0.15.4')&&html.includes('style.css?v=0.15.4'));
+assert(html.includes('ALPHA 0.15.5')&&html.includes('game.js?v=0.15.5')&&html.includes('style.css?v=0.15.5'));
 assert(css.includes('.prosperity-grid')&&css.includes('min-height:44px'));
 assert(css.includes('@media(max-width:610px){.prosperity-grid{grid-template-columns:1fr}'));
 const test=world(15401),h=test.h,p=h.p();
@@ -172,7 +172,7 @@ for(const seed of [15411,15423,15437]){
  for(const policy of ['combat','growth']){
   const w=world(seed),h=w.h,p=h.p(),r=h.run(),sessions=[],paid={essence:0,knowledge:0,gold:0};
   const starterGear=JSON.stringify(p.inventory.slice(0,4)),starterRunes=JSON.stringify(p.runes.slice(0,2));
-  for(let n=1;n<=7;n++){
+  for(let n=1;n<=12;n++){
    skillSpend(h);
    const investments=investEconomy(h,policy);
    for(const currency of ['essence','knowledge','gold'])paid[currency]+=investments.spent[currency];
@@ -180,7 +180,9 @@ for(const seed of [15411,15423,15437]){
    const prior=p.battleSeconds,best=p.bestByTier[1]||0;
    assert.equal(h.enterSiege(),true);
    let ticks=0,lastWave=r.wave,begin=r.time;
-   while(r.phase!=='fallen'&&r.wavesCleared<35&&ticks<56000){
+   // Prevent the previous 35-wave test harness from artificially capping the later frontier.
+   const checkpointCap=n<=7?35:n<=9?50:n<=11?65:80;
+   while(r.phase!=='fallen'&&r.wavesCleared<checkpointCap&&ticks<100000){
     if(r.phase==='intermission'&&p.points>0)skillSpend(h);
     if(r.phase==='fighting'&&r.wave!==lastWave){lastWave=r.wave;begin=r.time;}
     h.tick(.05);ticks++;
@@ -190,8 +192,8 @@ for(const seed of [15411,15423,15437]){
     }
     if(r.phase==='fighting'&&r.time-begin>95)throw Error('Timed out real battle at wave '+r.wave);
    }
-   assert(ticks<56000,'Bounded genuine wave simulation');
-   const outcome=r.phase==='fallen'?'fallen':'retreated-after-35-earned-clears';
+   assert(ticks<100000,'Bounded genuine wave simulation');
+   const outcome=r.phase==='fallen'?'fallen':'retreated-after-'+checkpointCap+'-earned-clears';
    if(r.phase!=='fallen')h.retreatFromSiege();
    assert(p.battleSeconds>prior);assert(p.bestByTier[1]>=best);
    assert.equal(p.uniqueClears,p.bestByTier[1],'No repeat farming of First Watch wave gates');
@@ -212,9 +214,9 @@ for(const seed of [15411,15423,15437]){
    assert.equal(saved.battleSeconds,p.battleSeconds);
    assert.equal(saved.essence,p.essence);assert.equal(saved.gold,p.gold);assert.equal(saved.knowledge,p.knowledge);
    sessions.push({n,outcome,clears:r.wavesCleared,best:p.bestByTier[1],minutes:+(p.battleSeconds/60).toFixed(2),
-    chapters:p.firstWatchClaimed.length,level:p.level,rankSpent:training.spent,perks:investments.changes});
+    chapters:p.firstWatchClaimed.length,level:p.level,rankSpent:training.spent,frontierCap:checkpointCap,perks:investments.changes});
   }
-  assert.equal(sessions.length,7,'Seven actual attempts, not a fabricated future-state fixture');
+  assert.equal(sessions.length,12,'Twelve actual attempts, not a fabricated future-state fixture');
   const after=world(seed+500,w.store);
   assert.equal(after.h.p().uniqueClears,p.uniqueClears,'Real siege history persists after reload');
   assert.equal(after.h.p().siegeHistory.length,p.siegeHistory.length);
@@ -231,7 +233,7 @@ for(const seed of [15411,15423,15437]){
 assert.equal(cohorts.length,6,'Three random seeds × two real spending policies');
 assert(cohorts.every(x=>x.best>=5&&x.activeMinutes>=2),'Each cohort actually progresses and earns time');
 assert(cohorts.filter(x=>x.policy==='growth').every(x=>x.ranks.attunement>0&&x.ranks.studies>0&&x.ranks.midas>0),'Growth choice purchases all 3 resources with earned balances');
-console.log('SEVEN-ATTEMPT EARNED ECONOMY COHORTS '+JSON.stringify(cohorts));
+console.log('TWELVE-ATTEMPT EARNED ECONOMY COHORTS '+JSON.stringify(cohorts));
 console.log('FIRST WATCH REAL-COHORT CHAPTERS '+JSON.stringify(cohorts.map(x=>({policy:x.policy,seed:x.seed,chapters:x.chapters,best:x.best,activeMinutes:x.activeMinutes}))));
-console.log('PASS Alpha 0.15.4: live three-currency prices, real one-click purchases, no double-spend, cap/insufficiency/save locks, 42 actual seeded sieges, honest finite one-time progress and original save reload');
-console.log('LIMIT: seven short deterministic attempts per cohort, not full 750-minute First Watch, physical iPhone acceptance, or verified ~1250-hour completion.');
+console.log('PASS Alpha 0.15.5: live three-currency prices, real one-click purchases, no double-spend, cap/insufficiency/save locks, 72 actual seeded sieges, honest finite one-time progress and original save reload');
+console.log('LIMIT: twelve deterministic attempts per cohort, not full 750-minute First Watch, physical iPhone acceptance, or verified ~1250-hour completion.');

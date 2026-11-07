@@ -112,3 +112,4 @@ jobs:
           node tests/first-watch-defensive-balance.js
           node tests/first-watch-breakthrough-rally.js
           node tests/progression-economy-cohorts.js
+          node tests/first-watch-horizon.js
