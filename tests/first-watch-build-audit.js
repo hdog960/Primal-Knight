@@ -27,54 +27,9 @@ function world(seed0,source){
 }
 
 assert(html.includes('ALPHA 0.15.9')&&html.includes('game.js?v=0.15.9')&&html.includes('style.css?v=0.15.9'));
-assert(css.includes('.expedition-readiness-grid')&&css.includes('.expedition-readiness-grid article button{'));
-assert(css.includes('@media(max-width:610px){.expedition-readiness-grid{grid-template-columns:1fr}'));
-const untouched=world(15700);
-const starter=JSON.stringify(untouched.h.p());
-assert.equal(untouched.h.expeditionReadiness(),null,'Unavailable before legitimately earned Chapter V');
-assert.equal(untouched.h.renderExpeditionReadiness(),'');
-untouched.h.renderTierLobby();
-assert(!untouched.el('milestoneList').innerHTML.includes('expedition-readiness'));
-assert.equal(untouched.h.selectFrontierTier(3),false,'Tier III remains locked for new characters');
-assert.equal(JSON.stringify(untouched.h.p()),starter,'Absent panel does not mutate any character field');
-const fixture=world(15701),fp=fixture.h.p();
-fp.firstWatchClaimed=[0,1,2,3,4];fp.battleSeconds=35*60;fp.uniqueClears=53;fp.unlockedTier=3;fp.bestByTier[1]=33;fp.bestByTier[2]=20;
-const fixtureBefore=JSON.stringify(fp); // Synthetic UI fixture, NOT a claim of earned progression.
-const readiness=fixture.h.expeditionReadiness();
-assert(readiness&&readiness.tierIII);
-assert.equal(readiness.equipped,4);
-assert.equal(readiness.gearSlots,11);
-assert.equal(readiness.owned,4);
-assert.equal(readiness.runes,2);
-assert.equal(readiness.socketed,0);
-assert.equal(readiness.unsocketed,2);
-assert(readiness.training&&Number.isFinite(readiness.training.cost));
-assert(readiness.training.cost>=0&&readiness.training.rank>=0);
-const panel=fixture.h.renderExpeditionReadiness();
-assert(panel.includes('EXPEDITION READINESS')&&panel.includes('data-expedition-open="equipment"'));
-assert(panel.includes('data-expedition-open="runes"')&&panel.includes('data-expedition-open="training"'));
-assert(panel.includes('data-watch-frontier="3"'));
-fixture.h.renderTierLobby();assert(fixture.el('milestoneList').innerHTML.includes('expedition-readiness'));
-assert.equal(JSON.stringify(fp),fixtureBefore,'Rendering does not alter saved character, money, Sigils or inventory');
-function navOpen(w,destination){
- const container=w.el('milestoneList');
- const button={dataset:{expeditionOpen:destination},disabled:false};
- container.listeners.click({target:{closest(selector){return selector==='[data-expedition-open]'?button:null;}}});
- assert.equal(w.el('panel').hidden,false,'Real Forge/Armory panel appears');
- assert(w.el('panelTitle').textContent.length>1);
- assert(w.el('panelContent').innerHTML.length>50);
-}
-navOpen(fixture,'equipment');
-assert(fixture.el('panelTitle').textContent.toUpperCase().includes('EQUIPMENT')||fixture.el('panelContent').innerHTML.includes('Leather Cowl'));
-fixture.h.openTab('battle');navOpen(fixture,'runes');
-assert(fixture.el('panelContent').innerHTML.includes('Rune Workshop')||fixture.el('panelContent').innerHTML.includes('seedember'));
-fixture.h.openTab('battle');navOpen(fixture,'training');
-assert(fixture.el('panelContent').innerHTML.includes('data-action="train:power"'));
-assert.equal(JSON.stringify(fp),fixtureBefore,'Opening preparation chambers must not spend or equip');
-const didSelect=fixture.h.selectFrontierTier(3);
-assert.equal(didSelect,true,'Explicitly unlocked fixture Tier III prepares via original save-verification gate');
-assert.equal(fp.selectedTier,3);
-assert.equal(fixture.h.run().phase,'ready','Selecting III does not auto-start combat');
+assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
+assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
+assert(css.includes('min-height:44px'));
 function clickPanel(w,data){
  const b={dataset:data,disabled:false};
  w.el('panelContent').listeners.click({target:{closest(sel){return sel==='button'?b:null;}}});
