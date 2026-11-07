@@ -1,4 +1,4 @@
-// Alpha 0.15.8: read-only multi-chapter First Watch horizon, genuine first siege and boundary fixtures.
+// Alpha 0.15.9: read-only multi-chapter First Watch horizon, genuine first siege and boundary fixtures.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),css=fs.readFileSync('style.css','utf8'),html=fs.readFileSync('index.html','utf8');
@@ -22,7 +22,7 @@ function world(seed0,source){
  vm.runInNewContext(game,sandbox,{filename:'game.js'});assert(sandbox.window.__PK_TEST_TOOLS__);
  return {h:sandbox.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.8')&&html.includes('game.js?v=0.15.8')&&html.includes('style.css?v=0.15.8'));
+assert(html.includes('ALPHA 0.15.9')&&html.includes('game.js?v=0.15.9')&&html.includes('style.css?v=0.15.9'));
 assert(css.includes('.watch-horizon-grid')&&css.includes('@media(max-width:610px){.watch-horizon-grid{grid-template-columns:1fr}'));
 assert(css.includes('.watch-horizon summary{')&&css.includes('min-height:44px'));
 const w=world(15551),h=w.h,p=h.p();
@@ -81,5 +81,5 @@ f.firstWatchClaimed=Array.from({length:16},(_,i)=>i);
 assert.equal(fixture.h.firstWatchHorizon().length,0);
 assert.equal(fixture.h.renderFirstWatchHorizon(),'','Completed First Watch has no redundant guide');
 console.log('FIRST WATCH HORIZON NATURAL STARTER: '+JSON.stringify({seed:15551,ticks,realActiveMinutes:+(p.battleSeconds/60).toFixed(2),firstClears:p.uniqueClears,chapters:p.firstWatchClaimed.length}));
-console.log('PASS Alpha 0.15.8: honest next-three separate time/clear gates, natural earned first chapter, actual save/reload and fixture-only boundary cases');
+console.log('PASS Alpha 0.15.9: honest next-three separate time/clear gates, natural earned first chapter, actual save/reload and fixture-only boundary cases');
 console.log('LIMIT: one natural starter siege plus synthetic boundary fixtures; no assertion of full 750-minute player experience or physical iPhone approval.');

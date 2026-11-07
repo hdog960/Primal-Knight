@@ -1,4 +1,4 @@
-// Alpha 0.15.8: optional verified portable saves, import preview and future-format lock.
+// Alpha 0.15.9: optional verified portable saves, import preview and future-format lock.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -22,7 +22,7 @@ function boot(store={}){
  return {h:sandbox.window.__PK_TEST_TOOLS__,store,el};
 }
 const {h,store}=boot();let p=h.p();
-assert(html.includes('ALPHA 0.15.8')&&html.includes('game.js?v=0.15.8'));
+assert(html.includes('ALPHA 0.15.9')&&html.includes('game.js?v=0.15.9'));
 assert(css.includes('.portable-backup-panel'));
 assert.equal(h.portableBackupFormat,'primal-knight-verified-v1');
 assert(h.renderPortableBackupPanel().includes('DOWNLOAD VERIFIED BACKUP'));
@@ -93,4 +93,4 @@ assert.equal(legacyPreview.format,'LEGACY CHARACTER JSON');
 assert.equal(h.restoreProgressBackup(legacyPreview.data),true);
 assert.equal(h.p().version,3,'Old equipment migration still updates supported version');
 assert.equal(JSON.stringify(h.p()).includes('portableBackupFormat'),false);
-console.log('PASS Alpha 0.15.8: verified envelopes, forward-format lock, legacy migration, previews, original preservation');
+console.log('PASS Alpha 0.15.9: verified envelopes, forward-format lock, legacy migration, previews, original preservation');

@@ -1,4 +1,4 @@
-// Alpha 0.15.8 — actual frontline breach UI and canvas marker, no gameplay rewrites.
+// Alpha 0.15.9 — actual frontline breach UI and canvas marker, no gameplay rewrites.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const src=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -17,7 +17,7 @@ const sandbox={Math,Image,Date,Blob,console,confirm(){return true},window:{__PK_
 vm.runInNewContext(src,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),run=h.run();
 const saved=JSON.stringify(p),priorStorage=JSON.stringify(storage);
-assert(html.includes('ALPHA 0.15.8')&&html.includes('game.js?v=0.15.8')&&html.includes('style.css?v=0.15.8'));
+assert(html.includes('ALPHA 0.15.9')&&html.includes('game.js?v=0.15.9')&&html.includes('style.css?v=0.15.9'));
 assert(css.includes('.encounter-ribbon[data-breach="true"]'));
 assert.equal(h.frontlineBreachRisk(),null,'No proximity warning outside fighting');
 const make=(x,y,extras={})=>({x,y,type:'goblin',hp:100,max:100,dead:false,...extras});
