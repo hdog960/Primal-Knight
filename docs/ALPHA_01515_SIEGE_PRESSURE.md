@@ -24,3 +24,22 @@ At each siege the test checks actual pressure measures, finite unique first-clea
 This is a deterministic scripted game-engine study, not human play or a physical iPhone recording. It does not measure actual battery or thermals, a full 750-minute First Watch, or the theoretical ~1,250-active-hour completion target unless those thresholds genuinely occur. It should not be used to lower original waves, adjust costs, grant free upgrade ranks, or assert universal causal superiority. The locked roadmap and user's deferred-manual-review instruction remain in force.
 
 **Status:** implementation and test prepared. Append actual outcomes only after successful full PR CI. Merge only if 84/84 checks pass; then independently verify the main-branch CI and GitHub Pages deployment of the same merge commit.
+
+## Verified pull-request CI observations — November 7, 2026
+
+**84 of 84 mandatory checks passed** on the new code, including the original legacy-save/regression tests and **344 genuine deterministic original-engine sieges** with no injected time, currencies, gear or unlocks. The two same-seed strategies had identical genuinely earned first-66-siege character state before spending priorities diverged.
+
+| Seed | Late paid Training priority | Active minutes | Genuinely distinct first clears | First Watch | Tier XVI best cleared | XVI wave 20 reached? | Tier XVII opened? | Max wall HP at end | Actual Essence spent since siege 19 |
+|---|---|---:|---:|---:|---:|---|---|---:|---:|
+| 15411 | Continue mixed | 617.90 | 391 | XI (11/16) | 18 | No in final runs | No | 1,752 | 244,755 |
+| 15411 | Fortitude first | 625.22 | 391 | XI (11/16) | 18 | Not cleared | No | 2,582 | 244,629 |
+| 15423 | Continue mixed | 620.59 | 400 | XI (11/16) | 19 | Yes; fell during wave 20 | No | 1,764 | 244,445 |
+| 15423 | Fortitude first | 624.35 | 400 | XI (11/16) | 19 | Yes; fell during wave 20 | No | 2,530 | 244,339 |
+
+All four earned runs met Chapter XII's actual **322-minute** time gate but failed the **483 distinct first-cleared waves** gate by **92 / 83** (identical per seed across spending policies). No Chapter XII was credited. The original Tier XVI wave-20 milestone was not completed; reaching wave 20 without surviving it never awards Tier XVII.
+
+**Measured effective wall pressure, summed over all 86 original-engine sorties per cohort:** seed 15411 mixed **128,240 breach HP**, guard **145,427 breach HP**; seed 15423 mixed **129,369 breach HP**, guard **145,074 breach HP**. In these tested runs the recorded Sapper impact was **zero**, not evidence that Sappers cannot harm the fortress in other circumstances. The explicit synthetic single-Sapper damage fixture independently verified that this measurement does record an explosion when one succeeds. Fortitude-focused builds did provide more maximum wall HP (**2,582 vs 1,752**, and **2,530 vs 1,764**) while slightly reducing measured hero attack damage; the extra durability did **not** improve best cleared wave at Tier XVI. More total HP lost in the defensive builds reflects bigger recoverable health pools and actual combat trajectories—not worse underlying protection.
+
+**Interpretation:** It is premature to lower the tier requirement or boost enemies/player stats from only two deterministic seeds. These cohorts point to enemy reach-the-wall pressure and the ability to defeat attackers quickly enough, rather than raw max-health alone, as useful *next test targets*. Work toward a real legitimately completed Tier XVI wave 20 and subsequent Tier XVII entry, then Chapter XII through ordinary first clears. Additional original-engine counterfactuals should isolate offensive speed and breach-prevention tactics, while monitoring actual Essence spent. Full 750-minute First Watch, theoretical 1,250-hour completion and physical iPhone UI/thermal/battery acceptance remain unverified.
+
+**Release discipline:** This evidence belongs to a successfully checked PR code head. After documentation changes, run the full PR CI again on the final head; merge only after green 84/84, and independently confirm merged-main CI and GitHub Pages.
