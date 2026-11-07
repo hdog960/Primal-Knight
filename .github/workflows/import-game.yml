@@ -118,3 +118,4 @@ jobs:
           node tests/first-watch-long-march.js
           node tests/first-watch-build-audit.js
           node tests/first-watch-essence-ladder.js
+          node tests/first-watch-veteran-strategy.js
