@@ -1,4 +1,4 @@
-// Alpha 0.15.15: finite territorial Atlas Seal mastery, live stats and old-save recovery.
+// Alpha 0.15.16: finite territorial Atlas Seal mastery, live stats and old-save recovery.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -19,7 +19,7 @@ const ctx={Math,Date,Image,Blob,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test';},revokeObjectURL(){}}};
 vm.runInNewContext(js,ctx,{filename:'game.js'});
 const h=ctx.window.__PK_TEST_TOOLS__;let p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.15')&&html.includes('game.js?v=0.15.15')&&html.includes('style.css?v=0.15.15'));
+assert(html.includes('ALPHA 0.15.16')&&html.includes('game.js?v=0.15.16')&&html.includes('style.css?v=0.15.16'));
 assert(css.includes('.atlas-seal-entry'));
 assert.equal(h.atlasSealObjectiveCount,6);
 assert.equal(h.atlasSealBonusPerRealm,.0025);
