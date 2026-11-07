@@ -141,12 +141,14 @@ function policy(id,seed){
  const starterSpent=opening(w),attempts=[],purchases=[];
  attempts.push(fight(w));
  assert(attempts[0].clears>=5,'Original paid Stoneguard earns its first real wave milestones');
+ assert(p.siegeHistory.length>0,'First real siege writes a valid saved chronology record');
  const quote=h.breakthroughRallyQuote();
  assert(quote&&quote.uniqueRemaining>0,'An actual defensive stall activates the rally');
  assert.equal(quote.might,1);assert.equal(quote.reflexes,1);assert.equal(quote.fortitude,4);
  assert(quote.remainingCost>0&&quote.nextCost>0);
  const reloaded=world(seed+1000,w.store);
  const persistedQuote=reloaded.h.breakthroughRallyQuote();
+ assert.equal(reloaded.h.p().siegeHistory.length,p.siegeHistory.length,'Real historical sieges survive reload without initialization crash');
  assert(persistedQuote,'Recovery still visible from original save after app restart');
  assert.equal(persistedQuote.remainingCost,quote.remainingCost);
  assert.equal(persistedQuote.uniqueRemaining,quote.uniqueRemaining);
