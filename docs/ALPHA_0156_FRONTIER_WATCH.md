@@ -10,3 +10,16 @@ The button **Prepare This Tier** changes the same real selected-tier state and v
 
 ## Release gate and limits
 **75 mandatory automated checks including JS syntax**; preserve every previous test, confirm PR CI, merge, post-merge CI and GitHub Pages. Manual iPhone acceptance remains deferred by player directive until Alpha 0.15 development finishes. The 750-minute First Watch, real mid/endgame upgrade affordability, and 1,250-active-hour maximum-progression goal remain unverified. This work does not quietly replace those objectives.
+
+## CI-verified, genuinely earned results (three matched seeds)
+The successful 75-check PR run executed 60 real-engine sieges (3 seeds × two controlled route strategies × 10 attempts), with identical **combat-first** purchasing policies for each pair. The comparison route stayed in Tier I; the frontier route used Tier II only after authentic Tier I wave-20 completion and returned to Tier I periodically. Combat ran through natural defeats or explicitly bounded test retreats, without fabricated currency, unique wave clears or chapter time.
+
+| Seed | Tier-I-only unique clears | Frontier unique clears | Tier-I-only chapters | Frontier chapters | Tier-I-only active min | Frontier active min | Frontier best Tier I / II |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 15411 | 40 | 65 | 4 | 5 | 95.92 | 87.10 | 33 / 32 |
+| 15423 | 41 | 65 | 4 | 5 | 92.71 | 85.50 | 33 / 32 |
+| 15437 | 41 | 68 | 4 | 5 | 97.65 | 89.04 | 38 / 30 |
+
+**Interpretation:** In all three deterministic seed pairs, routing into unlocked Tier II earned chapter five (35 active minutes **and** at least 53 genuine unique wave victories) within ten authentic sessions, while staying exclusively in Tier I did not. The route controls and original combat balance were unchanged. These outcomes support the read-only Frontier Watch guidance and suggest **not** weakening the First Watch fifth-chapter threshold prematurely.
+
+**Important limitations:** Each sample uses the same scripted early spending priority, just three RNG seeds, and no human decisions or physical iPhone input. Tier III became legally unlocked in the frontier cohorts but was not played in this comparison. Do not generalize a guaranteed result or treat this as a full 750-minute First Watch, midgame/endgame affordability or 1,250-hour completion proof. Future work should evaluate multi-tier decision quality after chapter five, realistic gear/rune choice and late-game affordability, then physical device QA after locked development finishes.
