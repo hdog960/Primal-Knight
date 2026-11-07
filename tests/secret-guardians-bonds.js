@@ -1,4 +1,4 @@
-// Alpha 0.15.6 — four authentic secret guardian archetypes, real finite-set bonuses.
+// Alpha 0.15.7 — four authentic secret guardian archetypes, real finite-set bonuses.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -19,7 +19,7 @@ const env={Math,Image,Date,Blob,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test';},revokeObjectURL(){}}};
 vm.runInNewContext(js,env,{filename:'game.js'});
 const h=env.window.__PK_TEST_TOOLS__,p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.6')&&html.includes('game.js?v=0.15.6')&&html.includes('style.css?v=0.15.6'));
+assert(html.includes('ALPHA 0.15.7')&&html.includes('game.js?v=0.15.7')&&html.includes('style.css?v=0.15.7'));
 assert(css.includes('.explorer-bond')&&css.includes('.armory-explorer-bond'));
 const waves=[47,147,347,747],types=['guardian','raider','warg','ogre'];
 const names=['WAYFINDER SENTINEL','STAR-MAP COURIER','RELIQUARY HOWLER','CROWNLESS COLOSSUS'];

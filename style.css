@@ -3076,3 +3076,19 @@
 .watch-frontier-card button{width:100%;min-height:44px;padding:8px 6px;border:1px solid #ad9165;background:linear-gradient(#746044,#4b3b2c);font:800 10px/1.3 Arial,sans-serif;color:#fff4df;touch-action:manipulation}
 .watch-frontier-card button:disabled{background:#333e43;color:#d8dbd6;opacity:.67;cursor:not-allowed}
 @media(max-width:610px){.watch-frontiers-grid{grid-template-columns:1fr}.watch-frontier-card{gap:5px}}
+
+/* Alpha 0.15.7 — original bronze/charcoal post-chapter-V Expedition Readiness. */
+.expedition-readiness{margin:10px 0 12px;border:1px solid #ab946b;background:linear-gradient(137deg,#34403e,#1d2c39 70%,#26383a);box-shadow:inset 0 1px #ffffff22}
+.expedition-readiness summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 14px;min-height:44px;padding:11px 12px;cursor:pointer;touch-action:manipulation}
+.expedition-readiness summary strong{font:800 12px/1.4 Georgia,serif;color:#ffe0a4}
+.expedition-readiness summary span,.expedition-readiness-foot{font:700 10px/1.5 Arial,sans-serif;color:#c0dbcd}
+.expedition-readiness>p{font:11px/1.5 Arial,sans-serif;color:#e3e5db;margin:0;padding:0 12px 10px}
+.expedition-readiness-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 12px 10px}
+.expedition-readiness-grid article{min-width:0;display:flex;flex-direction:column;gap:7px;padding:10px;border:1px solid #74796c;background:linear-gradient(#364641,#23313a)}
+.expedition-readiness-grid article small{font:800 10px/1.4 Arial,sans-serif;color:#e8c78d}
+.expedition-readiness-grid article strong{font:700 13px/1.4 Georgia,serif;color:#f8ebd3}
+.expedition-readiness-grid article p{flex:1;margin:0;font:11px/1.45 Arial,sans-serif;color:#e0e5df}
+.expedition-readiness-grid article button{display:block;min-height:44px;width:100%;padding:8px 7px;border:1px solid #aa956c;background:linear-gradient(#796348,#4a3d2b);color:#fff5df;font:800 10px/1.3 Arial,sans-serif;touch-action:manipulation}
+.expedition-readiness-grid article button:disabled{background:#344149;color:#d6d7d2;opacity:.65;cursor:not-allowed}
+.expedition-readiness-foot{display:block;font-weight:400;padding:0 12px 11px}
+@media(max-width:610px){.expedition-readiness-grid{grid-template-columns:1fr}.expedition-readiness-grid article{gap:5px}}
