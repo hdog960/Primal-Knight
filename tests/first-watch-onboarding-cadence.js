@@ -1,4 +1,4 @@
-// Alpha 0.15.8: verify the opening First Watch reward in real novice combat.
+// Alpha 0.15.9: verify the opening First Watch reward in real novice combat.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
@@ -23,7 +23,7 @@ function world(initialSeed){
  vm.runInNewContext(js,env,{filename:'game.js'});
  return {h:env.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.8')&&html.includes('game.js?v=0.15.8')&&html.includes('style.css?v=0.15.8'));
+assert(html.includes('ALPHA 0.15.9')&&html.includes('game.js?v=0.15.9')&&html.includes('style.css?v=0.15.9'));
 const base=world(11601),schedule=base.h.earlyWatchChapters;
 assert.equal(schedule.length,16,'Original sixteen finite First Watch chapters retained');
 assert.equal(schedule[0][0],2,'First Blood must arrive at two real active minutes');
@@ -97,5 +97,5 @@ assert.equal(fp.sigils,sigils+1,'Existing one-time Sigil amount unchanged');
 assert(JSON.parse(future.store[SAVE]).firstWatchClaimed.includes(1),'Later timed award persists');
 const beforeSecond=fp.sigils;fh.awardFirstWatch();assert.equal(fp.sigils,beforeSecond);
 console.log('FIRST WATCH OPENING REAL-ENGINE NOVICE COHORT '+JSON.stringify(logs));
-console.log('PASS Alpha 0.15.8: 3 natural no-spend first sieges earn First Blood before defeat, original budget, instant durable payment, exact time and first-clear gates, finite 16-chapter ledger');
+console.log('PASS Alpha 0.15.9: 3 natural no-spend first sieges earn First Blood before defeat, original budget, instant durable payment, exact time and first-clear gates, finite 16-chapter ledger');
 console.log('LIMIT: Three seeded first-siege combat simulations and deterministic clock fixtures, not a full 12.5h campaign, physical iPhone QA, or a measured 1,250h playthrough.');
