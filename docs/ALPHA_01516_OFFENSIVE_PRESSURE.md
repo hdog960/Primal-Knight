@@ -26,5 +26,21 @@ The existing 84th test, `tests/first-watch-siege-pressure.js`, now also accounts
 - The full 750 active-minute First Watch, 30×10,000-wave lifetime economy, roughly 1,250-hour completion target and physical iPhone art/touch/thermal acceptance remain unverified.
 - The player explicitly postponed manual iPhone acceptance until the locked roadmap's development/balance work is finished. Do not ask the player to test now.
 
-## Earned CI results
-Pending final complete green CI. Record actual observation data here after the test succeeds, without claiming equal-lifetime spend or a universal best build.
+## Verified pull-request CI results — November 7, 2026
+
+**All 85 mandatory automated checks passed** on the playable PR head. The extended existing engine study ran **344 real original-game-engine sieges** (2 deterministic seeds × 2 paid policies × 86), with the same genuinely earned first-66-siege character within each seed, then original-priced mixed or Fortitude-first Training. The new independent 85th regression executed **four further genuine opening sieges** using real initial Essence expenditures, plus separate explicitly synthetic fixture checks for imported counter bounds and legacy display.
+
+| Seed | Later paid Training | Projectiles launched | Landed | No-hit removed | Direct-hit HP removed | Last-line kills | Landed / launched | Genuine Tier XVI best cleared |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 15411 | Mixed | 133,586 | 102,318 | 29,944 | 43,276,187 | 2,948 | 76.59% | 18 |
+| 15411 | Fortitude first | 135,843 | 104,419 | 30,119 | 44,003,110 | 3,070 | 76.87% | 18 |
+| 15423 | Mixed | 134,268 | 102,239 | 30,651 | 46,156,614 | 2,890 | 76.15% | 19 |
+| 15423 | Fortitude first | 135,407 | 103,423 | 30,621 | 46,323,617 | 2,973 | 76.38% | 19 |
+
+These totals are **across the entire 86-sortie progression career**, not Tier XVI alone. Higher raw total damage and last-line kills in Fortitude-first cohorts occur alongside different fight lengths and health pools, and **do not show better offensive efficiency**. Both policies reached best Tier XVI waves 18/19 with no legitimately cleared wave 20 and no Tier XVII unlock. First Watch remains XI/16; Chapter XII remains 92/83 new distinct first clears away, despite time requirement met. Real wall-breach damage remains the failure pressure recorded by 0.15.15. A projectile not yet resolved at wave end is neither landed nor classed as removed.
+
+In the separate four-siege early check, six actual purchased Might ranks cost **58 starting Essence**, while six Fortitude ranks cost **72**. Each of two seeds authentically cleared the first six waves in both policies. Might builds had **5 / 2 breaches** versus Fortitude **14 / 12**, and 6,176 / 6,233 versus 5,635 / 5,670 direct-hit HP removed. Because actual spending, run length and defeat events were not matched, this is only a concrete short opening comparison, **not a universal superiority claim**.
+
+**Next:** genuinely purchased, seed-paired offensive versus balanced late-frontier policies should be evaluated with explicit actual Essence spent, per-wave kill/breach pressure and wave-20 unlock integrity. No speculative live damage, costs or gates change from this narrow telemetry study. The complete 750-minute Watch, 1,250-hour design target and physical iPhone acceptance remain unverified.
+
+**Release discipline:** Green PR CI verifies this revision's gameplay head. After adding these measurements to documentation, require fresh complete 85/85 PR CI on the final documentation commit, then independently verify merged-main quality checks and finished Pages deployment before saying this release is live.
