@@ -1,4 +1,4 @@
-// Alpha 0.15.14 — exact battlefield weather in Atlas image and native PNG exports.
+// Alpha 0.15.15 — exact battlefield weather in Atlas image and native PNG exports.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8');
@@ -41,7 +41,7 @@ function create(reduceMotion=false){
  return{h:sandbox.window.__PK_TEST_TOOLS__,el,store,draws,downloads,images:()=>images};
 }
 async function main(){
- assert(html.includes('ALPHA 0.15.14')&&html.includes('game.js?v=0.15.14')&&html.includes('style.css?v=0.15.14'));
+ assert(html.includes('ALPHA 0.15.15')&&html.includes('game.js?v=0.15.15')&&html.includes('style.css?v=0.15.15'));
  assert(html.indexOf('id="atlasMatte"')<html.indexOf('id="atlasWeather"'));
  assert(html.indexOf('id="atlasWeather"')<html.indexOf('id="atlasBossStage"'));
  assert(html.indexOf('id="atlasBossStage"')<html.indexOf('id="atlasForeground"'));
