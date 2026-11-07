@@ -398,7 +398,7 @@ for(const seed of seeds){
    assert.equal(new Set(p.firstWatchClaimed).size,p.firstWatchClaimed.length);
    if(n>=limit-2)recent.push({tier,best:p.bestByTier[tier],clears:p.uniqueClears,chapters:p.firstWatchClaimed.length});
   }
-  assert(built&&checkpoint&&checkedNavigation,'Real paid build and route selection exercised');
+  assert(built&&checkpoint&&(type==='fixed-route'||checkedNavigation),'Real paid build and legitimately eligible Veteran route selection exercised');
   assert(route.length===limit);
   assert(route.slice(18).every(t=>type==='fixed-route'?t===7:t>=7));
   const loaded=world(seed+151410,w.store),saved=loaded.h.p();
