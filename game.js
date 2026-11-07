@@ -403,7 +403,10 @@ const doctrineTacticModes={
  horde:{name:'HORDE',detail:'Hold it for four enemies, a dangerous special cast, or damage that needs Aegis healing.'},
  crisis:{name:'CRISIS',detail:'Save it for attackers near the wall, dangerous windups, crowded battlefields, or a damaged fortress.'}
 };
-function normalizeDoctrineTactic(id){return Object.prototype.hasOwnProperty.call(doctrineTacticModes,id)?id:'rapid';}
+// Also runs during initial saved siege-history normalization, before the
+// later doctrineTacticModes catalogue is initialized. Keep this primitive
+// validator independent of that catalogue to avoid a saved-game load crash.
+function normalizeDoctrineTactic(id){return id==='rapid'||id==='horde'||id==='crisis'?id:'rapid';}
 function chooseDoctrineTactic(id){
  if(run.phase==='fighting'||run.phase==='intermission'||!Object.prototype.hasOwnProperty.call(doctrineTacticModes,id))return false;
  p.doctrineTactic=id;return true;
