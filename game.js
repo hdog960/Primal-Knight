@@ -2275,7 +2275,7 @@ function veteranWatchStrategy(){
    }
   }
   const total=prices.reduce((sum,cost)=>sum+cost,0);
-  return {id,name:plan.name,items,total,affordable:items.length===3&&balance>=total,
+  return {id:plan.id,name:plan.name,items,total,affordable:items.length===3&&balance>=total,
    complete:items.length===3,shortfall:items.length===3?Math.max(0,total-balance):null};
  });
  return {balance,goals,plans};
