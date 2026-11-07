@@ -8,3 +8,19 @@ The 79th mandatory quality check `tests/first-watch-essence-ladder.js` tests syn
 
 ## Open limits
 This is not a complete 750-active-minute First Watch simulation; it is not proof of typical human progression, the proposed ~1,250-active-hour completion time, full mid/endgame upgrade affordability, or physical iPhone visual, touch or thermal acceptance. The original gates and player saves remain unchanged; iPhone manual acceptance is postponed until the locked Alpha 0.15 development roadmap is complete, as directed.
+
+## Confirmed green 79-check result — actual earned runs (November 7, 2026)
+Two deterministic seeds × two route policies × 28 genuine sequential engine sieges each = **112 actual engine-backed sieges**, with the same earned baseline, identical normal paid Training, original earned Chapter III equipment enhanced for actual Gold and the actually earned Ember Rune. The *only* route change after siege 18 was to repeat Tier VI or enter newly unlocked Tier VII and progressively higher realms if actually opened. No synthetic time, first-clear ledger, character wealth or milestone claims were injected into these cohorts.
+
+| Seed | Route | Active min | Distinct first clears | Claimed First Watch chapters | Highest unlocked tier | End-of-run Essence |
+|---|---|---:|---:|---:|---:|---:|
+| 15411 | Repeat Tier VI | 265.46 | 183 | 8 | 7 | 5,443 |
+| 15411 | Explore unlocked VII+ | 242.10 | 242 | 9 | 9 | 3,599 |
+| 15423 | Repeat Tier VI | 274.90 | 189 | 8 | 7 | 6,902 |
+| 15423 | Explore unlocked VII+ | 249.00 | 300 | 10 | 12 | 7,840 |
+
+**Chapter IX** requires 147 active minutes and 221 distinct new first-cleared waves, and was truly earned by both frontier policies. **Chapter X** requires 195 active minutes and 293 distinct clears, genuinely earned by seed 15423's frontier policy (300 new clears). Seed 15411 frontier reached 242 waves and remained 51 first clears short of X despite exceeding its time requirement. Both repeat-Tier-VI routes had the time, but remained at only 183/189 unique clears. Repeated farming can satisfy clock time without satisfying first-clear gates; the existing Frontier Watch provides honest navigation.
+
+**Exact high-rank Might economy at checkpoints:** At the beginning of siege 19, rank 122 Might's next normal price was **1,592 Essence** in both seeds, but balances just after the scripted spending batch were **12 / 42 Essence**, correctly showing deficits of 1,580/1,550. Later pre-siege rank 128–145 quote prices were 1,760–2,228; frequent training spending kept some immediate balances low. These are valid *pre-siege* affordability measurements, not the final reward balance. After finishing siege 28, the control policies actually held 5,443/6,902 Essence and could afford the next Might rank, with one control having enough for three consecutive quoted ranks. The seed-15411 frontier finished with 3,599 Essence and could afford one next rank. The seed-15423 frontier had earned Chapter X, after which the dedicated VIII–X planning panel appropriately disappears, so its 7,840 Essence balance is reported directly. **No universal midgame Might shortage has been proven.** Future work should compare alternate spending schedules (reserve for expensive Might versus spread across abilities) under matched seeds and full effective combat outcomes before modifying prices.
+
+**Limitations:** No full 750-minute First Watch was earned in these 28-siege scenarios; the furthest achieved was chapter X out of XVI. This is deterministic testing, not measured player experience or proof of the proposed 1,250-hour completion target, device performance, or balance across the remaining 20+ territories and deeper waves. Physical iPhone visual, touch, battery and thermal acceptance remain postponed until the locked development roadmap is complete.
