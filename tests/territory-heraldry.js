@@ -71,7 +71,7 @@ assert(!paint.ops.some(x=>x.kind==='image'&&x.src.startsWith('data:image/svg+xml
 assert.equal(JSON.stringify({gold:p.gold,essence:p.essence,sigils:p.sigils,inventory:p.inventory,runes:p.runes}),saved,
  'Changing visual banners never changes resources, gear or runes');
 assert(!Object.keys(store).some(k=>k.includes('heraldry')));
-assert(html.includes('ALPHA 0.15.2')&&html.includes('game.js?v=0.15.2')&&html.includes('style.css?v=0.15.2'));
+assert(html.includes('ALPHA 0.15.3')&&html.includes('game.js?v=0.15.3')&&html.includes('style.css?v=0.15.3'));
 console.log('PASS: 13 region banner glyph families, full-height aligned fabric, 30 deterministic heraldic cloth variants, hero-safe x bounds, real fortress/projectile draw ordering, original Tier I and 75 redraws without allocations.');
 console.log('SOURCE SIZE: min '+Math.min(...sizes)+' max '+Math.max(...sizes)+' average '+Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length)+'.');
 console.log('LIMIT: iPhone screenshots, visuals and long-session energy use not measured.');
