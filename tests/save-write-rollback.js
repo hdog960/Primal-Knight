@@ -1,4 +1,4 @@
-// Alpha 0.15.6: import transaction, exact storage readback, and rollback-failure warnings.
+// Alpha 0.15.7: import transaction, exact storage readback, and rollback-failure warnings.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),
@@ -36,7 +36,7 @@ function boot(store={},rules={}){
  vm.runInNewContext(js,env,{filename:'game.js'});
  return {h:env.window.__PK_TEST_TOOLS__,store,rules,el};
 }
-assert(html.includes('ALPHA 0.15.6')&&html.includes('game.js?v=0.15.6'));
+assert(html.includes('ALPHA 0.15.7')&&html.includes('game.js?v=0.15.7'));
 assert(css.includes('.save-recovery-panel.save-recovery-danger'));
 const original=boot();assert.equal(original.h.save(),true);
 const base=JSON.parse(original.store[SAVE]),primary=original.store[SAVE],ck=original.store[CK];
@@ -116,4 +116,4 @@ assert.equal(JSON.parse(success.store[UNDO]).gold,base.gold);
 assert.equal(JSON.parse(success.store[SAVE]).gold,7777);
 assert.equal(success.h.p().gold,7777);
 assert.equal(success.h.saveRecoverySummary().blocked,false);
-console.log('PASS Alpha 0.15.6: storage readback, failed-write checkpoint preservation, verified import rollback, critical write lock, safe undo');
+console.log('PASS Alpha 0.15.7: storage readback, failed-write checkpoint preservation, verified import rollback, critical write lock, safe undo');

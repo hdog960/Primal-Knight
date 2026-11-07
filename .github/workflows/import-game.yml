@@ -114,3 +114,4 @@ jobs:
           node tests/progression-economy-cohorts.js
           node tests/first-watch-horizon.js
           node tests/first-watch-multi-tier.js
+          node tests/first-watch-expedition.js

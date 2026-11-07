@@ -1,4 +1,4 @@
-// Alpha 0.15.6: earned first-watch investment planner, real tap purchases & combat cohorts.
+// Alpha 0.15.7: earned first-watch investment planner, real tap purchases & combat cohorts.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -22,7 +22,7 @@ function world(startSeed){
   URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
  vm.runInNewContext(js,env,{filename:'game.js'});return {h:env.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.6')&&html.includes('game.js?v=0.15.6')&&html.includes('style.css?v=0.15.6'));
+assert(html.includes('ALPHA 0.15.7')&&html.includes('game.js?v=0.15.7')&&html.includes('style.css?v=0.15.7'));
 assert(css.includes('.watch-investment-card button')&&css.includes('min-height:44px'));
 assert(css.includes('@media(max-width:610px){.watch-investment-grid{grid-template-columns:1fr}'));
 const expect={
@@ -124,5 +124,5 @@ for(const path of ['might','balanced','guardian']){
 }
 console.log('CUMULATIVE REAL TRAINING PRICE QUOTES '+JSON.stringify(costs));
 console.log('NINE PURCHASED-BUILD REAL COMBAT COHORTS '+JSON.stringify(cohort));
-console.log('PASS Alpha 0.15.6: 3 live-cost rank targets, explicit mobile UI one-rank purchases, nine seed-paired starter combats, original saves and finite reward economy');
+console.log('PASS Alpha 0.15.7: 3 live-cost rank targets, explicit mobile UI one-rank purchases, nine seed-paired starter combats, original saves and finite reward economy');
 console.log('LIMIT: Short scripted first attempts, not full 12.5h earned progression, measured player win rates, iPhone manual QA or 1250h completion.');
