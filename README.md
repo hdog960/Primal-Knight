@@ -1,6 +1,6 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.15.11 (First Watch & Progression Balance, Slice 12)
+## Current release candidate — Alpha 0.15.12 (First Watch & Progression Balance, Slice 13)
 
 The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 
@@ -172,6 +172,8 @@ The live game is a **free iPhone-first, mostly automatic fortress-defense RPG** 
 
 
 **New in Alpha 0.15.11 (balancing slice 12, PR CI verified):** A read-only **Veteran Watch** disclosure appears after earned Chapter IX, showing the exact dual time/unique-clear requirements for Chapters XI–XVI. It compares the current original Hero Essence cost of three sequential Might ranks with one each of Might, Reflexes and Fortitude; these are independent price quotes, not a combat-power forecast or automatic shopping cart. The added test investigates genuinely earned 36-siege seeded routes using reserve-Might versus diversified paid Training strategies, with no synthetic Chapter XI–XVI grants. All prior tests remain required. No save fields, original prices, currency grants, unlock gates, equipment, 30-tier structure or art are changed. Full First Watch and physical iPhone signoff remain open. See `docs/ALPHA_01511_VETERAN_WATCH.md`.
+
+**Alpha 0.15.12 (progression balancing slice 13, pending release checks):** After a genuinely earned First Watch Chapter X, the existing optional Veteran Watch now includes a **Field Spending Envelope** that quotes up to six next ranks under the same 50%-of-held-Essence preview for two original-cost sequences: Might focus and Might/Reflexes/Fortitude. Exact sequential price math, rank caps, real leftover budgets, no automatic purchases, no saved planning state and no promises that the routes are equally strong. The new `tests/first-watch-budget-parity.js` increases the release gate to **81 required checks including syntax**, comparing two matching-seed 48-siege real-engine strategies each with the same *nominal* 8,000-Essence per-siege ceiling, but not necessarily equal actual spending. Original currency formulas, upgrades, rewards, saves, artwork and 30 × 10,000 waves remain untouched. The full 750-minute First Watch, proposed 1,250-hour completion target and physical iPhone acceptance remain unverified. See `docs/ALPHA_01512_BUDGET_ENVELOPE.md`.
 
 **Play:** https://hdog960.github.io/Primal-Knight/
 
