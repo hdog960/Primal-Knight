@@ -1,4 +1,4 @@
-// Alpha 0.15.13 — view-only World Atlas displays exact live boss stage art.
+// Alpha 0.15.14 — view-only World Atlas displays exact live boss stage art.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),
@@ -33,7 +33,7 @@ const sandbox={Image,Math,Date,Blob,console,confirm(){return true},
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,player=h.p(),run=h.run();
 const saveFingerprint=()=>JSON.stringify(player),before=saveFingerprint(),count=created;
-assert(html.includes('ALPHA 0.15.13')&&html.includes('game.js?v=0.15.13')&&html.includes('style.css?v=0.15.13'));
+assert(html.includes('ALPHA 0.15.14')&&html.includes('game.js?v=0.15.14')&&html.includes('style.css?v=0.15.14'));
 for(const id of ['atlasBossStage','atlasBossNone','atlasBossIron','atlasBossEmber','atlasBossRift','atlasBossBeast','atlasBossPhase','atlasBossStatus'])
  assert(html.includes('id="'+id+'"'),'Required view-only selector '+id);
 assert(html.indexOf('id="atlasMatte"')<html.indexOf('id="atlasBossStage"'));
