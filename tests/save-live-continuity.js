@@ -1,4 +1,4 @@
-// Alpha 0.15.11: cross-tab/foreground save conflicts interrupt real sieges.
+// Alpha 0.15.12: cross-tab/foreground save conflicts interrupt real sieges.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
@@ -24,7 +24,7 @@ function boot(store={},rules={}){
  vm.runInNewContext(js,env,{filename:'game.js'});
  return {h:env.window.__PK_TEST_TOOLS__,store,rules,storage,el,w,d,document};
 }
-assert(html.includes('ALPHA 0.15.11')&&html.includes('game.js?v=0.15.11')&&html.includes('style.css?v=0.15.11'));
+assert(html.includes('ALPHA 0.15.12')&&html.includes('game.js?v=0.15.12')&&html.includes('style.css?v=0.15.12'));
 const starter=boot();assert.equal(starter.h.save(),true);
 const original=starter.store[SAVE],shared={...starter.store},live=boot(shared);
 assert.equal(live.h.enterSiege(),true,'A legitimate unblocked siege can start');
@@ -66,4 +66,4 @@ assert.equal(unreadable.h.saveRecoverySummary().blocked,true,'Unreadable primary
 const normal=boot({...starter.store});normal.d.visibilitychange();
 assert.equal(normal.h.saveRecoverySummary().blocked,false,'No-change foreground must not lock');
 assert.equal(normal.h.enterSiege(),true,'Normal siege remains playable');
-console.log('PASS Alpha 0.15.11: real siege halts on external save, no rewards, no unsafe resume, foreground detection, safe unchanged behavior');
+console.log('PASS Alpha 0.15.12: real siege halts on external save, no rewards, no unsafe resume, foreground detection, safe unchanged behavior');
