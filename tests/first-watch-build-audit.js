@@ -1,4 +1,4 @@
-// Alpha 0.15.12: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Alpha 0.15.13: genuine post-Chapter-V Tier III expedition and owned item readiness.
 // Reuses the Alpha 0.15.6 deterministic combat harness and verified existing save behavior.
 // Alpha 0.15.6 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.12')&&html.includes('game.js?v=0.15.12')&&html.includes('style.css?v=0.15.12'));
+assert(html.includes('ALPHA 0.15.13')&&html.includes('game.js?v=0.15.13')&&html.includes('style.css?v=0.15.13'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -282,5 +282,5 @@ for(const seed of [15411,15423]){
 assert.equal(cohorts.length,4);
 assert(cohorts.every(x=>x.attempts===18));
 console.log('EARNED MIDGAME TIER V/VI BUILD COHORTS '+JSON.stringify(cohorts));
-console.log('PASS Alpha 0.15.12: build score and rune contributions, purchased upgrade prices, real earned gear enhancement/alternate rune, Tier V/VI progression, one-time First Watch/Sigil and original save/reload');
+console.log('PASS Alpha 0.15.13: build score and rune contributions, purchased upgrade prices, real earned gear enhancement/alternate rune, Tier V/VI progression, one-time First Watch/Sigil and original save/reload');
 console.log('LIMIT: 18 scripted earned attempts per seed/route. This does not demonstrate full 750-minute onboarding, all Chapters VIII–X, endgame economics or physical iPhone performance.');
