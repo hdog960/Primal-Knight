@@ -3189,3 +3189,20 @@
 .veteran-envelope-options button.selected,.veteran-envelope-options button[aria-pressed="true"]{background:linear-gradient(#a17b48,#6c4d2d);border-color:#f8d99d;color:#fff4de;box-shadow:inset 0 1px #ffffff33}
 .veteran-envelope-options button:focus-visible{outline:2px solid #ffe0a4;outline-offset:2px}
 @media(max-width:360px){.veteran-envelope-options{grid-template-columns:1fr}}
+
+/* Alpha 0.15.14 — four optional truthful existing-territory clear targets. */
+.veteran-clear-routes{margin:2px 12px 12px;padding:11px 10px;border:1px solid #988e6c;background:linear-gradient(140deg,#2c403c,#23313b)}
+.veteran-route-heading{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px 12px}
+.veteran-route-heading strong{color:#ffe2ab;font:800 12px/1.4 Georgia,serif}
+.veteran-route-heading span{font:800 10px/1.4 Arial,sans-serif;color:#e5d3aa}
+.veteran-clear-routes>p{font:11px/1.55 Arial,sans-serif;color:#e0e7dd;margin:8px 0 10px}
+.veteran-route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.veteran-route-grid article{display:flex;flex-direction:column;min-width:0;gap:6px;border:1px solid #757d72;background:linear-gradient(#354744,#26383c);padding:10px}
+.veteran-route-grid small{font:800 10px/1.4 Arial,sans-serif;color:#e0c99c}
+.veteran-route-grid strong{font:700 13px/1.4 Georgia,serif;color:#ffebca}
+.veteran-route-grid p{font:11px/1.5 Arial,sans-serif;color:#dce8dc;margin:0;flex:1}
+.veteran-route-grid button{min-height:44px;border:1px solid #b6a17b;background:linear-gradient(#65543c,#483d30);color:#fff0d3;font:800 11px/1.3 Arial,sans-serif;padding:8px 6px;touch-action:manipulation}
+.veteran-route-grid button[aria-current="true"]{background:linear-gradient(#447064,#324d48);color:#e3fae3}
+.veteran-route-grid button:focus-visible{outline:2px solid #ffe0a4;outline-offset:2px}
+.veteran-clear-routes>small{display:block;color:#cbdcd0;font:10px/1.5 Arial,sans-serif}
+@media(max-width:610px){.veteran-route-grid{grid-template-columns:1fr}}

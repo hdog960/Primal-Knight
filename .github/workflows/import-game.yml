@@ -121,3 +121,4 @@ jobs:
           node tests/first-watch-veteran-strategy.js
           node tests/first-watch-budget-parity.js
           node tests/first-watch-spend-parity.js
+          node tests/first-watch-clear-routes.js

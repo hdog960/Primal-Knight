@@ -1,4 +1,4 @@
-// Alpha 0.15.13 — all thirty battle atmospheres and real HUD identity.
+// Alpha 0.15.14 — all thirty battle atmospheres and real HUD identity.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8');
@@ -26,7 +26,7 @@ vm.runInNewContext(game,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),run=h.run();
 assert(html.includes('id="realmAtmosphere"')&&html.includes('aria-label="Current battlefield weather"'));
 assert(css.includes('.hudbox .realm-atmosphere')&&css.includes('text-overflow:ellipsis'));
-assert(html.includes('ALPHA 0.15.13')&&html.includes('game.js?v=0.15.13')&&html.includes('style.css?v=0.15.13'));
+assert(html.includes('ALPHA 0.15.14')&&html.includes('game.js?v=0.15.14')&&html.includes('style.css?v=0.15.14'));
 const before=JSON.stringify(p),events=[],style={fillStyle:''};
 const context={save(){events.push(['save'])},restore(){events.push(['restore'])},
  fillRect(x,y,w,h){events.push(['rect',x,y,w,h,style.fillStyle])},

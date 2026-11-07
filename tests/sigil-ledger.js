@@ -83,7 +83,7 @@ assert.equal(p.sovereignOaths.sovereignBlade,originalOath+1,'Real Sovereign Blad
 assert.equal(p.sigils,1000-oathPrice,'Oath costs use the authentic rank formula');
 assert.equal(beforeOath.oathRequired-h.sigilLedgerSummary().oathRequired,oathPrice,
  'Next Oath cost decreases by exactly the spent purchased rank');
-assert(html.includes('ALPHA 0.15.13')&&html.includes('game.js?v=0.15.13')&&html.includes('style.css?v=0.15.13'),
+assert(html.includes('ALPHA 0.15.14')&&html.includes('game.js?v=0.15.14')&&html.includes('style.css?v=0.15.14'),
  'New Safari release keeps its original save URL but refreshes code assets');
 console.log('SIGIL AUDIT: '+JSON.stringify({milestoneGrants:directMilestoneTotal,firstWatchGrants:start.unclaimedWatch,
  totalFiniteSupply:start.future,allPermanentRanksCost:start.remainingCosts,

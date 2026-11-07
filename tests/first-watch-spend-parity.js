@@ -1,6 +1,6 @@
-// Alpha 0.15.13: genuine post-Chapter-V Tier III expedition and owned item readiness.
-// Reuses the Alpha 0.15.13 deterministic combat harness and verified existing save behavior.
-// Alpha 0.15.13 — real earned multi-territory First Watch routes and safe player selection.
+// Alpha 0.15.14: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Reuses the Alpha 0.15.14 deterministic combat harness and verified existing save behavior.
+// Alpha 0.15.14 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.13')&&html.includes('game.js?v=0.15.13')&&html.includes('style.css?v=0.15.13'));
+assert(html.includes('ALPHA 0.15.14')&&html.includes('game.js?v=0.15.14')&&html.includes('style.css?v=0.15.14'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -173,9 +173,9 @@ function prepareMidgameBuild(w){
 
 
 
-// Alpha 0.15.13: UI-only fixture; these flags/currencies are synthetic
+// Alpha 0.15.14: UI-only fixture; these flags/currencies are synthetic
 // layout and arithmetic inputs, NEVER scored as earned gameplay.
-assert(html.includes('ALPHA 0.15.13')&&html.includes('game.js?v=0.15.13'));
+assert(html.includes('ALPHA 0.15.14')&&html.includes('game.js?v=0.15.14'));
 assert(css.includes('.veteran-envelope-options')&&css.includes('min-height:44px'));
 assert(css.includes('@media(max-width:360px){.veteran-envelope-options{grid-template-columns:1fr}}'));
 const fixture=world(151301),fh=fixture.h,fp=fh.p();
@@ -385,6 +385,6 @@ for(const seed of seeds){
 }
 assert.equal(results.length,4);
 assert(results.every(x=>x.attempts===52&&x.actualEssenceSpent>=x.matchCheckpointSpent));
-console.log('EARNED 0.15.13 CLOSE-ACTUAL-SPEND CHECKPOINT AND LONG ROUTES '+JSON.stringify(results));
-console.log('PASS Alpha 0.15.13: selectable ephemeral 25/50/75% budget, exact price/cap and save purity, 208 engine-executed authentic sieges, real earned checkpoint actual-spend packages within 5%, cumulative caps, chapter/Sigil integrity and original save reload');
+console.log('EARNED 0.15.14 CLOSE-ACTUAL-SPEND CHECKPOINT AND LONG ROUTES '+JSON.stringify(results));
+console.log('PASS Alpha 0.15.14: selectable ephemeral 25/50/75% budget, exact price/cap and save purity, 208 engine-executed authentic sieges, real earned checkpoint actual-spend packages within 5%, cumulative caps, chapter/Sigil integrity and original save reload');
 console.log('LIMIT: only checkpoint spend is closely matched; actual later spend and territory outcomes diverge. No full 750-minute Watch, no demonstrated 1,250-hour completion, and no physical iPhone acceptance.');

@@ -168,7 +168,7 @@ assert.equal(p.combatDoctrine,'vanguard','Unrelated tier navigation cannot accid
 const saveData=JSON.parse(sim.store.primal_knight_onslaught_save_v1);
 assert.equal(Object.prototype.hasOwnProperty.call(saveData,'warCouncil'),false,'Recommendations do not add a permanent save field');
 assert.equal(Object.prototype.hasOwnProperty.call(saveData,'tactics'),false,'No artificial permanent encounter data is stored');
-assert(html.includes('ALPHA 0.15.13')&&html.includes('game.js?v=0.15.13'),
+assert(html.includes('ALPHA 0.15.14')&&html.includes('game.js?v=0.15.14'),
  'Alpha 0.11.2 has new iPhone Home Screen cache-busted assets');
 assert(css.includes('.war-council-choice button')&&css.includes('min-height:44px'),
  'One-tap recommendation is a readable 44px mobile control');
