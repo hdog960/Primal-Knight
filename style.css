@@ -3044,3 +3044,19 @@
 .prosperity-card button:disabled{background:#343e45;color:#d4d9d6;opacity:.65;cursor:not-allowed}
 .prosperity-foot{display:block;font-weight:400;margin-top:8px}
 @media(max-width:610px){.prosperity-grid{grid-template-columns:1fr}.prosperity-card{gap:4px}.prosperity-card button{min-height:44px}}
+
+/* Alpha 0.15.5 — First Watch horizon, matching original bronze / charcoal. */
+.watch-horizon{margin:10px 0 13px;border:1px solid #9e8d70;background:linear-gradient(135deg,#2e343b,#1c2833 72%,#263637);box-shadow:inset 0 1px #ffffff21}
+.watch-horizon summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px 12px;min-height:44px;padding:10px 12px;cursor:pointer;touch-action:manipulation}
+.watch-horizon summary strong{font:800 12px/1.35 Georgia,serif;color:#ffe1a7;letter-spacing:.3px}
+.watch-horizon summary span{font:700 10px/1.4 Arial,sans-serif;color:#b5d7c6}
+.watch-horizon>p{font:11px/1.55 Arial,sans-serif;color:#dbe3dd;margin:0;padding:5px 12px 9px}
+.watch-horizon-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 12px 8px}
+.watch-horizon-card{min-width:0;display:flex;flex-direction:column;gap:7px;padding:11px 9px;border:1px solid #746e5d;background:linear-gradient(#364047,#222e38)}
+.watch-horizon-card>small{font:700 10px/1.4 Arial,sans-serif;color:#cfba92}
+.watch-horizon-card>strong{font:700 13px/1.4 Georgia,serif;color:#f7e9ce}
+.watch-horizon-gates{display:flex;flex-direction:column;gap:5px}
+.watch-horizon-gates span{font:700 10px/1.45 Arial,sans-serif;color:#f1ccaa}
+.watch-horizon-gates span.gate-ready{color:#b5e3cd}
+.watch-horizon-foot{display:block;padding:0 12px 11px;font:10px/1.5 Arial,sans-serif;color:#b8d3c6}
+@media(max-width:610px){.watch-horizon-grid{grid-template-columns:1fr}.watch-horizon summary{align-items:flex-start;flex-direction:column}.watch-horizon-card{gap:5px}}

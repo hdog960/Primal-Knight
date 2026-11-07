@@ -1,4 +1,4 @@
-// Alpha 0.15.4 — real consecutive-wave Cartographer's Oath, finite banner/rune rewards.
+// Alpha 0.15.5 — real consecutive-wave Cartographer's Oath, finite banner/rune rewards.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
@@ -19,7 +19,7 @@ const env={Math,Image,Date,Blob,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test';},revokeObjectURL(){}}};
 vm.runInNewContext(js,env,{filename:'game.js'});
 const h=env.window.__PK_TEST_TOOLS__,p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.4')&&html.includes('game.js?v=0.15.4')&&html.includes('style.css?v=0.15.4'));
+assert(html.includes('ALPHA 0.15.5')&&html.includes('game.js?v=0.15.5')&&html.includes('style.css?v=0.15.5'));
 assert.deepEqual(Array.from(h.cartographerRouteWaves),[1001,1002,1003]);
 assert.equal(h.cartographerOath(0),null);
 assert.equal(h.cartographerOath(31),null);
