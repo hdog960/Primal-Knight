@@ -1,0 +1,21 @@
+# Alpha 0.15.14 — First Watch Record Stretch Routes & Controlled Territory Study
+
+## Real player-facing feature
+After a **genuinely earned Chapter IX** and until First Watch completion, the existing Battle-lobby Veteran Watch gains a compact, collapsible-context **Record Stretch** section. It inspects the real first unclaimed chapter in the unchanged `earlyWatchChapters` array, its **active-minute and unique per-territory wave-clear gates**, and the character's own persisted totals. It states exact outstanding active minutes and new first-clear wave victories. It shows up to four already-unlocked and not-yet-conquered territories, sorted by highest available tier, with real existing personal bests, next wave, and an *illustrative* record stretch of at most 10 additional waves or the remaining gate deficit. The cards do **not** claim those waves will be won, that higher tiers are easier, or that their new records count before actually earned.
+
+Each card's **View Tier** control uses the original protected `selectFrontierTier()` path, preserves existing lobby list scroll and opened Veteran Watch disclosure when available, and never enters combat, buys upgrades, grants time, unlocks a territory or awards anything. The normal selected-tier lobby setting is saved by the original guarded game function. The original save schema, upgrade costs, enemy balance, terrain art, currencies and existing Veteran Watch spending previews remain unchanged. Responsive one-column iPhone layout, 44px buttons and original bronze/charcoal fantasy styling are preserved.
+
+## New 83rd mandatory quality check
+`tests/first-watch-clear-routes.js` is added after the former 82-check gate (including JavaScript syntax). Explicitly **synthetic, UI-only** fixtures test exact Chapter X and Chapter XII gates, missing time and per-territory first-clear counts, unlocked-only route eligibility, completed Watch hiding and the never-awarding read-only renderer.
+
+The **earned gameplay** experiment comprises **292 legitimate original-engine sieges** across two deterministic seeds (15411 and 15423), three independently executed policies per seed:
+- **Fixed-route Might**, 40 genuine sieges: shares the fully earned original Tier I→VI baseline through siege 18 and genuinely affordable near-price-matched Might upgrades at pre-siege 19; then stays on *only legally unlocked Tier VII* for sieges 19–40.
+- **Fixed-route Mixed**, 40 genuine sieges: the identical earned pre-19 character, a genuinely affordable Might/Reflexes/Fortitude build package within 5% of the Might package's *actual initial paid price*, and exactly the **same Tier VII** selected every later siege.
+- **Frontier Extension Mixed**, 66 genuine sieges: identical actual opening and price-matched mixed package, but after siege 18 advances along the player's genuinely unlocked latest territories by the existing deterministic frontier selection policy, with **no forced unlocks**.
+
+All policies use original Training actions, normal paid gear enhancement and owned earned runes, actual engine combat, real finite first-cleared-wave achievements, real active combat minutes, one-time Sigil checks and original save/reload. Outside initial checkpoint **later actual total Essence spending may differ** under an identical external *cumulative nominal spending ceiling*: no claims of lifetime-equivalent investment. Fixed-selected-territory comparisons control the selected Tier, not all randomized battle events or attrition. Frontier-extension results must not be mistaken for the fixed-route experiment.
+
+## Success criteria / limitations
+New quality gate must pass in PR and again on merged `main`; a GitHub Pages workflow must deploy the merged commit before release can be described as live. **Chapters XI–XVI can be claimed only when original-engine earned rewards genuinely fire; synthetic fixtures never count**. A full 750-minute First Watch, the theoretical ~1,250-active-hour completion goal, and real physical iPhone performance / touch / thermal / visual acceptance remain unverified unless independently measured. No balancing changes based on two seeds alone.
+
+**Pending:** append observed cohort outcomes only after actual green CI, and preserve no-manual-playtesting-before-locked-roadmap-end user preference.
