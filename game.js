@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.15.14. Progression & First Watch Balancing - Essence Price Ladder: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.15.15. Progression & First Watch Balancing - Essence Price Ladder: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';
@@ -1837,10 +1837,12 @@ function normalizeSiegeHistory(value){
    reason:rec.reason,tier,startWave:start,lastWave:last,
    doctrineTactic:normalizeDoctrineTactic(rec.doctrineTactic)};
   for(const key of ['cleared','enemies','bossBreaks','specialistBreaks',
-   'bosses','bossEscapes','breaches','sabotage','doctrineCasts','doctrineHoldEvents'])
+   'bosses','bossEscapes','breaches','sabotage','doctrineCasts','doctrineHoldEvents','wallBreachDamage','wallSabotageDamage'])
    clean[key]=safeHistoryCount(rec[key]);
   const held=Number(rec.doctrineHeldSeconds);
   clean.doctrineHeldSeconds=Number.isFinite(held)&&held>=0?Math.min(held,1e9):0;
+  // Legacy save records have no observed wall-pressure telemetry; do not report 0 as evidence.
+  clean.wallPressureTracked=rec.wallPressureTracked===true;
   clean.earned={};
   for(const key of historyEarnedKeys)clean.earned[key]=safeHistoryCount(rec.earned?.[key]);
   valid.push(clean);
@@ -1866,7 +1868,8 @@ function renderSiegeHistory(tier=null){
    '<p>'+formatWave(entry.cleared)+' WAVES · '+formatWave(entry.enemies)+
    ' FOES · '+formatWave(entry.breaches)+' BREACHES · '+formatWave(entry.bosses)+
    ' BOSSES</p>'+(earned?'<small class="siege-history-earned">EARNED · '+earned+
-   '</small>':'<small>NO NEW ONE-TIME OBJECTIVES THIS RUN</small>')+'</article>';
+   '</small>':'<small>NO NEW ONE-TIME OBJECTIVES THIS RUN</small>')+
+   (entry.wallPressureTracked?'<small class="siege-pressure-history">WALL IMPACT · '+formatWave(entry.wallBreachDamage)+' BREACH · '+formatWave(entry.wallSabotageDamage)+' SABOTAGE DAMAGE</small>':'')+'</article>';
  }).join('');
  return '<details class="siege-history" aria-label="Persistent recent siege history"><summary>✦ SIEGE ARCHIVE · '+
   scope+' <span>'+entries.length+' RECENT / '+siegeHistoryLimit+' MAX</span></summary>'+
@@ -1881,6 +1884,8 @@ function buildSiegeReport(reason){
   bossBreaks:run.totalBossBreaks||0,specialistBreaks:run.totalSpecialistBreaks||0,
   bosses:run.bossVictories||0,bossEscapes:run.bossEscapes||0,breaches:run.totalBreaches||0,
   sabotage:run.sapperBlasts||0,doctrineCasts:run.doctrineCasts||0,
+  wallPressureTracked:true,wallBreachDamage:run.wallBreachDamage||0,
+  wallSabotageDamage:run.wallSabotageDamage||0,
   doctrineTactic:normalizeDoctrineTactic(p.doctrineTactic),
   doctrineHeldSeconds:Math.max(0,Number(run.doctrineHeldSeconds)||0),
   doctrineHoldEvents:run.doctrineHoldEvents||0,
@@ -1922,6 +1927,8 @@ function renderSiegeReport(){
   ['BOSSES DEFEATED',data.bosses],
   ['BOSSES BREACHED',data.bossEscapes],
   ['TOTAL BREACHES',data.breaches],
+  ...(data.wallPressureTracked?[['WALL HP LOST TO BREACHES',data.wallBreachDamage||0],
+   ['WALL HP LOST TO SAPPERS',data.wallSabotageDamage||0]]:[]),
   ['SIGNATURE AUTO-CASTS',data.doctrineCasts||0],
   ['CHARGE HOLDS',data.doctrineHoldEvents||0],
   ['COMBAT TIME HELD',(data.doctrineHeldSeconds||0).toFixed(1)+'s']
@@ -2728,6 +2735,7 @@ function grantDrops(){let prob=.23+t('loot')*.002+skill('scavenger')*.025+res('e
 function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.health=run.maxHealth;run.phase='ready';run.enemies=[];run.shots=[];run.particles=[];run.floats=[];run.spawned=0;run.total=0;run.kills=0;run.breaches=0;run.time=0;run.shotClock=0;run.stationClock=0;run.rewardTimer=0;run.heroChill=0;run.encounter=null;run.reinforcementPhase=false;run.bossCounters=0;
  run.guardActiveSeconds=0;run.guardWallLatched=false;run.guardReason='';
  run.startWave=1;run.wavesCleared=0;run.enemiesDefeated=0;run.totalBossBreaks=0;run.historyActive=false;run.historyWritten=false;run.historyStartTotals=null;
+ run.wallBreachDamage=0;run.wallSabotageDamage=0;
  run.explorationEnabled=false;run.discoveryCurrent=null;run.discoveryWardenKilled=false;run.echoCurrent=null;run.echoDefeatedMask=0;run.cartographerStages=0;run.cartographerBroken=false;run.cartographerCurrent=null;run.totalSpecialistBreaks=0;run.totalBreaches=0;run.bossVictories=0;run.bossEscapes=0;run.bossesKilledThisWave=0;run.sapperBlasts=0;run.doctrineClock=3.5;run.doctrineCasts=0;run.doctrineHeldSeconds=0;run.doctrineHoldEvents=0;run.doctrineHolding=false;run.doctrineCastReasons={};
 }
 function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.discoveryCurrent=activeLostSignal(run.tier,run.wave);run.discoveryWardenKilled=false;if(run.wave===1001){run.cartographerStages=0;run.cartographerBroken=false;}run.cartographerCurrent=activeCartographerOath(run.tier,run.wave);run.echoCurrent=activeEchoReturn(run.tier,run.wave);run.echoDefeatedMask=0;run.bossesKilledThisWave=0;run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;run.doctrineHolding=false;message((run.echoCurrent?'✦ ECHO RETURN · MEMORY ANCHOR + REVENANT COURIER':run.cartographerCurrent?'✦ CARTOGRAPHER OATH · STAGE '+run.cartographerCurrent.step+' / 3':run.discoveryCurrent?'✦ '+run.discoveryCurrent.name+' · '+run.discoveryCurrent.guardian.name:hasNativeVanguard(run.encounter)?territoryVanguard(run.tier).name+' · '+nativeMarchOrder(run.tier).name:run.encounter.label)+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
@@ -2900,7 +2908,9 @@ function specialEnemyMotion(e,dt){
    e.fuseTime=Math.max(0,e.fuseTime-dt);motion=.50;
    if(e.fuseTime===0){
     e.spellBreakDamage=0;const blast=sapperBlastDamage();
-    run.health=Math.max(0,run.health-blast);run.sapperBlasts=(run.sapperBlasts||0)+1;run.shakes=Math.max(run.shakes,.12);
+    const hpBefore=run.health;run.health=Math.max(0,run.health-blast);
+    run.wallSabotageDamage=(run.wallSabotageDamage||0)+Math.max(0,hpBefore-run.health);
+    run.sapperBlasts=(run.sapperBlasts||0)+1;run.shakes=Math.max(run.shakes,.12);
     float(e.x,e.y-25,'SABOTAGE · -'+formatWave(blast),'#ffc78c');
     effect(e.x,e.y-10,'#ffae67',12);
    }
@@ -3061,7 +3071,8 @@ function tick(dt){
   if(e.isBoss&&['chapterBoss','commander'].includes(run.encounter?.kind)){
    run.bossEscapes=(run.bossEscapes||0)+1;
    notice('MAJOR BOSS BREACHED THE FORTRESS');
-  }let pressure=1+Math.min(2.4,run.breaches*(.015+.09*Math.min(1,run.wave/1000)));let attack=Math.ceil(pressure*(isSiegeBoss(e)?36:13)*(e.type==='siegebeast'?2.0*(e.crushSurge>0?1.18:1):e.type==='warlord'&&e.bossPhase===2?1.4:1)*(1+run.wave*.055)*(1+(run.tier-1)*.25)*(dominionTrial(run.tier)?.trait==='crushing'?1.22:1)*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04))*(1-fortitudeBreachWard()));attack=Math.max(1,Math.ceil(attack*(p.combatPassive==='sentinel'?.9:1)));run.health-=attack;run.shakes=.18;float(750,450,'BREACH '+run.breaches+' · -'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);}}
+  }let pressure=1+Math.min(2.4,run.breaches*(.015+.09*Math.min(1,run.wave/1000)));let attack=Math.ceil(pressure*(isSiegeBoss(e)?36:13)*(e.type==='siegebeast'?2.0*(e.crushSurge>0?1.18:1):e.type==='warlord'&&e.bossPhase===2?1.4:1)*(1+run.wave*.055)*(1+(run.tier-1)*.25)*(dominionTrial(run.tier)?.trait==='crushing'?1.22:1)*Math.sqrt(outerDepthPressure(run.tier,run.wave))*(1-Math.min(.5,sup('damage')*.007))*(1-Math.min(.35,t('resist')*.006+skill('ward')*.04))*(1-fortitudeBreachWard()));attack=Math.max(1,Math.ceil(attack*(p.combatPassive==='sentinel'?.9:1)));const hpBefore=run.health;run.health-=attack;run.shakes=.18;float(750,450,'BREACH '+run.breaches+' · -'+attack+' WALL','#ff7777');effect(e.x,424,'#ff7361',11);if(skill('thorns'))run.health+=Math.min(attack*.3,skill('thorns')*1);
+  run.wallBreachDamage=(run.wallBreachDamage||0)+Math.max(0,Math.min(hpBefore,hpBefore-run.health));}}
  if(run.health<=0){run.health=0;run.phase='fallen';finishSiege('fallen');message('THE FORTRESS HAS FALLEN');notice('Tier '+roman(run.tier)+' · Wave '+run.wave+' • Permanent progress saved');save();showLobby('FORTRESS FALLEN · Tier '+roman(run.tier)+' · Reached Wave '+run.wave+' · Select a tier to fight again');refreshHUD();return;}
  advanceCombatDoctrine(dt);
  if(run.shotClock<=0){const targets=sortedTargetEnemies();if(targets.length){let count=projectileCount();for(let i=0;i<count;i++){const tar=targets[i%targets.length];shoot(tar);if(Math.random()<skill('double')*.08)shoot(tar,damage()*.65,'arrow',476,390);}run.shotClock=attackInterval();}}
