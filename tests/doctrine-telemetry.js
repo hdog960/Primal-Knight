@@ -64,5 +64,5 @@ h.enterSiege();
 assert.equal(h.siegeReport(),null);assert.equal(r.doctrineHoldEvents,0);
 assert.equal(r.doctrineCasts,0);assert.equal(r.doctrineHeldSeconds,0);
 assert.equal(Object.keys(r.doctrineCastReasons).length,0);
-assert(html.includes('ALPHA 0.15.9')&&html.includes('game.js?v=0.15.9')&&html.includes('style.css?v=0.15.9'));
+assert(html.includes('ALPHA 0.15.10')&&html.includes('game.js?v=0.15.10')&&html.includes('style.css?v=0.15.10'));
 console.log('PASS: live cast reasons, held combat seconds, Waiting/Held UI, genuine Siege Chronicle report, save and clean retry.');

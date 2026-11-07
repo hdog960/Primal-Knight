@@ -1,4 +1,4 @@
-// Alpha 0.15.9: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Alpha 0.15.10: genuine post-Chapter-V Tier III expedition and owned item readiness.
 // Reuses the Alpha 0.15.6 deterministic combat harness and verified existing save behavior.
 // Alpha 0.15.6 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.9')&&html.includes('game.js?v=0.15.9')&&html.includes('style.css?v=0.15.9'));
+assert(html.includes('ALPHA 0.15.10')&&html.includes('game.js?v=0.15.10')&&html.includes('style.css?v=0.15.10'));
 assert(css.includes('.expedition-readiness-grid')&&css.includes('.expedition-readiness-grid article button{'));
 assert(css.includes('@media(max-width:610px){.expedition-readiness-grid{grid-template-columns:1fr}'));
 const untouched=world(15700);
@@ -279,5 +279,5 @@ for(const seed of [15411,15423]){
 assert.equal(cohorts.length,4,'Four actually completed matched route policies');
 assert(cohorts.every(q=>q.attempts===14),'Fourteen genuinely executed battles per route');
 console.log('EARNED CHAPTER VII-X LONG MARCH COHORTS '+JSON.stringify(cohorts));
-console.log('PASS Alpha 0.15.9: UI-only threshold fixtures, read-only next-rank prices, genuinely earned Tier IV routes, gear/rune/sigil integrity and saved multi-realm progression');
+console.log('PASS Alpha 0.15.10: UI-only threshold fixtures, read-only next-rank prices, genuinely earned Tier IV routes, gear/rune/sigil integrity and saved multi-realm progression');
 console.log('LIMIT: Chapters VIII–X may remain unearned; 14 scripted sessions per policy are not a full 750-minute First Watch or 1,250-hour completion study. Physical iPhone QA deferred.');
