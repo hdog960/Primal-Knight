@@ -1,4 +1,4 @@
-// Alpha 0.15.5 — optional pause-only safety during long, genuinely played sieges.
+// Alpha 0.15.6 — optional pause-only safety during long, genuinely played sieges.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -17,7 +17,7 @@ const sandbox={Math,Date,Image,Blob,console,confirm(){return true},window:{__PK_
  URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.5')&&html.includes('game.js?v=0.15.5'));
+assert(html.includes('ALPHA 0.15.6')&&html.includes('game.js?v=0.15.6'));
 assert(html.includes('id="siegeGuardLobby"')&&html.includes('id="siegeGuardStatus"'));
 assert(css.includes('.siege-guard-panel'));
 assert.equal(h.siegeGuard.waves,0);assert.equal(h.siegeGuard.minutes,0);assert.equal(h.siegeGuard.wall,false);
@@ -86,4 +86,4 @@ assert.equal(h.siegeGuardSettings().includes('PAUSE AT 20% HP'),true);
 assert.equal(JSON.stringify(p).includes('guardWallLatched'),false);
 assert.equal(JSON.stringify(p).includes('siegeGuard'),false);
 h.retreatFromSiege();assert.equal(p.siegeHistory.length,1,'Real retreat still writes only one Chronicle record');
-console.log('PASS Alpha 0.15.5 Siege Guard: real wave/time/HP rest, speed safety, persistence, earned-only rewards');
+console.log('PASS Alpha 0.15.6 Siege Guard: real wave/time/HP rest, speed safety, persistence, earned-only rewards');

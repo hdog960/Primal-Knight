@@ -3060,3 +3060,19 @@
 .watch-horizon-gates span.gate-ready{color:#b5e3cd}
 .watch-horizon-foot{display:block;padding:0 12px 11px;font:10px/1.5 Arial,sans-serif;color:#b8d3c6}
 @media(max-width:610px){.watch-horizon-grid{grid-template-columns:1fr}.watch-horizon summary{align-items:flex-start;flex-direction:column}.watch-horizon-card{gap:5px}}
+
+/* Alpha 0.15.6 — Frontier Watch preparation routes, aligned with existing fantasy UI. */
+.watch-frontiers{margin:10px 0 12px;padding:11px;border:1px solid #9b977f;background:linear-gradient(140deg,#293a39,#1d2b38 62%,#303a3d);box-shadow:inset 0 1px #ffffff24}
+.watch-frontiers-head{display:flex;justify-content:space-between;align-items:center;gap:5px 12px;flex-wrap:wrap}
+.watch-frontiers-head strong{font:800 12px/1.4 Georgia,serif;color:#f7d89e}
+.watch-frontiers-head small{font:800 10px/1.4 Arial,sans-serif;color:#b9e1cf}
+.watch-frontiers>p{margin:8px 0;font:11px/1.5 Arial,sans-serif;color:#e1e4db}
+.watch-frontiers-locked,.watch-frontiers-foot{display:block;font:10px/1.45 Arial,sans-serif;color:#c1d8ce}
+.watch-frontiers-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}
+.watch-frontier-card{min-width:0;padding:10px 9px;border:1px solid #7b796b;background:linear-gradient(180deg,#344644,#24313b);display:flex;flex-direction:column;gap:6px}
+.watch-frontier-card>small{font:800 10px/1.3 Arial,sans-serif;color:#eccb91}
+.watch-frontier-card>strong{font:700 13px/1.3 Georgia,serif;color:#f4e8ce}
+.watch-frontier-card>p{margin:0;flex:1;font:11px/1.45 Arial,sans-serif;color:#d5e0d9}
+.watch-frontier-card button{width:100%;min-height:44px;padding:8px 6px;border:1px solid #ad9165;background:linear-gradient(#746044,#4b3b2c);font:800 10px/1.3 Arial,sans-serif;color:#fff4df;touch-action:manipulation}
+.watch-frontier-card button:disabled{background:#333e43;color:#d8dbd6;opacity:.67;cursor:not-allowed}
+@media(max-width:610px){.watch-frontiers-grid{grid-template-columns:1fr}.watch-frontier-card{gap:5px}}
