@@ -180,7 +180,9 @@ for(const seed of [15411,15423,15437]){
    const prior=p.battleSeconds,best=p.bestByTier[1]||0;
    assert.equal(h.enterSiege(),true);
    let ticks=0,lastWave=r.wave,begin=r.time;
-   while(r.phase!=='fallen'&&r.wavesCleared<35&&ticks<56000){
+   // Prevent the previous 35-wave test harness from artificially capping the later frontier.
+   const checkpointCap=n<=7?35:n<=9?50:n<=11?65:80;
+   while(r.phase!=='fallen'&&r.wavesCleared<checkpointCap&&ticks<100000){
     if(r.phase==='intermission'&&p.points>0)skillSpend(h);
     if(r.phase==='fighting'&&r.wave!==lastWave){lastWave=r.wave;begin=r.time;}
     h.tick(.05);ticks++;
@@ -190,8 +192,8 @@ for(const seed of [15411,15423,15437]){
     }
     if(r.phase==='fighting'&&r.time-begin>95)throw Error('Timed out real battle at wave '+r.wave);
    }
-   assert(ticks<56000,'Bounded genuine wave simulation');
-   const outcome=r.phase==='fallen'?'fallen':'retreated-after-35-earned-clears';
+   assert(ticks<100000,'Bounded genuine wave simulation');
+   const outcome=r.phase==='fallen'?'fallen':'retreated-after-'+checkpointCap+'-earned-clears';
    if(r.phase!=='fallen')h.retreatFromSiege();
    assert(p.battleSeconds>prior);assert(p.bestByTier[1]>=best);
    assert.equal(p.uniqueClears,p.bestByTier[1],'No repeat farming of First Watch wave gates');
@@ -212,7 +214,7 @@ for(const seed of [15411,15423,15437]){
    assert.equal(saved.battleSeconds,p.battleSeconds);
    assert.equal(saved.essence,p.essence);assert.equal(saved.gold,p.gold);assert.equal(saved.knowledge,p.knowledge);
    sessions.push({n,outcome,clears:r.wavesCleared,best:p.bestByTier[1],minutes:+(p.battleSeconds/60).toFixed(2),
-    chapters:p.firstWatchClaimed.length,level:p.level,rankSpent:training.spent,perks:investments.changes});
+    chapters:p.firstWatchClaimed.length,level:p.level,rankSpent:training.spent,frontierCap:checkpointCap,perks:investments.changes});
   }
   assert.equal(sessions.length,12,'Twelve actual attempts, not a fabricated future-state fixture');
   const after=world(seed+500,w.store);
