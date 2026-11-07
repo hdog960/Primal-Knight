@@ -3206,3 +3206,6 @@
 .veteran-route-grid button:focus-visible{outline:2px solid #ffe0a4;outline-offset:2px}
 .veteran-clear-routes>small{display:block;color:#cbdcd0;font:10px/1.5 Arial,sans-serif}
 @media(max-width:610px){.veteran-route-grid{grid-template-columns:1fr}}
+
+/* Alpha 0.15.15 — measured breach/sapper pressure in existing siege archive. */
+.siege-pressure-history{display:block;margin-top:6px;color:#f4cba4!important;font:800 10px/1.5 Arial,sans-serif;overflow-wrap:anywhere}
