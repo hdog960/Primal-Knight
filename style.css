@@ -3027,3 +3027,20 @@
 .watch-breakthrough button:disabled{background:#394148;color:#b9c3c3;opacity:.65;cursor:not-allowed}
 .watch-breakthrough>small{display:block;margin-top:8px;font:10px/1.5 Arial,sans-serif;color:#c5dad2}
 @media(max-width:610px){.watch-breakthrough-heading{align-items:flex-start;flex-direction:column;gap:4px}.watch-breakthrough-info{flex-direction:column;gap:3px}}
+
+/* Alpha 0.15.4 — three-resource ledger in the existing copper/navy war council. */
+.prosperity-ledger{margin:10px 0 12px;padding:11px;border:1px solid #ae9b78;background:linear-gradient(140deg,#263637,#1c2833 60%,#313b35);box-shadow:inset 0 1px #ffffff24}
+.prosperity-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px 12px}
+.prosperity-heading strong{font:800 13px Georgia,serif;letter-spacing:.4px;color:#ffe0a2}
+.prosperity-heading small,.prosperity-foot{font:700 10px/1.4 Arial,sans-serif;color:#b7d7c8}
+.prosperity-ledger>p{font:11px/1.5 Arial,sans-serif;color:#dce5df;margin:8px 0 10px}
+.prosperity-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.prosperity-card{min-width:0;padding:10px 8px;display:flex;flex-direction:column;gap:6px;border:1px solid #757b6b;background:linear-gradient(180deg,#364644,#242f3b)}
+.prosperity-card>small{font:800 10px Arial,sans-serif;color:#dfb879}
+.prosperity-card>strong{font:700 12px/1.3 Georgia,serif;color:#f0ebd8}
+.prosperity-card>p{margin:0;flex:1;font:11px/1.4 Arial,sans-serif;color:#d4e1dc}
+.prosperity-card>span{font:800 10px/1.35 Arial,sans-serif;color:#c5dfd1}
+.prosperity-card button{display:block;width:100%;min-height:44px;padding:8px;border:1px solid #ba9b67;background:linear-gradient(#7c6842,#493b28);color:#fff5df;font:800 10px/1.3 Arial,sans-serif;touch-action:manipulation}
+.prosperity-card button:disabled{background:#343e45;color:#d4d9d6;opacity:.65;cursor:not-allowed}
+.prosperity-foot{display:block;font-weight:400;margin-top:8px}
+@media(max-width:610px){.prosperity-grid{grid-template-columns:1fr}.prosperity-card{gap:4px}.prosperity-card button{min-height:44px}}
