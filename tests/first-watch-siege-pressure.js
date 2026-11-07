@@ -337,6 +337,7 @@ for(const seed of seeds){
  for(const latePolicy of ['mixed','guard']){
   const w=world(seed),h=w.h,p=h.p(),history=[];
   let checkpoint=null,built=null,spentSince19=0,wallBreach=0,wallSabotage=0;
+  const offense={fired:0,landed:0,lost:0,directHp:0,lastLineKills:0,combatSeconds:0};
   for(let n=1;n<=86;n++){
    spendSkills(h);
    if(n<=18)spendCombat(h);
@@ -358,6 +359,11 @@ for(const seed of seeds){
    assert(report&&report.wallPressureTracked===true,'All new genuine sorties record measured wall impact');
    assert(Number.isSafeInteger(report.wallBreachDamage)&&report.wallBreachDamage>=0);
    assert(Number.isSafeInteger(report.wallSabotageDamage)&&report.wallSabotageDamage>=0);
+   assert(report.offenseTracked===true,'Genuine late-game siege has actual offensive measurements');
+   for(const metric of ['projectilesFired','projectilesLanded','projectilesLost','directHitHpRemoved','lastLineKills','combatSeconds'])
+    assert(Number.isSafeInteger(report[metric])&&report[metric]>=0,'Bounded original-engine offensive counter: '+metric);
+   assert(report.projectilesLanded+report.projectilesLost<=report.projectilesFired,'Projectile hit/miss outcomes are unique');
+   assert(report.lastLineKills<=report.enemies,'No more late kills than actual defeated enemies');
    const saved=JSON.parse(w.store[SAVE]);
    assert.equal(saved.uniqueClears,p.uniqueClears);
    assert.equal(saved.battleSeconds,p.battleSeconds);
@@ -372,6 +378,9 @@ for(const seed of seeds){
      'Genuine Chapter awards only after original two gates');
    }
    wallBreach+=report.wallBreachDamage;wallSabotage+=report.wallSabotageDamage;
+   offense.fired+=report.projectilesFired;offense.landed+=report.projectilesLanded;
+   offense.lost+=report.projectilesLost;offense.directHp+=report.directHitHpRemoved;
+   offense.lastLineKills+=report.lastLineKills;offense.combatSeconds+=report.combatSeconds;
    if(n===66){
     const snapshot=JSON.stringify({gold:p.gold,essence:p.essence,knowledge:p.knowledge,
      battleSeconds:p.battleSeconds,uniqueClears:p.uniqueClears,unlockedTier:p.unlockedTier,
@@ -383,7 +392,9 @@ for(const seed of seeds){
    }
    if(n>=63)history.push({n,tier:outcome.tier,reason:report.reason,wave:report.lastWave,
     firstClears:p.uniqueClears,chapters:p.firstWatchClaimed.length,
-    breachDamage:report.wallBreachDamage,sapperDamage:report.wallSabotageDamage});
+    breachDamage:report.wallBreachDamage,sapperDamage:report.wallSabotageDamage,
+    projectiles:report.projectilesFired,landed:report.projectilesLanded,
+    directHp:report.directHitHpRemoved,lastLineKills:report.lastLineKills});
   }
   assert(built&&checkpoint&&history.length===24);
   const reloaded=world(seed+151510,w.store),saved=reloaded.h.p();
@@ -404,6 +415,7 @@ for(const seed of seeds){
    uniqueClears:p.uniqueClears,chapters:p.firstWatchClaimed.length,unlocked:p.unlockedTier,
    tier16Best:p.bestByTier[16]||0,tier17Best:p.bestByTier[17]||0,
    pressure:{breach:wallBreach,sabotage:wallSabotage},
+   offense:{...offense,landedPct:offense.fired?+(100*offense.landed/offense.fired).toFixed(2):0},
    essence:p.essence,spentSince19,damage:+h.damage().toFixed(1),
    wall:h.maxWall(),shotSeconds:+h.attackInterval().toFixed(3),
    next:next?{chapter:next.index+1,minutesLeft:+(next.timeRemainingSeconds/60).toFixed(2),wavesLeft:next.waveRemaining}:null,
