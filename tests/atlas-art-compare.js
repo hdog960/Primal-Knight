@@ -102,6 +102,6 @@ assert.equal(el('worldAtlas').hidden,true,'Beginning a real siege dismisses the 
 assert.equal(matte.src,'','Starting a siege releases hidden atlas SVGs');
 assert.equal(cloth.src,'');
 assert(created<=noMore+2,'Live canvas only loads its own selected tier backgrounds');
-assert(html.includes('ALPHA 0.15.17')&&html.includes('game.js?v=0.15.17')&&html.includes('style.css?v=0.15.17'));
+assert(html.includes('ALPHA 0.15.18')&&html.includes('game.js?v=0.15.18')&&html.includes('style.css?v=0.15.18'));
 console.log('PASS: original-vs-regional full artwork compare, correct aria toggle, reset on navigation, releases SVG URLs on close/Tier I/siege, deterministic reopens and no saved progress/equipment mutation.');
 console.log('LIMIT: browser GC and iPhone memory/thermals cannot be measured in headless DOM mocks.');
