@@ -129,3 +129,4 @@ jobs:
           node tests/first-watch-wave-pressure.js
           node tests/first-watch-battle-plans.js
           node tests/first-watch-battle-plan-ledger.js
+          node tests/first-watch-outer-frontier.js

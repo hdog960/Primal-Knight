@@ -573,7 +573,7 @@ console.log('LIMIT: Original prices/characters conserved, but after each targeti
 // Vanguard+Hunter+Rapid+Wallguard from exact earned siege-66 save bytes.
 // Both plans combine existing, paid/unlocked abilities and use the same
 // following mixed Training purchase priority. A tactical plan is not a stat buff.
-const planPairs=[];
+const frontierContinuationSaves=new Map(),planPairs=[];
 for(const seed of seeds){
  const base=offenseBases.get(seed);assert(base?.raw,'A genuine saved Tier XVI siege-66 character is required for both plans');
  const checkpoint=JSON.parse(base.raw);
@@ -633,6 +633,10 @@ for(const seed of seeds){
    assert(p.milestones['16:20']===true&&(p.bestByTier[16]||0)>=20,
     'Tier XVII is ONLY earned after truly clearing Tier XVI wave 20');
   assert(h.save());
+  // Keep exact earned post-86 original-character bytes for a separate, longer
+  // lawful frontier continuation. Do not inject Tier XVII or fake minutes.
+  if(seed===15423&&planId==='vanguard'&&p.unlockedTier>=17)
+   frontierContinuationSaves.set(seed,{raw:w.store[SAVE],paid});
   const fresh=world(seed+2021,{[SAVE]:w.store[SAVE]});
   assert.equal(fresh.h.p().uniqueClears,p.uniqueClears,'Save and reload original earned progress');
   assert.equal(fresh.h.p().sigils,p.sigils);
@@ -646,6 +650,63 @@ for(const seed of seeds){
  }
 }
 assert.equal(planPairs.length,4);
+// Alpha 0.15.22: extend the actually victorious Tier XVI Arrowstorm career
+// beyond siege 86 into Tier XVII under the original fully earned economy.
+const deeperFrontier=[];
+for(const [seed,baseline] of frontierContinuationSaves){
+ const checkpoint=JSON.parse(baseline.raw);
+ assert(checkpoint.milestones['16:20']===true&&checkpoint.unlockedTier>=17,
+  'Frontier study must begin only with genuine previous wave-20 success');
+ const w=world(seed+2222,{[SAVE]:baseline.raw}),h=w.h,p=h.p();
+ assert.equal(p.uniqueClears,checkpoint.uniqueClears);
+ assert.equal(p.sigils,checkpoint.sigils);
+ assert.equal(p.essence,checkpoint.essence);
+ assert.equal(JSON.stringify(p.training),JSON.stringify(checkpoint.training));
+ let paid=baseline.paid,paidAfter86=0;
+ const routes=[],waveTotals={};
+ for(let n=87;n<=106;n++){
+  spendSkills(h);
+  const purchase=spendUnderSharedCumulativeCap(h,'mixed',paid,n);
+  paid+=purchase.spent;paidAfter86+=purchase.spent;
+  const route=navigateEarned(w,n);
+  // Actual route is selected through existing saved Battle lobby buttons.
+  assert(route.tier<=p.unlockedTier);
+  const outcome=siege(h,95),report=h.siegeReport();
+  assert.equal(outcome.tier,route.tier);
+  assert(report.wavePressureTracked&&report.offenseTracked&&report.wallPressureTracked);
+  assert.equal(p.uniqueClears,trueBestSum(p));
+  assert.equal(p.sigils,h.sigilLedgerSummary().claimed+h.sigilLedgerSummary().earnedWatch);
+  if(p.unlockedTier>=18)
+   assert(p.milestones['17:100']===true&&(p.bestByTier[17]||0)>=100,
+    'Tier XVIII demands a genuinely completed Tier XVII wave 100');
+  for(const row of report.wavePressureSamples){
+   const key=route.tier+':'+row.wave;
+   const value=waveTotals[key]??={tier:route.tier,wave:row.wave,reached:0,cleared:0,fallen:0};
+   value.reached++;if(row.outcome==='cleared')value.cleared++;if(row.outcome==='fallen')value.fallen++;
+  }
+  routes.push({siege:n,tier:route.tier,lastReached:report.lastWave,wavesCleared:report.cleared,
+   uniqueClears:p.uniqueClears,tier17Best:p.bestByTier[17]||0,chapters:p.firstWatchClaimed.length});
+ }
+ assert.equal(routes.length,20,'20 independent original-engine late continuation sorties');
+ assert(routes.some(r=>r.tier>=17),'Actually unlocked Tier XVII was genuinely played');
+ const next=h.firstWatchHorizon(1)[0];
+ const reload=world(seed+2233,{[SAVE]:w.store[SAVE]});
+ assert.equal(reload.h.p().uniqueClears,p.uniqueClears);
+ assert.equal(reload.h.p().sigils,p.sigils);
+ assert.equal(reload.h.p().unlockedTier,p.unlockedTier);
+ deeperFrontier.push({seed,continuedEarnedSieges:20,actualEssencePaidAfter86:paidAfter86,
+  oldUniqueClears:checkpoint.uniqueClears,newUniqueClears:p.uniqueClears,
+  newFirstClears:p.uniqueClears-checkpoint.uniqueClears,
+  tier17Best:p.bestByTier[17]||0,tier17Wave100Cleared:(p.bestByTier[17]||0)>=100,
+  nextGate:next?{chapter:next.index+1,remainingDistinctClears:next.waveRemaining,
+   remainingActiveMinutes:+(next.timeRemainingSeconds/60).toFixed(2)}:null,
+  genuineWatchChapters:p.firstWatchClaimed.length,highestLegitimatelyUnlocked:p.unlockedTier,
+  actualWavePressure:Object.values(waveTotals).filter(r=>r.tier>=17).sort((a,b)=>a.wave-b.wave),
+  lastOutcomes:routes.slice(-8)});
+}
+assert.equal(deeperFrontier.length,1,'Original previously proven earned Tier XVII branch remains available');
+console.log('ALPHA 0.15.22 LEGITIMATELY EARNED TIER XVII CONTINUATION '+JSON.stringify(deeperFrontier));
+console.log('LIMIT: One scripted earned character, twenty further original-engine sieges and true purchases, NOT independent players, a complete First Watch, Tier XXX, 1,250h or iPhone signoff.');
 console.log('ALPHA 0.15.21 ACTUAL EARNED TIER XVI BATTLE PLANS · OFFENSE VS BASTION '+JSON.stringify(planPairs));
 console.log('LIMIT: The 80 real additional sieges branch only two genuinely earned characters, with paired initial RNG; combat after selection, earned drops, actual spend and outcome paths may diverge. Neither plan guarantees a breakthrough. No synthetic Tier XVII, Chapter XII, 750 human minutes or 1,250-hour completion counts.');
 
