@@ -47,6 +47,8 @@ const gearNames={
 };
 function defaultState(){return {version:3,level:1,xp:0,points:0,gold:520,essence:180,knowledge:60,highestWave:1,training:{},skills:{},stations:{},research:{},suppression:{},inventory:[{id:'starterhelm',slot:'helm',rarity:0,plus:0},{id:'starteramulet',slot:'amulet',rarity:0,plus:0},{id:'starterchest',slot:'chest',rarity:0,plus:0},{id:'startercharm',slot:'charm',rarity:0,plus:0}],equipped:{helm:'starterhelm',amulet:'starteramulet',chest:'starterchest',charm:'startercharm'},runes:[{type:'ember',tier:1,id:'seedember'},{type:'fortune',tier:1,id:'seedfortune'}],socketed:{},best:0,clears:0,selectedTier:1,unlockedTier:1,bestByTier:{},milestones:{},chapterChallenges:{},relicHunts:{},explorationFinds:{},cartographerOaths:{},echoReturns:{},atlasSeals:{},pendingRelics:[],pendingGear:[],ascension:{},dominionCrests:{},sovereignOaths:{},firstWatchClaimed:[],siegeHistory:[],siegeHistorySeq:0,battleSeconds:0,uniqueClears:0,sigils:0,legacy:{},legacyUnlocked:false,combatDoctrine:'vanguard',combatPassive:'hunter',doctrineTactic:'rapid',combatLoadouts:[null,null,null],banners:['Crimson Standard'],activeBanner:'Crimson Standard'};}
 const siegeHistoryLimit=24;
+// Used during early saved-character normalization, before later run helpers initialize.
+const wavePressureLimit=6;
 const historyEarnedKeys=['firstClears','milestones','lostSignals','oaths','echoes','atlasSeals'];
  // Alpha 0.14.0: keep the original readable character JSON and save key.
  // An older checksum-verified checkpoint protects it from truncated or broken saves.
@@ -1893,7 +1895,6 @@ function normalizeSiegeHistory(value){
 /* Alpha 0.15.19 — bounded, truthful last-six-wave combat evidence.
    All snapshots are sourced from real run counters. This changes no combat
    behavior, wave rewards, existing save key, or achievement thresholds. */
-const wavePressureLimit=6;
 function wavePressureSnapshot(){
  return {
   wave:run.wave,
