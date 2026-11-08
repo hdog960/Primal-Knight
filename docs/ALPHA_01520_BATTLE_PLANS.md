@@ -26,5 +26,22 @@ The same initial saved character and starting RNG do **not** guarantee identical
 3. Merge the green final head and independently confirm **merged-main 89/89 green** and successful GitHub Pages deployment of that *same commit*, before declaring the iPhone release complete.
 4. The locked 30×10,000-wave roadmap, roughly 1,250-active-hour full-game target, 16 First Watch chapters and physical iPhone visual/touch/thermal acceptance remain open; manual device review is explicitly deferred by player request.
 
-## Observed CI outcomes
-Pending genuine engine results and complete PR checks. Do not invent a Tier XVII unlock or Chapter XII claim.
+## Verified earned original-game PR results — November 8, 2026
+
+**All 89 mandatory GitHub development checks passed**, including the new original-price Hero level-gating, save/device-focus roundtrip, and four authentic paid opening-siege attempts. The existing **504 genuine late-career siege trials** were preserved. The new 0.15.20 study adds **80 further original-engine siege attempts**: two genuinely earned, exact-byte siege-66 character saves (seeds 15411 and 15423), each forked into twenty Arrowstorm and twenty Bastion continuations with the same fresh seeded RNG starting state per plan pair and existing original-cost mixed Training spending. All level, tier unlock, finiteness of Sigils, individual-wave archive and character reload assertions passed. No fabricated currency, NPC, first clear, or one-time gate.
+
+| Earned checkpoint seed | Existing-ability plan | Actual Essence paid after siege 66 | Legitimate distinct first clears | Actual best Tier XVI wave **cleared** | Final unlocked territory | Watch chapters earned | Aggregate enemy breaches | Aggregate effective wall HP removed |
+|---|---|---:|---:|---:|---|---:|---:|---:|
+| 15411 | Arrowstorm Advance | 72,412 | 390 | 17 | Tier XVI | 11 / 16 | 616 | 46,080 |
+| 15411 | Bastion Hold | 72,412 | 391 | **18** | Tier XVI | 11 / 16 | 832 | 56,664 |
+| 15423 | Arrowstorm Advance | 71,845 | **421** | **20 — legitimately cleared** | **Tier XVII legitimately unlocked** | 11 / 16 | 568 | 45,034 |
+| 15423 | Bastion Hold | 71,845 | 400 | 19 | Tier XVI | 11 / 16 | 810 | 56,274 |
+
+**The major progression milestone:** In the seed-15423 Arrowstorm run, real combat actually completed Tier XVI wave 20 and awarded the original next-territory milestone. The normal game state thereby unlocked Tier XVII without bypassing the 20-wave gate. That run subsequently played genuine Tier XVII sieges, reaching later first clears; this is why final distinct first clears in that fork increased to **421**. There were six genuine wave-20 arrivals in its recorded Tier XVI attempts, **two cleared** and four fell. The same seed's Bastion fork reached wave 20 only once and fell. Seed 15411 did not reach wave 20 in either tested plan. In the combined 80 intervention attempts, seven genuine wave-20 entries generated **two real wave-20 completions**, both in the same Arrowstorm test character's independent successive runs. These are **not independent players** and not an estimated player win probability.
+
+**Interpretation:** A cost-neutral tactical recombination of existing earned abilities succeeded where earlier measured builds did not. But Arrowstorm did not improve every seed (Bastion's best wave 18 beat Arrowstorm's 17 in seed 15411), so there is no universal winning prescription. Aggregate total wall damage/breach values are not matched Tier XVI observations once Arrowstorm legitimately proceeds into Tier XVII; the strategies create divergent fights and earn different drops over time. Both plans coincidentally spent the exact same earned Essence within each seed, but do not guarantee equal costs or event paths for other saves. The Bastion option remains a genuine defensive tradeoff, though it did not reach the tested milestone.
+
+**Character integrity:** The successful **421 genuine unique first clears** still fall short of the existing First Watch Chapter XII distinct-wave gate of **483**; Chapter XII remains unclaimed and Watch remains 11/16. No full 750 real-active-minute First Watch, the entire 30×10,000-wave lifetime, the theoretical ~1,250-hour progression goal, or real hardware iPhone visual/touch/thermal acceptance has been verified. The previous waves 17–20 pressure study and original milestone gates remain valid. The achievement is a deterministic original-engine test character, not an edit to the player's own character.
+
+**Release gate:** This full 89-check pass applies to the playable code PR head before these documented results. Re-run **all 89 checks** on the exact final evidence-and-roadmap commit; merge only after it succeeds. Then verify a separate, independently green merged-`main` 89-check quality run and successful GitHub Pages deployment for the *same* merge SHA. The player explicitly deferred manual iPhone acceptance until the locked roadmap is finished.
+
