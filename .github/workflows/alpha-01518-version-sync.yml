@@ -1,0 +1,34 @@
+name: Alpha 0.15.18 release assertion sync (one-time)
+on:
+  push:
+    branches: [dev/alpha-01518-wallguard-targeting]
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Synchronize strict version assertions to the new playable iPhone build
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          changed=[]
+          for file in sorted(Path('tests').glob('*.js')):
+              old=file.read_text(encoding='utf-8')
+              new=old.replace('0.15.17','0.15.18')
+              if new!=old:
+                  file.write_text(new,encoding='utf-8')
+                  changed.append(str(file))
+          print('Synchronized exact version assertions:',len(changed))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests
+          if ! git diff --cached --quiet; then
+            git commit -m 'Alpha 0.15.18: align strict playable-version regression assertions'
+            git push origin HEAD:dev/alpha-01518-wallguard-targeting
+          fi
