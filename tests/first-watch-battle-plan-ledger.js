@@ -22,7 +22,7 @@ function world(seed0=1521,source){
  assert(box.window.__PK_TEST_TOOLS__);
  return {h:box.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.20')&&css.includes('.battle-plan-ledger'));
+assert(html.includes('ALPHA 0.15.21')&&css.includes('.battle-plan-ledger'));
 const old=world(),h=old.h,p=h.p();
 assert.equal(h.battlePlanLedger(1),null);
 const illegal=h.normalizeSiegeHistory([{id:1,reason:'fallen',tier:1,startWave:1,lastWave:3,cleared:2,
