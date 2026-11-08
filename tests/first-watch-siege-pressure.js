@@ -362,8 +362,9 @@ for(const seed of seeds){
    assert(report.offenseTracked===true,'Genuine late-game siege has actual offensive measurements');
    assert(report.wavePressureTracked===true&&report.wavePressureSamples.length>0&&report.wavePressureSamples.length<=6,
     'Genuine late-game siege preserves six most recent combat waves');
-   assert(report.wavePressureSamples.at(-1).wave===report.lastWave,
-    'Actual latest combat wave, including failed wave, must be recorded');
+   assert(report.wavePressureSamples.at(-1).wave<=report.lastWave&&
+    (report.reason!=='fallen'||report.wavePressureSamples.at(-1).wave===report.lastWave),
+    'Failed waves are recorded; an intermission retreat must not invent the next unplayed wave');
    assert(report.wavePressureSamples.every((q,i,a)=>q.wave>=report.startWave&&q.wave<=report.lastWave&&
     (i===0||q.wave>a[i-1].wave)&&q.projectilesLanded<=q.projectilesFired),
     'Latest individual wave evidence stays chronological and conserves hits');
@@ -523,7 +524,9 @@ for(const seed of seeds){
    if(focusStance==='threat')assert.equal(report.focusRedirects,0,'Original stance never redirects targeting');
    assert(report.offenseTracked&&report.wallPressureTracked);
    assert(report.wavePressureTracked&&report.wavePressureSamples.length>0&&report.wavePressureSamples.length<=6);
-   assert(report.wavePressureSamples.at(-1).wave===report.lastWave,'Final breached or completed wave exists');
+   assert(report.wavePressureSamples.at(-1).wave<=report.lastWave&&
+    (report.reason!=='fallen'||report.wavePressureSamples.at(-1).wave===report.lastWave),
+    'Final failed wave exists; an unstarted post-clear intermission wave is not invented');
    for(const q of report.wavePressureSamples){
     assert(q.projectilesLanded<=q.projectilesFired&&q.nearWallKills<=q.enemiesDefeated);
     assert(q.wallHpEnd<=q.wallMaxStart);
