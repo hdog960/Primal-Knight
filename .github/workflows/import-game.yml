@@ -132,3 +132,4 @@ jobs:
           node tests/first-watch-outer-frontier.js
           node tests/first-watch-dominion-arrival.js
           node tests/first-watch-record-stretch.js
+          node tests/first-watch-record-yield.js
