@@ -1,4 +1,4 @@
-// Alpha 0.15.18 — two visual modes in one true frame, share and restore safety.
+// Alpha 0.15.19 — two visual modes in one true frame, share and restore safety.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const src=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -43,7 +43,7 @@ function world(mode='download'){
  return{h,el,store,composites,gamePaints,links,shares,exports:()=>exports};
 }
 async function test(){
- assert(html.includes('ALPHA 0.15.18')&&html.includes('game.js?v=0.15.18')&&html.includes('style.css?v=0.15.18'));
+ assert(html.includes('ALPHA 0.15.19')&&html.includes('game.js?v=0.15.19')&&html.includes('style.css?v=0.15.19'));
  assert(html.includes('id="deviceCheckCompare"')&&html.includes('aria-label="Share a side-by-side original and tactical lens battlefield comparison PNG"'));
  assert(css.includes('.device-check-compare')&&css.includes('min-height:44px'));
  const w=world(),{h,store,composites}=w,r=h.run(),p=h.p();

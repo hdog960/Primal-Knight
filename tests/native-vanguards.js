@@ -1,4 +1,4 @@
-// Alpha 0.15.18 — native territorial vanguard mechanics and save safety.
+// Alpha 0.15.19 — native territorial vanguard mechanics and save safety.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const code=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
@@ -50,6 +50,6 @@ for(const tier of [1,2,3,5,9,10,20,30]){
  assert(r.enemies.filter(e=>['shaman','frostbinder','thornweaver'].includes(e.type)).length<=3,'Existing three-caster cap remains active');
  assert.equal(world.save.primal_knight_onslaught_save_v1,undefined,'Native spawns never mutate permanent saves');
 }
-assert(html.includes('ALPHA 0.15.18')&&html.includes('game.js?v=0.15.18')&&html.includes('style.css?v=0.15.18'),'Safari asset versions updated together');
+assert(html.includes('ALPHA 0.15.19')&&html.includes('game.js?v=0.15.19')&&html.includes('style.css?v=0.15.19'),'Safari asset versions updated together');
 console.log('PASS: 30 distinct regional vanguards, real capped slot replacements, live HUD and counterplay, no boss/tutorial/reward interference, no save changes.');
 console.log('LIMIT: physical iPhone visual and long-session thermal acceptance remains open.');
