@@ -127,3 +127,4 @@ jobs:
           node tests/first-watch-breach-response.js
           node tests/first-watch-wallguard.js
           node tests/first-watch-wave-pressure.js
+          node tests/first-watch-battle-plans.js
