@@ -1,4 +1,4 @@
-// Alpha 0.15.25: real saved defensive-to-offensive recovery and seeded retries.
+// Alpha 0.15.26: real saved defensive-to-offensive recovery and seeded retries.
 'use strict';
 const fs=require('node:fs'),assert=require('node:assert/strict'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -23,7 +23,7 @@ function world(seed0,saveData){
  vm.runInNewContext(game,env,{filename:'game.js'});
  return {h:env.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.25')&&html.includes('style.css?v=0.15.25')&&html.includes('game.js?v=0.15.25'));
+assert(html.includes('ALPHA 0.15.26')&&html.includes('style.css?v=0.15.26')&&html.includes('game.js?v=0.15.26'));
 assert(css.includes('.watch-breakthrough button')&&css.includes('min-height:44px'));
 assert(css.includes('@media(max-width:610px){.watch-breakthrough-heading'));
 const fresh=world(15300),fp=fresh.h.p(),fh=fresh.h;
@@ -185,5 +185,5 @@ console.log('STONEGUARD CHAPTER TWO GATES '+JSON.stringify({
  breakthroughRally:results.filter(x=>x.rally.firstWatchTwo).length,
  trueClearGains:results.map(x=>x.clearGain)
 }));
-console.log('PASS Alpha 0.15.25: priced persistent Stoneguard recovery, real UI one-rank taps, saved upgrades and earned First Watch and Sigil gates across paired seeds');
+console.log('PASS Alpha 0.15.26: priced persistent Stoneguard recovery, real UI one-rank taps, saved upgrades and earned First Watch and Sigil gates across paired seeds');
 console.log('LIMIT: Three short seeded Tier I spending strategies, not a full 750-minute campaign, player preference study, iPhone device QA or measured 1250-hour completion.');

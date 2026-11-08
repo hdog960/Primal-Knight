@@ -1,4 +1,4 @@
-/* Primal KnIght - Onslaught — Alpha 0.15.25. Progression & First Watch Balancing - Essence Price Ladder: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
+/* Primal KnIght - Onslaught — Alpha 0.15.26. Progression & First Watch Balancing - Essence Price Ladder: armor-aware hero magic and real nine-build encounter balance coverage and saved progression. Zero external dependencies.
    Original game, systems and art. All spending uses earned in-game currencies.
 */
 (()=>{'use strict';

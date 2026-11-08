@@ -1,4 +1,4 @@
-// Alpha 0.15.25 — earned frontier quick travel and lawful outer-tier gates.
+// Alpha 0.15.26 — earned frontier quick travel and lawful outer-tier gates.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8'),SAVE='primal_knight_onslaught_save_v1';
@@ -22,7 +22,7 @@ function world(seed0=1522,source){
  assert(box.window.__PK_TEST_TOOLS__);
  return {h:box.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.25')&&html.includes('id="frontierNav"'));
+assert(html.includes('ALPHA 0.15.26')&&html.includes('id="frontierNav"'));
 assert(css.includes('.outer-frontier-actions button{')&&css.includes('min-height:64px'));
 assert(css.includes('@media(max-width:760px){.outer-frontier-actions{grid-template-columns:1fr}}'));
 function click(w,tier){
@@ -109,5 +109,5 @@ const savedBefore=p.selectedTier;
 const foreign=JSON.parse(fresh.store[SAVE]);foreign.gold+=7;fresh.store[SAVE]=JSON.stringify(foreign);
 click(fresh,1);assert.equal(p.selectedTier,savedBefore,'External-tab conflict blocks actual navigation');
 assert.equal(h.saveWriteBlocked(),true);
-console.log('PASS Alpha 0.15.25: original earned Tier II unlock and direct saved quick travel, dynamic real outer-wave-100 and Watch gating, read-only invalid/custom tier handling, mobile buttons, safe conflict rejection');
+console.log('PASS Alpha 0.15.26: original earned Tier II unlock and direct saved quick travel, dynamic real outer-wave-100 and Watch gating, read-only invalid/custom tier handling, mobile buttons, safe conflict rejection');
 console.log('LIMIT: Tier XVII fixture tests UI math only. Real deep-tier character advancement is separately tested from genuinely earned seed-15423 post-86 checkpoint in first-watch-siege-pressure.');

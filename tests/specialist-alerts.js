@@ -1,4 +1,4 @@
-// Alpha 0.15.25 — actual specialist danger timers and interruption progress.
+// Alpha 0.15.26 — actual specialist danger timers and interruption progress.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),
@@ -24,7 +24,7 @@ const sandbox={Math,Date,Blob,Image,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
 vm.runInNewContext(source,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,run=h.run(),p=h.p();
-assert(html.includes('ALPHA 0.15.25')&&html.includes('game.js?v=0.15.25')&&html.includes('style.css?v=0.15.25'));
+assert(html.includes('ALPHA 0.15.26')&&html.includes('game.js?v=0.15.26')&&html.includes('style.css?v=0.15.26'));
 assert(html.includes('id="specialistAlert"')&&html.includes('id="specialistAlertTime"')&&html.includes('id="specialistAlertBreak"'));
 assert(html.includes('aria-label="Live enemy casting and interruption progress"')&&html.includes('aria-live="off"'));
 assert(css.includes('.encounter-ribbon .specialist-alert[hidden]')&&css.includes('.specialist-alert-tracks'));

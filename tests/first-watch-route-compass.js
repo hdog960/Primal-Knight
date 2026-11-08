@@ -1,4 +1,4 @@
-// Alpha 0.15.25 shell; Alpha 0.15.26 interactive historical/replay route compass.
+// Alpha 0.15.26 shell; Alpha 0.15.26 interactive historical/replay route compass.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -22,7 +22,7 @@ function world(seed0=1526){
  assert(box.window.__PK_TEST_TOOLS__,'Actual source must expose QA helpers');
  return {h:box.window.__PK_TEST_TOOLS__,el,store};
 }
-assert(html.includes('ALPHA 0.15.25'));
+assert(html.includes('ALPHA 0.15.26'));
 assert(css.includes('.veteran-route-compass button{')&&css.includes('min-height:48px'));
 assert(css.includes('@media(max-width:610px){.veteran-route-compass{grid-template-columns:1fr}'));
 const w=world(),h=w.h,p=h.p();
