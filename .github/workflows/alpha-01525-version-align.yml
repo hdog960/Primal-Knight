@@ -1,0 +1,57 @@
+name: Alpha 0.15.25 one-time release version alignment
+on:
+  push:
+    branches: [dev/alpha-01525-route-evidence]
+    paths:
+      - .github/workflows/alpha-01525-version-align.yml
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/alpha-01525-route-evidence
+          persist-credentials: true
+      - name: Align game, iPhone asset keys and version-pinned regressions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          file=Path('game.js'); source=file.read_text()
+          assert 'Alpha 0.15.24' in source
+          file.write_text(source.replace('Alpha 0.15.24','Alpha 0.15.25',1))
+          index=Path('index.html'); html=index.read_text()
+          for old,new in [('ALPHA 0.15.24','ALPHA 0.15.25'),
+                          ('style.css?v=0.15.24','style.css?v=0.15.25'),
+                          ('game.js?v=0.15.24','game.js?v=0.15.25')]:
+              assert old in html
+              html=html.replace(old,new)
+          index.write_text(html)
+          aligned=0
+          for p in Path('tests').glob('*.js'):
+              code=p.read_text()
+              if '0.15.24' in code:
+                  p.write_text(code.replace('0.15.24','0.15.25'))
+                  aligned+=1
+          assert aligned>=20, f'Expected version-pinned test suite, got {aligned}'
+          print('Aligned version-asserting tests:',aligned)
+          PY
+      - name: Validate actual game, archived yield, record stretch and save compatibility
+        run: |
+          node --check game.js
+          node tests/first-watch-record-yield.js
+          node tests/first-watch-record-stretch.js
+          node tests/first-watch-clear-routes.js
+          node tests/smoke.js
+      - name: Commit and push only after successful focused checks
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.js index.html tests
+          if ! git diff --cached --quiet; then
+            git commit -m 'Alpha 0.15.25: synchronize verified iPhone release keys and 94-test suite'
+            git push origin HEAD:dev/alpha-01525-route-evidence
+          fi
