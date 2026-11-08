@@ -1,6 +1,10 @@
 # Primal KnIght – Onslaught
 
-## In development — Alpha 0.15.23: Glassheart Passage (Progression Balance slice 24)
+## In development — Alpha 0.15.24: Record Stretch (Progression Balance slice 25)
+
+Veteran Watch now selects up to four **shortest legitimately replayable record paths** across all already unlocked territories, using only actual earned waystones and previous best waves rather than always showing the four highest tiers. It displays the precise start wave, number of previous waves to replay, and up to ten potential distinct first clears, without saying the encounters are easy or promising any wins. Original saved tier selection, rewards and combat formulas are untouched. The 93rd mandated check covers synthetic route arithmetic and checkpoint fraud prevention; the existing earned-character full-game suite gains eight truly fought original-price backtracking sorties from the established seed-15423 Tier XVII career to evaluate whether Chapter XII can progress without weakening wave-100 difficulty. The complete First Watch and ~1,250-hour target remain unverified. See docs/ALPHA_01524_RECORD_STRETCH.md.
+
+## Previously completed — Alpha 0.15.23: Glassheart Passage (Progression Balance slice 24)
 
 New in 0.15.23, pending QA: a small original-game Tier XVII early-wave arrival ramp following genuine repeated wave-21/22 failures. Only waves 1–99 enemy HP/armor are modestly eased, tapering completely by the original wave-100 unlock encounter; 29 other tiers and deeper Dominion keep their previous formulas. An honest Battle-lobby explanation appears only for Tier XVII before wave 100. The 92nd required check tests formula and real enemy spawn; previous 91 include genuinely earned Tier XVII combat with full economy/save protection. This is experimental, not full First Watch or 1,250-hour proof. See docs/ALPHA_01523_DOMINION_ARRIVAL.md.
 

@@ -706,6 +706,63 @@ for(const [seed,baseline] of frontierContinuationSaves){
   actualWavePressure:Object.values(waveTotals).filter(r=>r.tier>=17).sort((a,b)=>a.wave-b.wave),
   lastOutcomes:routes.slice(-8)});
 }
+
+/* Alpha 0.15.24 — independent genuinely earned First Watch backtracking
+   continuation. Uses identical 86-siege original save as the Tier XVII
+   twenty-siege push, with distinct route decisions. Counts only real clears. */
+const earnedRecordStretch=[];
+for(const [seed,baseline] of frontierContinuationSaves){
+ assert.equal(baseline.focus,'wallguard');
+ const w=world(seed+2222,{[SAVE]:baseline.raw,primal_knight_onslaught_focus_stance_v1:baseline.focus});
+ const h=w.h,p=h.p(),checkpoint=JSON.parse(baseline.raw);
+ assert(h.siegePlanStatus('vanguard').active);
+ assert.equal(JSON.stringify(p.bestByTier),JSON.stringify(checkpoint.bestByTier));
+ assert.equal(p.uniqueClears,checkpoint.uniqueClears);
+ let paid=baseline.paid,spentAfter86=0;
+ const sessions=[];
+ for(let n=87;n<=94;n++){
+  spendSkills(h);
+  const investment=spendUnderSharedCumulativeCap(h,'mixed',paid,n);
+  paid+=investment.spent;spentAfter86+=investment.spent;
+  const guide=h.veteranClearRoutes();
+  assert(guide&&guide.routes.length>0&&guide.index===11,
+   'Only a genuine Chapter XII eligible saved character enters this sweep');
+  const candidate=guide.routes[(n-87)%guide.routes.length];
+  assert(candidate.tier<=p.unlockedTier&&candidate.startWave<=candidate.nextWave);
+  assert.equal(candidate.replayWaves,Math.max(0,candidate.best-candidate.startWave+1));
+  assert(h.selectFrontierTier(candidate.tier),'Existing guarded Battle tier selector used');
+  const before=p.uniqueClears,output=siege(h,95),report=h.siegeReport();
+  assert.equal(report.tier,candidate.tier);
+  assert(report.wavePressureTracked&&report.offenseTracked&&report.wallPressureTracked);
+  assert.equal(p.uniqueClears,trueBestSum(p));
+  assert.equal(p.sigils,h.sigilLedgerSummary().claimed+h.sigilLedgerSummary().earnedWatch);
+  const earned=p.uniqueClears-before;
+  assert(earned>=0&&earned<=report.cleared,'Only truly completed new waves contribute');
+  if(p.unlockedTier>=18)
+   assert(p.milestones['17:100']&&p.bestByTier[17]>=100,'Tier XVIII remains genuinely gated');
+  sessions.push({n,tier:candidate.tier,replayed: candidate.replayWaves,
+   start:report.startWave,cleared:report.cleared,earned,
+   uniqueClears:p.uniqueClears,chapterCount:p.firstWatchClaimed.length,
+   unlockedTier:p.unlockedTier});
+ }
+ assert.equal(sessions.length,8);
+ const verify=world(seed+2223,{[SAVE]:w.store[SAVE]});
+ assert.equal(verify.h.p().uniqueClears,p.uniqueClears);
+ assert.equal(verify.h.p().sigils,p.sigils);
+ assert.equal(verify.h.p().unlockedTier,p.unlockedTier);
+ const next=h.firstWatchHorizon(1)[0];
+ earnedRecordStretch.push({seed,sessions:8,actualEssencePaid:spentAfter86,
+  initialClears:checkpoint.uniqueClears,finalClears:p.uniqueClears,
+  genuinelyNewFirstClears:p.uniqueClears-checkpoint.uniqueClears,
+  nextChapter:next?{chapter:next.index+1,remainingUniqueClears:next.waveRemaining,
+   remainingActiveMinutes:+(next.timeRemainingSeconds/60).toFixed(2)}:null,
+  chaptersClaimed:p.firstWatchClaimed.length,unlockedTier:p.unlockedTier,
+  routes:sessions});
+}
+assert.equal(earnedRecordStretch.length,1);
+console.log('ALPHA 0.15.24 ACTUAL EARNED FIRST-WATCH RECORD STRETCH '+JSON.stringify(earnedRecordStretch));
+console.log('LIMIT: 8 real later sorties under an alternative unlocked-territory route, not an equivalent-spend controlled experiment, no 483-clear award unless the original engine triggers it.');
+
 assert.equal(deeperFrontier.length,1,'Original previously proven earned Tier XVII branch remains available');
 console.log('ALPHA 0.15.23 LEGITIMATELY EARNED TIER XVII CONTINUATION '+JSON.stringify(deeperFrontier));
 console.log('LIMIT: One scripted earned character, twenty further original-engine sieges and true purchases, NOT independent players, a complete First Watch, Tier XXX, 1,250h or iPhone signoff.');

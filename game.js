@@ -2687,14 +2687,22 @@ function veteranClearRoutes(){
  const missingClears=Math.max(0,waveGate-clears);
  const secondsLeft=Math.max(0,minutes*60-seconds);
  const unlocked=Math.min(MAX_TIER,Math.max(1,Math.floor(Number(p.unlockedTier)||1)));
- const routes=[];
- for(let tier=unlocked;tier>=1&&routes.length<4;tier--){
+ // Alpha 0.15.24: show a genuine checkpoint-aware route instead of only
+ // the four highest tiers. Route order uses repeat-wave counts, not guessed
+ // victory rates or invented difficulty ratings.
+ const candidates=[];
+ for(let tier=1;tier<=unlocked;tier++){
   const best=clamp(Math.floor(Number(p.bestByTier?.[tier])||0),0,MAX_WAVE);
   if(best>=MAX_WAVE)continue;
+  const startWave=nearestEarnedWaystone(tier,best+1)||1;
+  const replayWaves=Math.max(0,best-startWave+1);
   const possible=Math.min(10,MAX_WAVE-best,missingClears);
-  routes.push({tier,name:tierNames[tier-1],best,nextWave:best+1,
-   stretchWave:best+possible,potential:possible,selected:tier===chosenTier});
+  candidates.push({tier,name:tierNames[tier-1],best,nextWave:best+1,
+   startWave,replayWaves,stretchWave:best+possible,
+   potential:possible,selected:tier===chosenTier});
  }
+ candidates.sort((a,b)=>a.replayWaves-b.replayWaves||a.tier-b.tier);
+ const routes=candidates.slice(0,4);
  return {index,name,minutes,waveGate,clears,missingClears,secondsLeft,routes};
 }
 function renderVeteranClearRoutes(){
@@ -2704,15 +2712,16 @@ function renderVeteranClearRoutes(){
     '<span>'+fmt(q.clears)+' / '+fmt(q.waveGate)+' FIRST CLEARS</span></div>'+
    '<p>'+fmt(q.missingClears)+' more <b>genuinely new</b> wave victories needed'+
     (q.secondsLeft?' · '+Math.ceil(q.secondsLeft/60)+' active minutes still needed':' · active-time gate already met')+
-    '. Only your personal best in each territory counts. These next-ten-wave targets are examples, not guaranteed wins or difficulty ratings.</p>'+
+    '. Routes are ordered by how many previously cleared waves must be replayed from a genuinely earned waystone, not by predicted combat ease. Targets are examples, not guaranteed wins.</p>'+
    '<div class="veteran-route-grid">'+q.routes.map(r=>
     '<article><small>TIER '+roman(r.tier)+' · '+r.name+'</small>'+
      '<strong>RECORD '+fmt(r.best)+' · NEXT '+fmt(r.nextWave)+'</strong>'+
-     '<p>'+(r.potential?'If you reach wave '+fmt(r.stretchWave)+', that adds up to '+fmt(r.potential)+' new unique clears.':
-      'Record already extends beyond the next chapter deficit.')+'</p>'+
+     '<p>'+(r.best===0?'UNTRIED · BEGIN WAVE 1': 'START WAVE '+fmt(r.startWave)+' · '+fmt(r.replayWaves)+' ALREADY CLEARED WAVES TO REPLAY')+
+     ' · '+(r.potential?'If you truly clear through wave '+fmt(r.stretchWave)+', up to '+fmt(r.potential)+' fresh first clears can be earned.':
+      'The next chapter currently needs no more distinct clears.')+'</p>'+
      '<button type="button" data-veteran-clear-route="'+r.tier+'"'+(r.selected?' aria-current="true"':'')+
       '>'+(r.selected?'SELECTED TERRITORY':'VIEW TIER '+roman(r.tier))+'</button></article>').join('')+'</div>'+
-   '<small>Shows only already-unlocked territories. Choosing a tier changes the normal saved lobby selection, never awards progress or enters combat.</small>'+
+   '<small>Only originally earned checkpoints count. Low replay count does not mean an easy fight. Selecting a territory changes only the guarded Battle lobby; no skipped rewards, auto-combat or new first clears.</small>'+
   '</section>';
 }
 function renderVeteranWatchStrategy(){
