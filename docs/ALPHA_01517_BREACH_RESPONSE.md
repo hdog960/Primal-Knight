@@ -26,5 +26,21 @@ Extend `tests/first-watch-siege-pressure.js` rather than constructing a fraudule
 3. Merge only with green final PR CI; confirm independent merged-`main` 86-check CI and GitHub Pages deployment for identical merge SHA.
 4. Preserve the player's explicit no-manual-iPhone-playtesting-until-locked-roadmap-end instruction. The full 750-minute First Watch, possible 1,250-hour completion target, iPhone appearance/touch/heat/battery acceptance and deeper endgame economy remain unverified until actually tested.
 
-## Verified test outcomes
-Pending complete PR CI; fill with real observed data before concluding release. Never claim Tier XVII or Chapter XII from synthetic fixtures.
+## Verified pull-request engineering evidence — November 7, 2026
+
+The **corrected PR code head passed all 86 required GitHub quality checks**, including syntax, original engine combat, older-save regressions and the new actually earned UI/Training test. The first PR attempt completed the 80-siege study but failed a **test-only assertion** that compared Gold against its pre-battle amount, despite the game legitimately awarding Gold during the battle. The corrected regression compares pre-/post-*UI-render* values taken after actual combat; the full subsequent 86-check run passed. No live combat, balances or saves were changed to make the test pass.
+
+The original **344 real-engine frontier sieges** remain in the suite, including identical earned 66-siege baselines per seed and the 0.15.16 mixed/guard findings (Tier XVI true best waves 18 and 19, 11 Watch chapters, no Tier XVII). The new 0.15.17 intervention then loaded each seed's exact genuinely saved siege-66 character *twice*, chose an identical fresh deterministic RNG seed per comparison, and ran **80 more genuinely simulated sieges** (two seeds × Might-only versus mixed × twenty original-cost attempts). The current simulated character's historical earned resources, gear/runes, finite Sigils, first-clears, chapters, and legitimately unlocked Tier XVI were all retained. Every purchase debited actually held Essence under the original cumulative nominal cap; *actual* later expenditures differed and must not be described as equal-budget or equal-event causal proof.
+
+| Seed | Original-price late policy | Actual Essence spent after siege 66 | Genuine unique first clears | First Watch chapters | Tier XVI best *cleared* | Breaches over 20 sieges | Effective wall HP lost over 20 sieges | Direct enemy HP removed over 20 sieges |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 15411 | Might only | 72,112 | 390 | 11/16 | 17 | 583 | 43,855 | 13,095,453 |
+| 15411 | Might/Reflexes/Fortitude | 72,412 | 390 | 11/16 | 17 | 606 | 45,427 | 13,279,608 |
+| 15423 | Might only | 72,112 | 400 | 11/16 | 19 | 592 | 45,295 | 14,675,761 |
+| 15423 | Might/Reflexes/Fortitude | 71,845 | 399 | 11/16 | 18 | 610 | 46,719 | 14,547,134 |
+
+The recorded projectile landing counts in the same sequence were 23,804 / 24,215 and 25,117 / 25,047 respectively. In this limited study Might-only reduced actual breaches by **23 / 18**; on seed 15423 it also earned one more genuine Tier XVI first clear than mixed, but no policy completed wave 20. Full Chapter XII (483 unique first clears **and** 322 active minutes), all 16 chapters, late-tier completion, and the roughly 1,250-active-hour lifetime design target are **not verified**. A wave-20 arrival followed by defeat is not a clear.
+
+**Interpretation:** A modest offensive emphasis helped near-wall pressure in these two reloaded seed continuations, but outcomes are not universally causal: total simulated duration, hits, chance events, and real rank purchases diverged after the identical checkpoint. The later policy comparison is also different from the original 344-siege uninterrupted RNG careers; their end records cannot be substituted for one another. The new player ledger reports facts rather than recommending a guaranteed optimum.
+
+**Release discipline:** This result is from the corrected, green 86-check PR code head. After appending these figures to this file and the locked roadmap, the entire PR suite must pass again on the *final documented commit*. Only then merge and independently verify 86/86 merged-main checks and GitHub Pages deployment of exactly that merge SHA. Physical iPhone visual, gesture, sustained FPS/battery/thermal acceptance remains deferred by player request until the locked balancing roadmap is finished.
