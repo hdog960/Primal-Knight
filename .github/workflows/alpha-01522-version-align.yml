@@ -1,0 +1,56 @@
+name: Alpha 0.15.22 one-time release version alignment
+on:
+  push:
+    branches: [dev/alpha-01522-outer-frontier]
+    paths:
+      - .github/workflows/alpha-01522-version-align.yml
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/alpha-01522-outer-frontier
+          persist-credentials: true
+      - name: Synchronize iPhone release identifiers and historic QA suite
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('game.js')
+          source=path.read_text()
+          assert 'Alpha 0.15.21' in source
+          path.write_text(source.replace('Alpha 0.15.21','Alpha 0.15.22',1))
+          idx=Path('index.html')
+          html=idx.read_text()
+          for old,new in [('ALPHA 0.15.21','ALPHA 0.15.22'),('style.css?v=0.15.21','style.css?v=0.15.22'),('game.js?v=0.15.21','game.js?v=0.15.22')]:
+              assert old in html
+              html=html.replace(old,new)
+          idx.write_text(html)
+          count=0
+          for file in Path('tests').glob('*.js'):
+              original=file.read_text()
+              if '0.15.21' in original:
+                  file.write_text(original.replace('0.15.21','0.15.22'))
+                  count+=1
+          assert count>=20
+          print('Version-pinned regression files aligned:',count)
+          PY
+      - name: Focused genuine player route, save and live siege verification
+        run: |
+          node --check game.js
+          node tests/first-watch-outer-frontier.js
+          node tests/first-watch-battle-plan-ledger.js
+          node tests/first-watch-multi-tier.js
+      - name: Commit version alignment only after tests succeed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.js index.html tests
+          if ! git diff --cached --quiet; then
+            git commit -m 'Alpha 0.15.22: verified version-pinned release and iPhone cache keys'
+            git push origin HEAD:dev/alpha-01522-outer-frontier
+          fi
