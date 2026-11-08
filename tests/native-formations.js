@@ -1,4 +1,4 @@
-// Alpha 0.15.16 — native march formation geometry and real battle spawn isolation.
+// Alpha 0.15.17 — native march formation geometry and real battle spawn isolation.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const code=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
@@ -94,7 +94,7 @@ for(const tier of [6,8]){
  assert.equal(r.enemies[2].nativeVanguard,true,'True regional native appears');
  assert(r.enemies.filter(e=>['shaman','frostbinder','thornweaver'].includes(e.type)).length<=3,'Cross-type caster safety cap still enforced');
 }
-assert(html.includes('ALPHA 0.15.16')&&html.includes('game.js?v=0.15.16')&&html.includes('style.css?v=0.15.16'),'Mobile Home Screen receives the new asset versions');
+assert(html.includes('ALPHA 0.15.17')&&html.includes('game.js?v=0.15.17')&&html.includes('style.css?v=0.15.17'),'Mobile Home Screen receives the new asset versions');
 assert(css.includes('.encounter-intel-native em'),'The in-game formation label is styled for readability');
 console.log('PASS: eight distinctive formation geometries, 30 live native battlefield rosters, protected elite-ogre spawn and nonnative waves, safe caster and enemy caps, accurate in-game intel, no save or economy effects.');
 console.log('LIMIT: iPhone physical-art, battery, thermal and long-session acceptance still requires device testing.');
