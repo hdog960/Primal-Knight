@@ -568,6 +568,89 @@ assert.equal(targetingPairs.length,4);
 console.log('ALPHA 0.15.19 IDENTICAL EARNED CHECKPOINT · THREAT SENSE VS WALLGUARD '+JSON.stringify(targetingPairs));
 console.log('LIMIT: Original prices/characters conserved, but after each targeting decision actual fight duration, drops and purchase affordability can diverge. No equal-lifetime-spend or universal winning stance claimed.');
 
+// Alpha 0.15.20: real intervention, not another mock character. Compare
+// FULL unlocked Aegis+Sentinel+Crisis+Wallguard against
+// Vanguard+Hunter+Rapid+Wallguard from exact earned siege-66 save bytes.
+// Both plans combine existing, paid/unlocked abilities and use the same
+// following mixed Training purchase priority. A tactical plan is not a stat buff.
+const planPairs=[];
+for(const seed of seeds){
+ const base=offenseBases.get(seed);assert(base?.raw,'A genuine saved Tier XVI siege-66 character is required for both plans');
+ const checkpoint=JSON.parse(base.raw);
+ for(const planId of ['vanguard','bastion']){
+  const w=world(seed+2020,{[SAVE]:base.raw}),h=w.h,p=h.p();
+  assert.equal(p.uniqueClears,checkpoint.uniqueClears);
+  assert.equal(p.essence,checkpoint.essence);
+  assert.equal(p.sigils,checkpoint.sigils);
+  assert.equal(JSON.stringify(p.training),JSON.stringify(checkpoint.training));
+  assert(h.siegePlanStatus(planId).unlocked,'A plan must use only already-earned character level unlocks');
+  assert(h.applySiegePlan(planId),'Apply genuine saved existing-ability battle plan before siege');
+  const plan=h.siegePlanData.find(row=>row.id===planId);
+  assert.equal(p.combatDoctrine,plan.doctrine);
+  assert.equal(p.combatPassive,plan.passive);
+  assert.equal(p.doctrineTactic,plan.tactic);
+  assert.equal(h.selectedFocusStance(),plan.focus);
+  assert.equal(p.uniqueClears,checkpoint.uniqueClears,'No artificial first clears from plan selection');
+  assert.equal(p.sigils,checkpoint.sigils,'No artificial Sigils from plan selection');
+  let paid=base.spentSince19,spentAfter66=0;
+  const totals={breaches:0,wallHpLost:0,nearWallKills:0,directHp:0,redirects:0,casts:0};
+  const waves=Object.create(null),late=[];
+  for(let n=67;n<=86;n++){
+   spendSkills(h);
+   const purchase=spendUnderSharedCumulativeCap(h,'mixed',paid,n);
+   paid+=purchase.spent;spentAfter66+=purchase.spent;
+   const route=navigateEarned(w,n),outcome=siege(h,95),report=h.siegeReport();
+   assert.equal(route.tier,outcome.tier,'Real original unlocked territory, no fabricated progression');
+   assert(report.offenseTracked&&report.wallPressureTracked&&report.wavePressureTracked);
+   assert.equal(report.focusStance,plan.focus);
+   assert.equal(report.doctrineTactic,plan.tactic);
+   assert(report.wavePressureSamples.length>0&&report.wavePressureSamples.length<=6);
+   totals.breaches+=report.breaches;
+   totals.wallHpLost+=report.wallBreachDamage+report.wallSabotageDamage;
+   totals.nearWallKills+=report.lastLineKills;
+   totals.directHp+=report.directHitHpRemoved;
+   totals.redirects+=report.focusRedirects;
+   totals.casts+=report.doctrineCasts;
+   for(const q of report.wavePressureSamples){
+    assert(q.projectilesLanded<=q.projectilesFired&&q.nearWallKills<=q.enemiesDefeated);
+    if(q.wave>=16&&q.wave<=20){
+     const row=waves[q.wave]??={wave:q.wave,reached:0,cleared:0,fallen:0,
+      breaches:0,wallHpLost:0};
+     row.reached++;
+     if(q.outcome==='cleared')row.cleared++;
+     if(q.outcome==='fallen')row.fallen++;
+     row.breaches+=q.breaches;
+     row.wallHpLost+=q.wallBreachDamage+q.wallSabotageDamage;
+    }
+   }
+   assert.equal(p.uniqueClears,trueBestSum(p),'Only real first-cleared waves count');
+   const ledger=h.sigilLedgerSummary();
+   assert.equal(p.sigils,ledger.claimed+ledger.earnedWatch,'One-time Sigils stay finite');
+   if(n>=82)late.push({n,tier:route.tier,lastWave:report.lastWave,
+    cleared:report.cleared,breaches:report.breaches,firstClears:p.uniqueClears});
+  }
+  if(p.unlockedTier>=17)
+   assert(p.milestones['16:20']===true&&(p.bestByTier[16]||0)>=20,
+    'Tier XVII is ONLY earned after truly clearing Tier XVI wave 20');
+  assert(h.save());
+  const fresh=world(seed+2021,{[SAVE]:w.store[SAVE]});
+  assert.equal(fresh.h.p().uniqueClears,p.uniqueClears,'Save and reload original earned progress');
+  assert.equal(fresh.h.p().sigils,p.sigils);
+  assert.equal(fresh.h.p().siegeHistory[0].wavePressureTracked,true);
+  planPairs.push({seed,planId,realSieges:20,essenceSpentAfter66:spentAfter66,
+   uniqueClears:p.uniqueClears,watchChapters:p.firstWatchClaimed.length,
+   tier16Best:p.bestByTier[16]||0,unlockedTier:p.unlockedTier,
+   health:h.maxWall(),attackDamage:+h.damage().toFixed(1),
+   attackSeconds:+h.attackInterval().toFixed(3),totals,
+   waves:Object.values(waves).sort((a,b)=>a.wave-b.wave),late});
+ }
+}
+assert.equal(planPairs.length,4);
+console.log('ALPHA 0.15.20 ACTUAL EARNED TIER XVI BATTLE PLANS · OFFENSE VS BASTION '+JSON.stringify(planPairs));
+console.log('LIMIT: The 80 real additional sieges branch only two genuinely earned characters, with paired initial RNG; combat after selection, earned drops, actual spend and outcome paths may diverge. Neither plan guarantees a breakthrough. No synthetic Tier XVII, Chapter XII, 750 human minutes or 1,250-hour completion counts.');
+
+// Historical retained 504 late-original-engine siege trials plus these 80 plan
+// trials = 584 actual engine-run late career sieges, excluding early short tests.
 console.log('LIMIT: both policies replay genuine checkpoint save bytes with the same fresh RNG seed, not identical later events or actual Essence expenditure. No full 750-minute First Watch, 1,250h completion or device acceptance claim.');
 console.log('ALPHA 0.15.19 LATE TIER XVI TRUE SIEGE PRESSURE AND PAID STRATEGIES '+JSON.stringify(results));
 console.log('PASS Alpha 0.15.19: correct genuine wall-breach/sabotage damage accounting, old save distinction, bounded archive metrics, 344 genuinely engine-executed sieges, paired earned 66-siege baselines, legal gate unlocks, original save/reload and Sigil integrity');
