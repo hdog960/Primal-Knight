@@ -1,6 +1,6 @@
-// Alpha 0.15.15: genuine post-Chapter-V Tier III expedition and owned item readiness.
-// Reuses the Alpha 0.15.15 deterministic combat harness and verified existing save behavior.
-// Alpha 0.15.15 — real earned multi-territory First Watch routes and safe player selection.
+// Alpha 0.15.16: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Reuses the Alpha 0.15.16 deterministic combat harness and verified existing save behavior.
+// Alpha 0.15.16 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.15')&&html.includes('game.js?v=0.15.15')&&html.includes('style.css?v=0.15.15'));
+assert(html.includes('ALPHA 0.15.16')&&html.includes('game.js?v=0.15.16')&&html.includes('style.css?v=0.15.16'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -176,7 +176,7 @@ function prepareMidgameBuild(w){
 
 
 // Synthetic wall-pressure instrumentation fixtures never claim earned progression.
-assert(html.includes('ALPHA 0.15.15')&&html.includes('game.js?v=0.15.15'));
+assert(html.includes('ALPHA 0.15.16')&&html.includes('game.js?v=0.15.16'));
 assert(css.includes('.siege-pressure-history'));
 const fixture=world(151501),fh=fixture.h,fp=fh.p();
 const ancient=fh.normalizeSiegeHistory([{id:1,finishedAt:0,reason:'fallen',tier:16,
@@ -337,6 +337,7 @@ for(const seed of seeds){
  for(const latePolicy of ['mixed','guard']){
   const w=world(seed),h=w.h,p=h.p(),history=[];
   let checkpoint=null,built=null,spentSince19=0,wallBreach=0,wallSabotage=0;
+  const offense={fired:0,landed:0,lost:0,directHp:0,lastLineKills:0,combatSeconds:0};
   for(let n=1;n<=86;n++){
    spendSkills(h);
    if(n<=18)spendCombat(h);
@@ -358,6 +359,11 @@ for(const seed of seeds){
    assert(report&&report.wallPressureTracked===true,'All new genuine sorties record measured wall impact');
    assert(Number.isSafeInteger(report.wallBreachDamage)&&report.wallBreachDamage>=0);
    assert(Number.isSafeInteger(report.wallSabotageDamage)&&report.wallSabotageDamage>=0);
+   assert(report.offenseTracked===true,'Genuine late-game siege has actual offensive measurements');
+   for(const metric of ['projectilesFired','projectilesLanded','projectilesLost','directHitHpRemoved','lastLineKills','combatSeconds'])
+    assert(Number.isSafeInteger(report[metric])&&report[metric]>=0,'Bounded original-engine offensive counter: '+metric);
+   assert(report.projectilesLanded+report.projectilesLost<=report.projectilesFired,'Projectile hit/miss outcomes are unique');
+   assert(report.lastLineKills<=report.enemies,'No more late kills than actual defeated enemies');
    const saved=JSON.parse(w.store[SAVE]);
    assert.equal(saved.uniqueClears,p.uniqueClears);
    assert.equal(saved.battleSeconds,p.battleSeconds);
@@ -372,6 +378,9 @@ for(const seed of seeds){
      'Genuine Chapter awards only after original two gates');
    }
    wallBreach+=report.wallBreachDamage;wallSabotage+=report.wallSabotageDamage;
+   offense.fired+=report.projectilesFired;offense.landed+=report.projectilesLanded;
+   offense.lost+=report.projectilesLost;offense.directHp+=report.directHitHpRemoved;
+   offense.lastLineKills+=report.lastLineKills;offense.combatSeconds+=report.combatSeconds;
    if(n===66){
     const snapshot=JSON.stringify({gold:p.gold,essence:p.essence,knowledge:p.knowledge,
      battleSeconds:p.battleSeconds,uniqueClears:p.uniqueClears,unlockedTier:p.unlockedTier,
@@ -383,7 +392,9 @@ for(const seed of seeds){
    }
    if(n>=63)history.push({n,tier:outcome.tier,reason:report.reason,wave:report.lastWave,
     firstClears:p.uniqueClears,chapters:p.firstWatchClaimed.length,
-    breachDamage:report.wallBreachDamage,sapperDamage:report.wallSabotageDamage});
+    breachDamage:report.wallBreachDamage,sapperDamage:report.wallSabotageDamage,
+    projectiles:report.projectilesFired,landed:report.projectilesLanded,
+    directHp:report.directHitHpRemoved,lastLineKills:report.lastLineKills});
   }
   assert(built&&checkpoint&&history.length===24);
   const reloaded=world(seed+151510,w.store),saved=reloaded.h.p();
@@ -404,6 +415,7 @@ for(const seed of seeds){
    uniqueClears:p.uniqueClears,chapters:p.firstWatchClaimed.length,unlocked:p.unlockedTier,
    tier16Best:p.bestByTier[16]||0,tier17Best:p.bestByTier[17]||0,
    pressure:{breach:wallBreach,sabotage:wallSabotage},
+   offense:{...offense,landedPct:offense.fired?+(100*offense.landed/offense.fired).toFixed(2):0},
    essence:p.essence,spentSince19,damage:+h.damage().toFixed(1),
    wall:h.maxWall(),shotSeconds:+h.attackInterval().toFixed(3),
    next:next?{chapter:next.index+1,minutesLeft:+(next.timeRemainingSeconds/60).toFixed(2),wavesLeft:next.waveRemaining}:null,
@@ -412,6 +424,6 @@ for(const seed of seeds){
 }
 assert.equal(results.length,4);
 assert(results.every(x=>x.sieges===86));
-console.log('ALPHA 0.15.15 LATE TIER XVI TRUE SIEGE PRESSURE AND PAID STRATEGIES '+JSON.stringify(results));
-console.log('PASS Alpha 0.15.15: correct genuine wall-breach/sabotage damage accounting, old save distinction, bounded archive metrics, 344 genuinely engine-executed sieges, paired earned 66-siege baselines, legal gate unlocks, original save/reload and Sigil integrity');
+console.log('ALPHA 0.15.16 LATE TIER XVI TRUE SIEGE PRESSURE AND PAID STRATEGIES '+JSON.stringify(results));
+console.log('PASS Alpha 0.15.16: correct genuine wall-breach/sabotage damage accounting, old save distinction, bounded archive metrics, 344 genuinely engine-executed sieges, paired earned 66-siege baselines, legal gate unlocks, original save/reload and Sigil integrity');
 console.log('LIMIT: Scripted deterministic runs do not prove human 750-minute First Watch, 1,250-hour completion or physical iPhone acceptance. Never invent Chapter XII or Tier XVII; report only if awarded by normal engine.');
