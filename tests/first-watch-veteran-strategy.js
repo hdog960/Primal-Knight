@@ -1,6 +1,6 @@
-// Alpha 0.15.25: genuine post-Chapter-V Tier III expedition and owned item readiness.
-// Reuses the Alpha 0.15.25 deterministic combat harness and verified existing save behavior.
-// Alpha 0.15.25 — real earned multi-territory First Watch routes and safe player selection.
+// Alpha 0.15.26: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Reuses the Alpha 0.15.26 deterministic combat harness and verified existing save behavior.
+// Alpha 0.15.26 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.25')&&html.includes('game.js?v=0.15.25')&&html.includes('style.css?v=0.15.25'));
+assert(html.includes('ALPHA 0.15.26')&&html.includes('game.js?v=0.15.26')&&html.includes('style.css?v=0.15.26'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -172,7 +172,7 @@ function prepareMidgameBuild(w){
 
 
 // Synthetic boundary and price fixtures — these are NOT earned chapters or money.
-assert(html.includes('ALPHA 0.15.25')&&html.includes('game.js?v=0.15.25'));
+assert(html.includes('ALPHA 0.15.26')&&html.includes('game.js?v=0.15.26'));
 assert(css.includes('.veteran-watch-goals')&&css.includes('.veteran-watch-plans'));
 assert(css.includes('@media(max-width:610px){.veteran-watch-goals,.veteran-watch-plans{grid-template-columns:1fr}}'));
 assert(css.includes('.veteran-watch-footer button{min-height:44px'));
@@ -319,5 +319,5 @@ assert(cohorts.every(x=>x.uniqueClears===Object.values(x.best).reduce((a,b)=>a+b
 assert(cohorts.every(x=>x.chapters>=8),'Both policies earned real first-eight chapters');
 assert(cohorts.every(x=>x.essence>=0),'No negative Essence');
 console.log('EARNED VETERAN WATCH RESERVED VS DIVERSIFIED COHORTS '+JSON.stringify(cohorts));
-console.log('PASS Alpha 0.15.25: read-only XI–XVI gates, exact three-rank spending comparison, actual high-rank purchases, earned 36-siege matched seed frontiers, real save and finite reward checks');
+console.log('PASS Alpha 0.15.26: read-only XI–XVI gates, exact three-rank spending comparison, actual high-rank purchases, earned 36-siege matched seed frontiers, real save and finite reward checks');
 console.log('LIMIT: no synthetic achievements counted as earned, scripted routes are not human play, full 750-minute First Watch, full 1,250-hour progression and physical iPhone acceptance remain unverified.');

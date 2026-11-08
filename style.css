@@ -3337,3 +3337,11 @@
 /* Alpha 0.15.25 — mobile-readable facts from saved, completed sorties. */
 .veteran-route-evidence{display:block;border-top:1px solid #c0ad8a55;padding-top:8px;margin-top:7px;font:800 10px/1.55 Arial,sans-serif;color:#e1d7b4;letter-spacing:.01em}
 @media(max-width:610px){.veteran-route-evidence{font-size:10px;line-height:1.65}}
+
+/* Alpha 0.15.26 — two tactile, accessible ways to inspect real route evidence. */
+.veteran-route-compass{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 8px}
+.veteran-route-compass button{min-width:0;min-height:48px;border:1px solid #a9936c;background:linear-gradient(135deg,#454039,#35463d);color:#eddfbd;padding:9px 11px;cursor:pointer;touch-action:manipulation;font:800 11px/1.4 Arial,sans-serif}
+.veteran-route-compass button[aria-pressed="true"]{border-color:#d9cb9d;background:linear-gradient(135deg,#786144,#3c6352);color:#ffedb9}
+.veteran-route-compass button:focus-visible{outline:2px solid #f1d7a2;outline-offset:2px}
+.veteran-route-compass-note{display:block;font:800 10px/1.55 Arial,sans-serif;color:#dbd3af;margin-bottom:10px}
+@media(max-width:610px){.veteran-route-compass{grid-template-columns:1fr}.veteran-route-compass button{min-height:48px}}
