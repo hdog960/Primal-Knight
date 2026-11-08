@@ -1,6 +1,10 @@
 # Primal KnIght – Onslaught
 
-## In development — Alpha 0.15.22: The Outer Frontier (Progression Balance slice 23)
+## In development — Alpha 0.15.23: Glassheart Passage (Progression Balance slice 24)
+
+New in 0.15.23, pending QA: a small original-game Tier XVII early-wave arrival ramp following genuine repeated wave-21/22 failures. Only waves 1–99 enemy HP/armor are modestly eased, tapering completely by the original wave-100 unlock encounter; 29 other tiers and deeper Dominion keep their previous formulas. An honest Battle-lobby explanation appears only for Tier XVII before wave 100. The 92nd required check tests formula and real enemy spawn; previous 91 include genuinely earned Tier XVII combat with full economy/save protection. This is experimental, not full First Watch or 1,250-hour proof. See docs/ALPHA_01523_DOMINION_ARRIVAL.md.
+
+## Previously completed — Alpha 0.15.22: The Outer Frontier (Progression Balance slice 23)
 
 **New in 0.15.22 (release pending):** Earned Frontier March directly in Battle's territory selector provides touch-sized one-tap travel to the highest legitimately unlocked tier or an already-unlocked least-explored alternative, with the **actual** next-tier wave gate and the genuinely missing First Watch chapter requirements. These buttons only select the original saved tier using existing protected save rules; they do not run fights, grant ranks, unlock territories or change any combat values. The 91st required QA regression covers real early multi-siege unlock, safe UI navigation and synthetic outer-tier lock cases. A longer original-engine study continues the already-proven legitimately earned Tier XVII seed-15423 character through twenty further paid sieges (87–106), reports factual Tier XVII wave pressure and true Chapter XII status without fabricated wins. See `docs/ALPHA_01522_OUTER_FRONTIER.md`.
 
