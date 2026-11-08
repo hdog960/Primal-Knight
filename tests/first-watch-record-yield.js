@@ -1,4 +1,4 @@
-// Alpha 0.15.24 shell; Alpha 0.15.25 saved-record yield is observational only.
+// Alpha 0.15.25 shell; Alpha 0.15.25 saved-record yield is observational only.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -22,7 +22,7 @@ function world(seed0=1525){
  assert(box.window.__PK_TEST_TOOLS__);
  return {h:box.window.__PK_TEST_TOOLS__,store};
 }
-assert(html.includes('ALPHA 0.15.24')&&css.includes('.veteran-route-evidence'));
+assert(html.includes('ALPHA 0.15.25')&&css.includes('.veteran-route-evidence'));
 const w=world(),h=w.h,p=h.p();
 assert.equal(h.recentVeteranRouteEvidence(2),null,'Only unlocked territories are inspected');
 assert.equal(h.recentVeteranRouteEvidence(1).sorties,0);

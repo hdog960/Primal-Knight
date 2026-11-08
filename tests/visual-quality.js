@@ -1,4 +1,4 @@
-// Alpha 0.15.24 — independent graphical presets vs unchanged siege logic.
+// Alpha 0.15.25 — independent graphical presets vs unchanged siege logic.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
@@ -40,7 +40,7 @@ function make(reduced=false,stored=null,denyStorage=false){
  vm.runInNewContext(game,sandbox,{filename:'game.js'});
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,storage,metrics,document};
 }
-assert(html.includes('ALPHA 0.15.24')&&html.includes('game.js?v=0.15.24')&&html.includes('style.css?v=0.15.24'));
+assert(html.includes('ALPHA 0.15.25')&&html.includes('game.js?v=0.15.25')&&html.includes('style.css?v=0.15.25'));
 assert(css.includes('.visual-profile-options')&&css.includes('.visual-profile.selected'));
 const {h,storage,metrics,el,document}=make();
 const progressFingerprint=p=>{const snapshot=JSON.parse(JSON.stringify(p));delete snapshot.battleSeconds;return JSON.stringify(snapshot);};
