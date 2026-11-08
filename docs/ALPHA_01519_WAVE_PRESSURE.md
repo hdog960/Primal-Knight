@@ -20,5 +20,36 @@ Extend `tests/first-watch-siege-pressure.js`, which already executes 344 genuine
 ## Integrity boundaries
 The same locked 30 × 10,000-wave world, approximately 1,250-hour lifetime design target, 16 First Watch chapters, 483 first-clear Chapter XII threshold, original Tier XVI **wave-20 clear** unlock gate, 24 archive limit, device-local optional targeting stance and unchanged original character save key remain in place. A measured simulation is not physical iPhone visual, battery, touch or sustained performance acceptance; player-requested manual device review remains deferred.
 
-## Actual observed test outcomes
-Pending the full original-engine 88-check CI. Report concrete results after the run, then independently re-run PR CI on the final documented commit, merge only after green result, and independently verify merged-main CI and successful GitHub Pages deployment of the exact same SHA.
+## Verified PR code result — November 7, 2026
+
+The revised, playable PR branch passed all **88 mandatory checks**. A targeted short workflow independently passed old-history migration, the new paid opening battle/test, and existing Wallguard behavior, and was removed once complete. The larger original-engine suite preserved **344 authentic earned career sieges**, **80 genuinely funded late Might-vs-mixed comparison sieges**, and **80 further same-earned-checkpoint Threat Sense vs Wallguard siege attempts** without injected unlocks or currencies. All baseline save, reward, finite Sigil, first-clear and tier-gate assertions passed.
+
+The **last-six-wave recorder produced actual individual outcomes** instead of treating a wave's arrival as a clear. In two genuine paid opening battles, one seed cleared six waves and fell during wave seven, while the other cleared seven and fell during wave eight. The archive kept six real waves per sortie; a separate synthetic cancellation fixture checked one incomplete retreat row and no double-counting. Malformed imported counters and old archives were kept safe.
+
+The 80 late-stance attempts started from two **exactly saved, genuinely earned** Tier XVI post-66-siege characters. Each seed replayed two stances with the same subsequent purchase policy and initial deterministic RNG seed. They produced these **observed wave results** from actual combat, not probability predictions:
+
+| Wave | Actual observed arrivals | Completed genuine waves | Fortresses falling in that wave |
+|---|---:|---:|---:|
+| 16 | 80 | 80 | 0 |
+| 17 | 80 | 58 | 22 |
+| 18 | 58 | 22 | 36 |
+| 19 | 22 | 3 | 19 |
+| 20 | 3 | **0** | **3** |
+
+This is a **conditional sequence of 80 scripted combat continuations across only two underlying earned characters**, not 80 independent players or a broadly estimated win rate. Early losses reduce sample size at later waves. The unmodified mechanics were not tuned during this release.
+
+The raw per-policy recorded sequences provide further detail:
+
+| Seed | Stance | Cleared wave 17 | Cleared wave 18 | Cleared wave 19 | Cleared wave 20 | Tier XVI personal best *cleared* |
+|---|---|---:|---:|---:|---:|---:|
+| 15411 | Threat Sense | 11 / 20 arrivals | 0 / 11 | – | – | 17 |
+| 15411 | Wallguard | 9 / 20 | 1 / 9 | 0 / 1 | – | 18 |
+| 15423 | Threat Sense | 19 / 20 | 10 / 19 | 2 / 10 | 0 / 2 | 19 |
+| 15423 | Wallguard | 19 / 20 | 11 / 19 | 1 / 11 | 0 / 1 | 19 |
+
+**Interpretation:** The problem is not an isolated gate condition or a mysterious wave-20 reward issue. Successful continuation becomes uncommon across waves 17–19 and no observed run survives wave 20. Wave-20 vanguard battles are still ordinary combat encounters, and original gate checks correctly require *completion*. Some runs still reach wave 20 with little wall HP and rapidly fall, consistent with accumulated preceding-wave pressure; no causal claim about the precise enemy or optimal intervention follows from these two seed paths alone.
+
+Cumulative wall HP removed by breaches, direct damage delivered, near-wall kills and shot outcomes remain tied to the original engine. Post-clear healing is excluded from each wave's end HP recording, so the player can see how close the fortress was to falling **before the next wave's regeneration**. No extra one-time rewards or First Watch progress was created by these measurements. Tier XVII did not unlock; First Watch remains 11/16 in the late cohorts, with Chapter XII's 483 distinct first clears unearned. Human long-session 750-minute Watch, approximately 1,250-hour lifetime balance, and real iPhone visual/gesture/endurance sign-off remain unverified.
+
+**Release gate after documenting:** This evidence came from a green playable PR head. The complete 88-test suite must pass again for the final evidence-and-roadmap commit, then a separate merged-`main` 88-test run and Pages deployment must succeed for the exact merged commit. Do not label this release public before all of those events have been observed.
+
