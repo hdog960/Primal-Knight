@@ -63,6 +63,14 @@ run.phase='ready';run.enemies=[];run.shots=[];run.historyActive=false;
 const legacy=h.normalizeSiegeHistory([{reason:'fallen',tier:1,startWave:1,lastWave:5,cleared:4,enemies:10,offenseTracked:true,wallPressureTracked:true}])[0];
 assert.equal(legacy.focusStance,null,'Legacy archives cannot fabricate which stance was used');
 assert.equal(legacy.focusRedirects,0);
+// The original saved archive loads before device focus settings initialize.
+// A veteran character with a real history must not crash on startup.
+p.siegeHistory=[legacy];
+assert(h.save());
+const oldCharacter=world(151802,{[SAVE]:f.store[SAVE]});
+assert.equal(oldCharacter.h.p().siegeHistory.length,1);
+assert.equal(oldCharacter.h.p().siegeHistory[0].focusStance,null);
+p.siegeHistory=[];
 const forged=h.normalizeSiegeHistory([{reason:'fallen',tier:1,startWave:1,lastWave:5,cleared:4,enemies:10,focusStance:'wallguard',focusRedirects:Infinity}])[0];
 assert.equal(forged.focusStance,'wallguard');
 assert.equal(forged.focusRedirects,0,'Hostile imported counters are sanitized');
