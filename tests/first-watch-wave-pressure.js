@@ -64,8 +64,9 @@ const records=[];
 for(const seed of [15411,15423]){
  const w=world(seed),h=w.h,p=h.p(),r=h.run();
  const before=p.essence;
- assert(h.purchaseCouncilTraining('power'),'Actual original-price Might purchase');
- assert(p.essence<before);
+ for(let rank=0;rank<6;rank++)
+  assert(h.purchaseCouncilTraining('power'),'Six genuinely purchased original-price Might ranks');
+ assert(p.essence<before,'Original Essence paid for all six ranks');
  assert(h.save());
  assert(h.enterSiege(),'Original game engine enters actual siege');
  const waveAtStart=r.wave;
