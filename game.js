@@ -1865,7 +1865,7 @@ function normalizeSiegeHistory(value){
    reason:rec.reason,tier,startWave:start,lastWave:last,
    doctrineTactic:normalizeDoctrineTactic(rec.doctrineTactic)};
   // Old archives never recorded targeting and must not be labelled Threat Sense.
-  clean.focusStance=Object.prototype.hasOwnProperty.call(focusStances,rec.focusStance)?rec.focusStance:null;
+  clean.focusStance=rec.focusStance==='wallguard'||rec.focusStance==='threat'?rec.focusStance:null;
   clean.focusRedirects=clean.focusStance==='wallguard'?safeHistoryCount(rec.focusRedirects):0;
   for(const key of ['cleared','enemies','bossBreaks','specialistBreaks',
    'bosses','bossEscapes','breaches','sabotage','doctrineCasts','doctrineHoldEvents','wallBreachDamage','wallSabotageDamage',
