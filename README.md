@@ -1,6 +1,10 @@
 # Primal KnIght – Onslaught
 
-## In-development Alpha 0.15.21 — Battle Plan Field Ledger (Slice 22)
+## In development — Alpha 0.15.22: The Outer Frontier (Progression Balance slice 23)
+
+**New in 0.15.22 (release pending):** Earned Frontier March directly in Battle's territory selector provides touch-sized one-tap travel to the highest legitimately unlocked tier or an already-unlocked least-explored alternative, with the **actual** next-tier wave gate and the genuinely missing First Watch chapter requirements. These buttons only select the original saved tier using existing protected save rules; they do not run fights, grant ranks, unlock territories or change any combat values. The 91st required QA regression covers real early multi-siege unlock, safe UI navigation and synthetic outer-tier lock cases. A longer original-engine study continues the already-proven legitimately earned Tier XVII seed-15423 character through twenty further paid sieges (87–106), reports factual Tier XVII wave pressure and true Chapter XII status without fabricated wins. See `docs/ALPHA_01522_OUTER_FRONTIER.md`.
+
+## Previously completed — Alpha 0.15.21: Battle Plan Field Ledger (Slice 22)
 The player can inspect up to four same-tier original-engine battle plans from recent earned sieges, comparing actual waves cleared, distinct first clears, breaches and pre-healing wall damage without pretending differing runs are controlled experiments. Only exact four-way matches at siege entry are labeled. Original save, all rewards, combat equations, tier gates and 30 × 10,000-wave structure are unchanged. Physical iPhone acceptance, Chapter XII, the full Watch and the 1,250h target remain open. See `docs/ALPHA_01521_PLAN_LEDGER.md`.
 
 ## Current released — Alpha 0.15.20 (First Watch & Progression Balance, Slice 21)

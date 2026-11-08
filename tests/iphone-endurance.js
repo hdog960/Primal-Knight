@@ -1,4 +1,4 @@
-// Alpha 0.15.21 — real-device endurance telemetry logic (synthetic RAF time).
+// Alpha 0.15.22 — real-device endurance telemetry logic (synthetic RAF time).
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -17,7 +17,7 @@ const env={Math,Image,Date,Blob,console,confirm(){return true},window:{__PK_TEST
  performance:{now(){return 1000;}},setTimeout(){return 0;},clearTimeout(){},requestAnimationFrame(){},URL:{createObjectURL(){return 'blob:test';},revokeObjectURL(){}}};
 vm.runInNewContext(js,env,{filename:'game.js'});
 const h=env.window.__PK_TEST_TOOLS__,p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.21')&&html.includes('game.js?v=0.15.21')&&html.includes('style.css?v=0.15.21'));
+assert(html.includes('ALPHA 0.15.22')&&html.includes('game.js?v=0.15.22')&&html.includes('style.css?v=0.15.22'));
 assert(html.includes('id="deviceCheckEndurance"')&&html.includes('id="deviceCheckReset"'));
 assert(css.includes('.device-check-buttons')&&css.includes('#deviceCheckEndurance'));
 const oldSave=JSON.stringify(p),oldStorage=JSON.stringify(store);

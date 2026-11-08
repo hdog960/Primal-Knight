@@ -1,6 +1,6 @@
-// Alpha 0.15.21: genuine post-Chapter-V Tier III expedition and owned item readiness.
-// Reuses the Alpha 0.15.21 deterministic combat harness and verified existing save behavior.
-// Alpha 0.15.21 — real earned multi-territory First Watch routes and safe player selection.
+// Alpha 0.15.22: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Reuses the Alpha 0.15.22 deterministic combat harness and verified existing save behavior.
+// Alpha 0.15.22 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.21')&&html.includes('game.js?v=0.15.21')&&html.includes('style.css?v=0.15.21'));
+assert(html.includes('ALPHA 0.15.22')&&html.includes('game.js?v=0.15.22')&&html.includes('style.css?v=0.15.22'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -176,7 +176,7 @@ function prepareMidgameBuild(w){
 
 
 // Synthetic wall-pressure instrumentation fixtures never claim earned progression.
-assert(html.includes('ALPHA 0.15.21')&&html.includes('game.js?v=0.15.21'));
+assert(html.includes('ALPHA 0.15.22')&&html.includes('game.js?v=0.15.22'));
 assert(css.includes('.siege-pressure-history'));
 const fixture=world(151501),fh=fixture.h,fp=fh.p();
 const ancient=fh.normalizeSiegeHistory([{id:1,finishedAt:0,reason:'fallen',tier:16,
@@ -436,7 +436,7 @@ for(const seed of seeds){
 }
 assert.equal(results.length,4);
 assert(results.every(x=>x.sieges===86));
-// Alpha 0.15.21: Replay the exact genuinely earned 66-siege checkpoint for
+// Alpha 0.15.22: Replay the exact genuinely earned 66-siege checkpoint for
 // a controlled next-20-sortie intervention. Both policies start with identical
 // stored character bytes and the same newly seeded RNG stream; outcomes and
 // cumulative actual Essence expenditures may diverge after the first fight.
@@ -493,8 +493,8 @@ for(const seed of seeds){
  }
 }
 assert.equal(lateOffensivePairs.length,4);
-console.log('ALPHA 0.15.21 EXACT EARNED CHECKPOINT · SEEDED LATE OFFENSIVE VS MIXED '+JSON.stringify(lateOffensivePairs));
-// 0.15.21 — target-order intervention ONLY, with unchanged original
+console.log('ALPHA 0.15.22 EXACT EARNED CHECKPOINT · SEEDED LATE OFFENSIVE VS MIXED '+JSON.stringify(lateOffensivePairs));
+// 0.15.22 — target-order intervention ONLY, with unchanged original
 // mixed Training purchases. Reuse the identical, legitimately earned siege-66
 // character bytes per seed and use an identical fresh seed for both stances.
 // Real events and affordable purchases may diverge after stance selection.
@@ -565,15 +565,15 @@ for(const seed of seeds){
  }
 }
 assert.equal(targetingPairs.length,4);
-console.log('ALPHA 0.15.21 IDENTICAL EARNED CHECKPOINT · THREAT SENSE VS WALLGUARD '+JSON.stringify(targetingPairs));
+console.log('ALPHA 0.15.22 IDENTICAL EARNED CHECKPOINT · THREAT SENSE VS WALLGUARD '+JSON.stringify(targetingPairs));
 console.log('LIMIT: Original prices/characters conserved, but after each targeting decision actual fight duration, drops and purchase affordability can diverge. No equal-lifetime-spend or universal winning stance claimed.');
 
-// Alpha 0.15.21: real intervention, not another mock character. Compare
+// Alpha 0.15.22: real intervention, not another mock character. Compare
 // FULL unlocked Aegis+Sentinel+Crisis+Wallguard against
 // Vanguard+Hunter+Rapid+Wallguard from exact earned siege-66 save bytes.
 // Both plans combine existing, paid/unlocked abilities and use the same
 // following mixed Training purchase priority. A tactical plan is not a stat buff.
-const planPairs=[];
+const frontierContinuationSaves=new Map(),planPairs=[];
 for(const seed of seeds){
  const base=offenseBases.get(seed);assert(base?.raw,'A genuine saved Tier XVI siege-66 character is required for both plans');
  const checkpoint=JSON.parse(base.raw);
@@ -633,6 +633,10 @@ for(const seed of seeds){
    assert(p.milestones['16:20']===true&&(p.bestByTier[16]||0)>=20,
     'Tier XVII is ONLY earned after truly clearing Tier XVI wave 20');
   assert(h.save());
+  // Keep exact earned post-86 original-character bytes for a separate, longer
+  // lawful frontier continuation. Do not inject Tier XVII or fake minutes.
+  if(seed===15423&&planId==='vanguard'&&p.unlockedTier>=17)
+   frontierContinuationSaves.set(seed,{raw:w.store[SAVE],paid,focus:w.store[h.focusStanceKey]});
   const fresh=world(seed+2021,{[SAVE]:w.store[SAVE]});
   assert.equal(fresh.h.p().uniqueClears,p.uniqueClears,'Save and reload original earned progress');
   assert.equal(fresh.h.p().sigils,p.sigils);
@@ -646,12 +650,71 @@ for(const seed of seeds){
  }
 }
 assert.equal(planPairs.length,4);
-console.log('ALPHA 0.15.21 ACTUAL EARNED TIER XVI BATTLE PLANS · OFFENSE VS BASTION '+JSON.stringify(planPairs));
+// Alpha 0.15.22: extend the actually victorious Tier XVI Arrowstorm career
+// beyond siege 86 into Tier XVII under the original fully earned economy.
+const deeperFrontier=[];
+for(const [seed,baseline] of frontierContinuationSaves){
+ const checkpoint=JSON.parse(baseline.raw);
+ assert(checkpoint.milestones['16:20']===true&&checkpoint.unlockedTier>=17,
+  'Frontier study must begin only with genuine previous wave-20 success');
+ assert.equal(baseline.focus,'wallguard','Exact earned Arrowstorm targeting preference must be retained');
+ const w=world(seed+2222,{[SAVE]:baseline.raw,primal_knight_onslaught_focus_stance_v1:baseline.focus}),h=w.h,p=h.p();
+ assert(h.siegePlanStatus('vanguard').active,'True Arrowstorm doctrine, passive, timing and focus survive checkpoint re-entry');
+ assert.equal(p.uniqueClears,checkpoint.uniqueClears);
+ assert.equal(p.sigils,checkpoint.sigils);
+ assert.equal(p.essence,checkpoint.essence);
+ assert.equal(JSON.stringify(p.training),JSON.stringify(checkpoint.training));
+ let paid=baseline.paid,paidAfter86=0;
+ const routes=[],waveTotals={};
+ for(let n=87;n<=106;n++){
+  spendSkills(h);
+  const purchase=spendUnderSharedCumulativeCap(h,'mixed',paid,n);
+  paid+=purchase.spent;paidAfter86+=purchase.spent;
+  const route=navigateEarned(w,n);
+  // Actual route is selected through existing saved Battle lobby buttons.
+  assert(route.tier<=p.unlockedTier);
+  const outcome=siege(h,95),report=h.siegeReport();
+  assert.equal(outcome.tier,route.tier);
+  assert(report.wavePressureTracked&&report.offenseTracked&&report.wallPressureTracked);
+  assert.equal(p.uniqueClears,trueBestSum(p));
+  assert.equal(p.sigils,h.sigilLedgerSummary().claimed+h.sigilLedgerSummary().earnedWatch);
+  if(p.unlockedTier>=18)
+   assert(p.milestones['17:100']===true&&(p.bestByTier[17]||0)>=100,
+    'Tier XVIII demands a genuinely completed Tier XVII wave 100');
+  for(const row of report.wavePressureSamples){
+   const key=route.tier+':'+row.wave;
+   const value=waveTotals[key]??={tier:route.tier,wave:row.wave,reached:0,cleared:0,fallen:0};
+   value.reached++;if(row.outcome==='cleared')value.cleared++;if(row.outcome==='fallen')value.fallen++;
+  }
+  routes.push({siege:n,tier:route.tier,lastReached:report.lastWave,wavesCleared:report.cleared,
+   uniqueClears:p.uniqueClears,tier17Best:p.bestByTier[17]||0,chapters:p.firstWatchClaimed.length});
+ }
+ assert.equal(routes.length,20,'20 independent original-engine late continuation sorties');
+ assert(routes.some(r=>r.tier>=17),'Actually unlocked Tier XVII was genuinely played');
+ const next=h.firstWatchHorizon(1)[0];
+ const reload=world(seed+2233,{[SAVE]:w.store[SAVE]});
+ assert.equal(reload.h.p().uniqueClears,p.uniqueClears);
+ assert.equal(reload.h.p().sigils,p.sigils);
+ assert.equal(reload.h.p().unlockedTier,p.unlockedTier);
+ deeperFrontier.push({seed,continuedEarnedSieges:20,actualEssencePaidAfter86:paidAfter86,
+  oldUniqueClears:checkpoint.uniqueClears,newUniqueClears:p.uniqueClears,
+  newFirstClears:p.uniqueClears-checkpoint.uniqueClears,
+  tier17Best:p.bestByTier[17]||0,tier17Wave100Cleared:(p.bestByTier[17]||0)>=100,
+  nextGate:next?{chapter:next.index+1,remainingDistinctClears:next.waveRemaining,
+   remainingActiveMinutes:+(next.timeRemainingSeconds/60).toFixed(2)}:null,
+  genuineWatchChapters:p.firstWatchClaimed.length,highestLegitimatelyUnlocked:p.unlockedTier,
+  actualWavePressure:Object.values(waveTotals).filter(r=>r.tier>=17).sort((a,b)=>a.wave-b.wave),
+  lastOutcomes:routes.slice(-8)});
+}
+assert.equal(deeperFrontier.length,1,'Original previously proven earned Tier XVII branch remains available');
+console.log('ALPHA 0.15.22 LEGITIMATELY EARNED TIER XVII CONTINUATION '+JSON.stringify(deeperFrontier));
+console.log('LIMIT: One scripted earned character, twenty further original-engine sieges and true purchases, NOT independent players, a complete First Watch, Tier XXX, 1,250h or iPhone signoff.');
+console.log('ALPHA 0.15.22 ACTUAL EARNED TIER XVI BATTLE PLANS · OFFENSE VS BASTION '+JSON.stringify(planPairs));
 console.log('LIMIT: The 80 real additional sieges branch only two genuinely earned characters, with paired initial RNG; combat after selection, earned drops, actual spend and outcome paths may diverge. Neither plan guarantees a breakthrough. No synthetic Tier XVII, Chapter XII, 750 human minutes or 1,250-hour completion counts.');
 
 // Historical retained 504 late-original-engine siege trials plus these 80 plan
 // trials = 584 actual engine-run late career sieges, excluding early short tests.
 console.log('LIMIT: both policies replay genuine checkpoint save bytes with the same fresh RNG seed, not identical later events or actual Essence expenditure. No full 750-minute First Watch, 1,250h completion or device acceptance claim.');
-console.log('ALPHA 0.15.21 LATE TIER XVI TRUE SIEGE PRESSURE AND PAID STRATEGIES '+JSON.stringify(results));
-console.log('PASS Alpha 0.15.21: correct genuine wall-breach/sabotage damage accounting, old save distinction, bounded archive metrics, 344 genuinely engine-executed sieges, paired earned 66-siege baselines, legal gate unlocks, original save/reload and Sigil integrity');
+console.log('ALPHA 0.15.22 LATE TIER XVI TRUE SIEGE PRESSURE AND PAID STRATEGIES '+JSON.stringify(results));
+console.log('PASS Alpha 0.15.22: correct genuine wall-breach/sabotage damage accounting, old save distinction, bounded archive metrics, 344 genuinely engine-executed sieges, paired earned 66-siege baselines, legal gate unlocks, original save/reload and Sigil integrity');
 console.log('LIMIT: Scripted deterministic runs do not prove human 750-minute First Watch, 1,250-hour completion or physical iPhone acceptance. Never invent Chapter XII or Tier XVII; report only if awarded by normal engine.');

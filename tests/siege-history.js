@@ -1,4 +1,4 @@
-// Alpha 0.15.21: saved Siege Chronicle and real earned-progress attribution.
+// Alpha 0.15.22: saved Siege Chronicle and real earned-progress attribution.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),
@@ -20,7 +20,7 @@ const sandbox={Math,Date,Image,Blob,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test';},revokeObjectURL(){}}};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__;let p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.21')&&html.includes('game.js?v=0.15.21')&&html.includes('style.css?v=0.15.21'));
+assert(html.includes('ALPHA 0.15.22')&&html.includes('game.js?v=0.15.22')&&html.includes('style.css?v=0.15.22'));
 assert(css.includes('.siege-history-entry'));
 assert.equal(h.siegeHistoryLimit,24);
 assert(Array.isArray(p.siegeHistory));assert.equal(p.siegeHistory.length,0);
