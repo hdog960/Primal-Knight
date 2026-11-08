@@ -720,7 +720,7 @@ for(const [seed,baseline] of frontierContinuationSaves){
  assert.equal(p.uniqueClears,checkpoint.uniqueClears);
  let paid=baseline.paid,spentAfter86=0;
  const sessions=[];
- for(let n=87;n<=102;n++){
+ for(let n=87;n<=110;n++){
   spendSkills(h);
   const investment=spendUnderSharedCumulativeCap(h,'mixed',paid,n);
   paid+=investment.spent;spentAfter86+=investment.spent;
@@ -745,7 +745,7 @@ for(const [seed,baseline] of frontierContinuationSaves){
    uniqueClears:p.uniqueClears,chapterCount:p.firstWatchClaimed.length,
    unlockedTier:p.unlockedTier});
  }
- assert.equal(sessions.length,16);
+ assert.equal(sessions.length,24);
  const verify=world(seed+2223,{[SAVE]:w.store[SAVE]});
  assert.equal(verify.h.p().uniqueClears,p.uniqueClears);
  assert.equal(verify.h.p().sigils,p.sigils);
@@ -759,7 +759,7 @@ for(const [seed,baseline] of frontierContinuationSaves){
  }
  assert.equal(new Set(p.firstWatchClaimed).size,p.firstWatchClaimed.length);
  const next=h.firstWatchHorizon(1)[0];
- earnedRecordStretch.push({seed,sessions:16,actualEssencePaid:spentAfter86,
+ earnedRecordStretch.push({seed,sessions:24,actualEssencePaid:spentAfter86,
   initialClears:checkpoint.uniqueClears,finalClears:p.uniqueClears,
   genuinelyNewFirstClears:p.uniqueClears-checkpoint.uniqueClears,
   nextChapter:next?{chapter:next.index+1,remainingUniqueClears:next.waveRemaining,
@@ -770,7 +770,7 @@ for(const [seed,baseline] of frontierContinuationSaves){
 }
 assert.equal(earnedRecordStretch.length,1);
 console.log('ALPHA 0.15.25 ACTUAL EARNED FIRST-WATCH RECORD STRETCH '+JSON.stringify(earnedRecordStretch));
-console.log('LIMIT: 16 real later sorties under an alternative unlocked-territory route, not an equivalent-spend controlled experiment, no Chapter XII award unless the original engine triggers it.');
+console.log('LIMIT: 24 real later sorties under an alternative unlocked-territory route, not an equivalent-spend controlled experiment, no Watch chapter award unless the original engine triggers it.');
 
 assert.equal(deeperFrontier.length,1,'Original previously proven earned Tier XVII branch remains available');
 console.log('ALPHA 0.15.25 LEGITIMATELY EARNED TIER XVII CONTINUATION '+JSON.stringify(deeperFrontier));

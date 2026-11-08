@@ -1,6 +1,10 @@
 # Primal KnIght – Onslaught
 
-## In development — Alpha 0.15.25: Proven Record Yield (Progression Balance slice 26)
+## In development — Alpha 0.15.26: Veteran Watch Route Compass (Progression Balance slice 27)
+
+**New in 0.15.26, pending QA:** use two 48px+ touch-friendly in-game Veteran Watch controls to choose between the original **shortest earned-waystone replay distance** and **most actual recent archived first clears** to rank previously unlocked incomplete territory routes. The latter uses already recorded three-sortie outcomes, not a forecasted win rate, and explicitly warns about archive limits. All gates, upgrades, rewards, economy, saved character schema and past choices remain unchanged. The 95th required regression tests these modes; the real original-price seed-15423 alternate-progression test now advances from 16 to 24 genuinely fought backtracking sieges after 86 earlier legitimate fights. No Chapter XII/XIII success is assumed. See `docs/ALPHA_01526_ROUTE_COMPASS.md`.
+
+## Previously completed — Alpha 0.15.25: Proven Record Yield (Progression Balance slice 26)
 
 **New in 0.15.25, pending QA:** the existing Veteran Watch now exposes actual latest archived first-clear yields, breaches and the true final completed wave for every suggested territory, using no forecast, no extra saved fields and no gameplay reward changes. The 94th regression checks bounded record integrity, legacy/absent history and source-safe UI rendering. Extend the genuinely earned seed-15423 alternative backtracking career from 8 to 16 original-price source-engine sieges after the proved first 8 earned 51 new unique clears. Report a possible Chapter XII award only if the real engine meets its unchanged 483 distinct-clear and 322 active-minute gates. See docs/ALPHA_01525_RECORD_YIELD.md.
 
