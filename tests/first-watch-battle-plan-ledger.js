@@ -1,4 +1,4 @@
-// Alpha 0.15.23 — real earned plan-at-siege evidence and safe legacy normalization.
+// Alpha 0.15.24 — real earned plan-at-siege evidence and safe legacy normalization.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8'),SAVE='primal_knight_onslaught_save_v1';
@@ -22,7 +22,7 @@ function world(seed0=1521,source){
  assert(box.window.__PK_TEST_TOOLS__);
  return {h:box.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.23')&&css.includes('.battle-plan-ledger'));
+assert(html.includes('ALPHA 0.15.24')&&css.includes('.battle-plan-ledger'));
 const old=world(),h=old.h,p=h.p();
 assert.equal(h.battlePlanLedger(1),null);
 const illegal=h.normalizeSiegeHistory([{id:1,reason:'fallen',tier:1,startWave:1,lastWave:3,cleared:2,
@@ -72,4 +72,4 @@ for(const seed of [15411,15423]){
  assert(!Object.hasOwn(JSON.parse(w.store[SAVE]),'battlePlan'),'No top-level save field');
  results.push({seed,earnedLevel:c.level,realFirstClears:c.uniqueClears,siegePlanRows:2});
 }
-console.log('PASS Alpha 0.15.23: '+JSON.stringify(results));
+console.log('PASS Alpha 0.15.24: '+JSON.stringify(results));

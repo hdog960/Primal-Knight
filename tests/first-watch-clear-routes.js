@@ -1,6 +1,6 @@
-// Alpha 0.15.23: genuine post-Chapter-V Tier III expedition and owned item readiness.
-// Reuses the Alpha 0.15.23 deterministic combat harness and verified existing save behavior.
-// Alpha 0.15.23 — real earned multi-territory First Watch routes and safe player selection.
+// Alpha 0.15.24: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Reuses the Alpha 0.15.24 deterministic combat harness and verified existing save behavior.
+// Alpha 0.15.24 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.23')&&html.includes('game.js?v=0.15.23')&&html.includes('style.css?v=0.15.23'));
+assert(html.includes('ALPHA 0.15.24')&&html.includes('game.js?v=0.15.24')&&html.includes('style.css?v=0.15.24'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -175,7 +175,7 @@ function prepareMidgameBuild(w){
 
 
 // UI-only fixture; deliberately synthetic and never counted as earned progress.
-assert(html.includes('ALPHA 0.15.23')&&html.includes('game.js?v=0.15.23')&&html.includes('style.css?v=0.15.23'));
+assert(html.includes('ALPHA 0.15.24')&&html.includes('game.js?v=0.15.24')&&html.includes('style.css?v=0.15.24'));
 assert(css.includes('.veteran-route-grid')&&css.includes('.veteran-route-grid button{min-height:44px'));
 assert(css.includes('@media(max-width:610px){.veteran-route-grid{grid-template-columns:1fr}}'));
 const fw=world(151401),fh=fw.h,fp=fh.p();
@@ -189,11 +189,16 @@ assert.equal(guide.waveGate,293);
 assert.equal(guide.missingClears,71);
 assert.equal(guide.secondsLeft,48*60);
 assert.equal(guide.routes.length,4,'Only open uncompleted territories are presented');
-assert.deepEqual(Array.from(guide.routes.map(r=>r.tier)),[5,3,2,1]);
-assert.equal(guide.routes[0].best,20);
-assert.equal(guide.routes[0].nextWave,21);
-assert.equal(guide.routes[0].stretchWave,30);
+assert.deepEqual(Array.from(guide.routes.map(r=>r.tier)),[3,5,1,2],
+ 'Show least replayed genuinely earned routes instead of the highest four tiers');
+assert.equal(guide.routes[0].best,0);
+assert.equal(guide.routes[0].nextWave,1);
+assert.equal(guide.routes[0].startWave,1);
+assert.equal(guide.routes[0].replayWaves,0);
+assert.equal(guide.routes[0].stretchWave,10);
 assert.equal(guide.routes[0].potential,10);
+assert.equal(guide.routes[1].tier,5);
+assert.equal(guide.routes[1].replayWaves,20);
 assert(guide.routes.every(r=>r.tier<=5&&r.best<10000));
 let rendered=fh.renderVeteranWatchStrategy();
 assert(rendered.includes('RECORD STRETCH')&&rendered.includes('CHAPTER X'));
@@ -429,6 +434,6 @@ for(const seed of seeds){
 }
 assert.equal(observed.length,6);
 assert.equal(observed.reduce((n,x)=>n+x.sieges,0),292);
-console.log('ALPHA 0.15.23 FIXED-ROUTE AND EARNED FRONTIER RESULTS '+JSON.stringify(observed));
-console.log('PASS Alpha 0.15.23: read-only true Chapter XI–XVI deficits, safe existing-tier selection, 292 authentic original-engine sieges, same-seed identical 18-siege openings, paired original-price packages and identical Tier VII post-18 comparisons, earned frontier Chapter XII study, finite Sigils and save continuity');
+console.log('ALPHA 0.15.24 FIXED-ROUTE AND EARNED FRONTIER RESULTS '+JSON.stringify(observed));
+console.log('PASS Alpha 0.15.24: read-only true Chapter XI–XVI deficits, safe existing-tier selection, 292 authentic original-engine sieges, same-seed identical 18-siege openings, paired original-price packages and identical Tier VII post-18 comparisons, earned frontier Chapter XII study, finite Sigils and save continuity');
 console.log('LIMIT: matched selected tier and seed are not a proof of identical enemy RNG or equal later real spending. Chapter XII must be observed as truly earned to count; full 750-minute Watch, 1,250-hour completion, and physical iPhone acceptance remain unverified.');
