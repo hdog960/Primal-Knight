@@ -636,7 +636,7 @@ for(const seed of seeds){
   // Keep exact earned post-86 original-character bytes for a separate, longer
   // lawful frontier continuation. Do not inject Tier XVII or fake minutes.
   if(seed===15423&&planId==='vanguard'&&p.unlockedTier>=17)
-   frontierContinuationSaves.set(seed,{raw:w.store[SAVE],paid});
+   frontierContinuationSaves.set(seed,{raw:w.store[SAVE],paid,focus:w.store[h.focusStanceKey]});
   const fresh=world(seed+2021,{[SAVE]:w.store[SAVE]});
   assert.equal(fresh.h.p().uniqueClears,p.uniqueClears,'Save and reload original earned progress');
   assert.equal(fresh.h.p().sigils,p.sigils);
@@ -657,7 +657,9 @@ for(const [seed,baseline] of frontierContinuationSaves){
  const checkpoint=JSON.parse(baseline.raw);
  assert(checkpoint.milestones['16:20']===true&&checkpoint.unlockedTier>=17,
   'Frontier study must begin only with genuine previous wave-20 success');
- const w=world(seed+2222,{[SAVE]:baseline.raw}),h=w.h,p=h.p();
+ assert.equal(baseline.focus,'wallguard','Exact earned Arrowstorm targeting preference must be retained');
+ const w=world(seed+2222,{[SAVE]:baseline.raw,primal_knight_onslaught_focus_stance_v1:baseline.focus}),h=w.h,p=h.p();
+ assert(h.siegePlanStatus('vanguard').active,'True Arrowstorm doctrine, passive, timing and focus survive checkpoint re-entry');
  assert.equal(p.uniqueClears,checkpoint.uniqueClears);
  assert.equal(p.sigils,checkpoint.sigils);
  assert.equal(p.essence,checkpoint.essence);
