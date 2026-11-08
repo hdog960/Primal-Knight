@@ -725,8 +725,8 @@ for(const [seed,baseline] of frontierContinuationSaves){
   const investment=spendUnderSharedCumulativeCap(h,'mixed',paid,n);
   paid+=investment.spent;spentAfter86+=investment.spent;
   const guide=h.veteranClearRoutes();
-  assert(guide&&guide.routes.length>0&&guide.index===11,
-   'Only a genuine Chapter XII eligible saved character enters this sweep');
+  assert(guide&&guide.routes.length>0&&guide.index>=11,
+   'A genuine late First Watch career may continue into Chapter XIII if Chapter XII is earned');
   const candidate=guide.routes[(n-87)%guide.routes.length];
   assert(candidate.tier<=p.unlockedTier&&candidate.startWave<=candidate.nextWave);
   assert.equal(candidate.replayWaves,Math.max(0,candidate.best-candidate.startWave+1));
