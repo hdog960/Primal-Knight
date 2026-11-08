@@ -1,4 +1,4 @@
-// Alpha 0.15.22 shell; Alpha 0.15.23 new Glassheart arrival checks.
+// Alpha 0.15.23 shell; Alpha 0.15.23 new Glassheart arrival checks.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -23,7 +23,7 @@ function world(seed0=1523){
  assert(box.window.__PK_TEST_TOOLS__);
  return {h:box.window.__PK_TEST_TOOLS__,store};
 }
-assert(html.includes('ALPHA 0.15.22')&&css.includes('.dominion-arrival-note'));
+assert(html.includes('ALPHA 0.15.23')&&css.includes('.dominion-arrival-note'));
 assert(css.includes('@media(max-width:760px){.dominion-arrival-note{padding:12px'));
 const h=world().h,f=h.outerDominionArrivalFactor;
 for(const tier of [1,2,16,18,20,30])for(const wave of [1,20,21,60,99,100,101,10000])
