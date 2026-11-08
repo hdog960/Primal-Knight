@@ -83,5 +83,5 @@ assert.equal(h.atlasPointerDown({pointerId:3,clientX:220,clientY:90}),false);
 assert.equal(el('atlasArtwork').style.transform,'none');
 assert.equal(JSON.stringify({tier:p.unlockedTier,selected:p.selectedTier,gold:p.gold,essence:p.essence,sigils:p.sigils,inventory:p.inventory}),previous,
  'Swipe, pan and zoom are art inspection only: no new tier, money or equipment changes');
-assert(html.includes('ALPHA 0.15.16')&&html.includes('game.js?v=0.15.16')&&html.includes('style.css?v=0.15.16'));
+assert(html.includes('ALPHA 0.15.17')&&html.includes('game.js?v=0.15.17')&&html.includes('style.css?v=0.15.17'));
 console.log('PASS: single-wrapper 1.8x zoom, pan clamp, swipe without scrolling false positives, unchanged decoded art, reset on navigation/close, keyboard focus trap and zero progression changes.');

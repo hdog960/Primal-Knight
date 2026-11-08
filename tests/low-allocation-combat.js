@@ -1,5 +1,5 @@
 'use strict';
-// Alpha 0.15.16 — actual battle render order and reusable combat scratch.
+// Alpha 0.15.17 — actual battle render order and reusable combat scratch.
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const src=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 const drawn=[],store=Object.create(null),nodes=new Map();
@@ -27,7 +27,7 @@ const sandbox={Math,Date,Image,Blob,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
 vm.runInNewContext(src,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,run=h.run(),p=h.p();
-assert(html.includes('ALPHA 0.15.16')&&html.includes('game.js?v=0.15.16'));
+assert(html.includes('ALPHA 0.15.17')&&html.includes('game.js?v=0.15.17'));
 function unit(type,y){
  return{type,x:320,y,hp:100000,max:100000,dead:false,armor:0,speed:0,
   wobble:0,burn:0,slow:0,buildup:0,valued:10,ritualClock:20,

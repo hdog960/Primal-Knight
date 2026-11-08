@@ -3209,3 +3209,26 @@
 
 /* Alpha 0.15.15 — measured breach/sapper pressure in existing siege archive. */
 .siege-pressure-history{display:block;margin-top:6px;color:#f4cba4!important;font:800 10px/1.5 Arial,sans-serif;overflow-wrap:anywhere}
+
+
+/* Alpha 0.15.17 — on-demand real-siege Breach Response Ledger. */
+.breach-response-ledger{margin:12px 0;border:1px solid #b39a70;background:linear-gradient(145deg,#2c3439,#253e3c);color:#f1e5cf;overflow:hidden}
+.breach-response-ledger>summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 14px;padding:13px 14px;cursor:pointer;min-height:46px;background:linear-gradient(#5b4e3a,#393b35)}
+.breach-response-ledger>summary strong{font:800 13px/1.4 Georgia,serif;color:#ffdea6}
+.breach-response-ledger>summary small{font:800 10px/1.4 Arial,sans-serif;color:#e4d3b0}
+.breach-response-ledger>p{margin:12px 14px;font:11px/1.6 Arial,sans-serif;color:#d7e5dd}
+.breach-response-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:2px 12px 12px}
+.breach-response-grid article{min-width:0;padding:11px;background:linear-gradient(150deg,#314c47,#273b3d);border:1px solid #788577;display:flex;flex-direction:column;gap:7px}
+.breach-response-grid article>small{font:800 10px/1.4 Arial,sans-serif;color:#e0b981}
+.breach-response-grid article>strong{font:700 14px/1.35 Georgia,serif;color:#fff1cd}
+.breach-response-grid article>div{display:flex;flex-direction:column;gap:3px;padding-top:5px;border-top:1px solid #84998744}
+.breach-response-grid article>div>span{font:800 9px/1.4 Arial,sans-serif;letter-spacing:.04em;color:#bcd0c8}
+.breach-response-grid article>div>b{font:800 12px/1.4 Arial,sans-serif;color:#fff0d6;overflow-wrap:anywhere}
+.breach-response-offers{margin:0 12px 12px;padding:10px;border:1px solid #93805d;background:#303d3b;display:flex;flex-direction:column;gap:10px}
+.breach-response-offers>strong{font:800 11px/1.5 Georgia,serif;color:#fce0ad}
+.breach-response-offers>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.breach-response-offers>div>span{font:700 11px/1.55 Arial,sans-serif;color:#e6efe8;overflow-wrap:anywhere}
+.breach-response-offers>button{min-height:44px;align-self:flex-start;padding:8px 15px;background:linear-gradient(#927446,#5d4930);border:1px solid #e1c189;color:#fff1dc;font:800 11px/1.4 Arial,sans-serif;touch-action:manipulation}
+.breach-response-offers>button:focus-visible{outline:2px solid #fff0b1;outline-offset:2px}
+.breach-response-caution{display:block;margin:2px 12px 12px;font:10px/1.55 Arial,sans-serif;color:#c9dad3}
+@media(max-width:760px){.breach-response-grid{grid-template-columns:1fr}.breach-response-offers>div{grid-template-columns:1fr}.breach-response-offers>button{width:100%}}
