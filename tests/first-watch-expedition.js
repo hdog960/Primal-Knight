@@ -1,4 +1,4 @@
-// Alpha 0.15.19: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Alpha 0.15.20: genuine post-Chapter-V Tier III expedition and owned item readiness.
 // Reuses the Alpha 0.15.6 deterministic combat harness and verified existing save behavior.
 // Alpha 0.15.6 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.19')&&html.includes('game.js?v=0.15.19')&&html.includes('style.css?v=0.15.19'));
+assert(html.includes('ALPHA 0.15.20')&&html.includes('game.js?v=0.15.20')&&html.includes('style.css?v=0.15.20'));
 assert(css.includes('.expedition-readiness-grid')&&css.includes('.expedition-readiness-grid article button{'));
 assert(css.includes('@media(max-width:610px){.expedition-readiness-grid{grid-template-columns:1fr}'));
 const untouched=world(15700);
@@ -232,5 +232,5 @@ for(const seed of [15411,15423]){
 }
 assert.equal(cohorts.length,4);
 console.log('EARNED POST-CHAPTER-V EXPEDITIONS '+JSON.stringify(cohorts));
-console.log('PASS Alpha 0.15.19: real Chapter V→Tier III unlock, original gear and rune equip, earned first-clear/Sigil accounting, actual upgrade affordability, read-only readiness, old save reload');
+console.log('PASS Alpha 0.15.20: real Chapter V→Tier III unlock, original gear and rune equip, earned first-clear/Sigil accounting, actual upgrade affordability, read-only readiness, old save reload');
 console.log('LIMIT: twelve scripted attempts per route across two seeds; no human iPhone play, full 750-minute First Watch, mid/endgame affordability or 1,250-hour completion proof.');
