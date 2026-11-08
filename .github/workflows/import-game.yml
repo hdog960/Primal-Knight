@@ -125,3 +125,4 @@ jobs:
           node tests/first-watch-siege-pressure.js
           node tests/first-watch-offensive-pressure.js
           node tests/first-watch-breach-response.js
+          node tests/first-watch-wallguard.js

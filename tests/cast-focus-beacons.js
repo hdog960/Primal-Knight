@@ -1,4 +1,4 @@
-// Alpha 0.15.17 — live spell target beacon, highest threat prioritization and cleanup.
+// Alpha 0.15.18 — live spell target beacon, highest threat prioritization and cleanup.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const src=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -14,7 +14,7 @@ const sandbox={Math,Image,Date,Blob,console,confirm(){return true},window:{__PK_
  localStorage:{getItem(k){return storage[k]??null;},setItem(k,v){storage[k]=String(v);},removeItem(k){delete storage[k];}},setTimeout(){return 0;},clearTimeout(){},requestAnimationFrame(){},performance:{now(){return 1000;}},URL:{createObjectURL(){return'blob:test';},revokeObjectURL(){}}};
 vm.runInNewContext(src,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,run=h.run(),player=h.p(),old=JSON.stringify(player);
-assert(html.includes('ALPHA 0.15.17')&&html.includes('game.js?v=0.15.17')&&html.includes('style.css?v=0.15.17'));
+assert(html.includes('ALPHA 0.15.18')&&html.includes('game.js?v=0.15.18')&&html.includes('style.css?v=0.15.18'));
 assert(css.includes('.encounter-ribbon[data-focus="true"]'));
 assert.equal(Object.keys(h.castFocusColors).length,8,'Exactly eight existing spell-warning types have static colors');
 assert.equal(h.castFocus(),null,'No target highlighted in lobby');

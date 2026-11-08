@@ -1,6 +1,6 @@
-// Alpha 0.15.17: genuine post-Chapter-V Tier III expedition and owned item readiness.
-// Reuses the Alpha 0.15.17 deterministic combat harness and verified existing save behavior.
-// Alpha 0.15.17 — real earned multi-territory First Watch routes and safe player selection.
+// Alpha 0.15.18: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Reuses the Alpha 0.15.18 deterministic combat harness and verified existing save behavior.
+// Alpha 0.15.18 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.17')&&html.includes('game.js?v=0.15.17')&&html.includes('style.css?v=0.15.17'));
+assert(html.includes('ALPHA 0.15.18')&&html.includes('game.js?v=0.15.18')&&html.includes('style.css?v=0.15.18'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -176,7 +176,7 @@ function prepareMidgameBuild(w){
 
 
 // Synthetic wall-pressure instrumentation fixtures never claim earned progression.
-assert(html.includes('ALPHA 0.15.17')&&html.includes('game.js?v=0.15.17'));
+assert(html.includes('ALPHA 0.15.18')&&html.includes('game.js?v=0.15.18'));
 assert(css.includes('.siege-pressure-history'));
 const fixture=world(151501),fh=fixture.h,fp=fh.p();
 const ancient=fh.normalizeSiegeHistory([{id:1,finishedAt:0,reason:'fallen',tier:16,
@@ -428,7 +428,7 @@ for(const seed of seeds){
 }
 assert.equal(results.length,4);
 assert(results.every(x=>x.sieges===86));
-// Alpha 0.15.17: Replay the exact genuinely earned 66-siege checkpoint for
+// Alpha 0.15.18: Replay the exact genuinely earned 66-siege checkpoint for
 // a controlled next-20-sortie intervention. Both policies start with identical
 // stored character bytes and the same newly seeded RNG stream; outcomes and
 // cumulative actual Essence expenditures may diverge after the first fight.
@@ -485,8 +485,63 @@ for(const seed of seeds){
  }
 }
 assert.equal(lateOffensivePairs.length,4);
-console.log('ALPHA 0.15.17 EXACT EARNED CHECKPOINT · SEEDED LATE OFFENSIVE VS MIXED '+JSON.stringify(lateOffensivePairs));
+console.log('ALPHA 0.15.18 EXACT EARNED CHECKPOINT · SEEDED LATE OFFENSIVE VS MIXED '+JSON.stringify(lateOffensivePairs));
+// 0.15.18 — target-order intervention ONLY, with unchanged original
+// mixed Training purchases. Reuse the identical, legitimately earned siege-66
+// character bytes per seed and use an identical fresh seed for both stances.
+// Real events and affordable purchases may diverge after stance selection.
+const targetingPairs=[];
+for(const seed of seeds){
+ const base=offenseBases.get(seed);assert(base?.raw,'Real earned siege-66 save required for stance comparison');
+ for(const focusStance of ['threat','wallguard']){
+  const w=world(seed+1818,{[SAVE]:base.raw}),h=w.h,p=h.p();
+  const checkpoint=JSON.parse(base.raw);
+  assert.equal(JSON.stringify(p.training),JSON.stringify(checkpoint.training));
+  assert.equal(p.essence,checkpoint.essence);
+  assert.equal(p.uniqueClears,checkpoint.uniqueClears);
+  assert.equal(p.sigils,checkpoint.sigils);
+  assert(h.setFocusStance(focusStance),'Select stance honestly before the original siege');
+  let paid=base.spentSince19,paidSince66=0;
+  const observed={fired:0,landed:0,redirects:0,breaches:0,wallHpLost:0,nearWallKills:0,directHp:0};
+  const late=[];
+  for(let n=67;n<=86;n++){
+   spendSkills(h);
+   const purchase=spendUnderSharedCumulativeCap(h,'mixed',paid,n);
+   paid+=purchase.spent;paidSince66+=purchase.spent;
+   const route=navigateEarned(w,n);
+   const outcome=siege(h,95),report=h.siegeReport();
+   assert.equal(outcome.tier,route.tier,'No fabricated target tier');
+   assert.equal(report.focusStance,focusStance,'Actually ran requested stance');
+   assert(Number.isSafeInteger(report.focusRedirects)&&report.focusRedirects>=0);
+   if(focusStance==='threat')assert.equal(report.focusRedirects,0,'Original stance never redirects targeting');
+   assert(report.offenseTracked&&report.wallPressureTracked);
+   assert.equal(p.siegeHistory[0].focusStance,focusStance,'Persist actual stance per recorded siege');
+   observed.fired+=report.projectilesFired;observed.landed+=report.projectilesLanded;
+   observed.redirects+=report.focusRedirects;observed.breaches+=report.breaches;
+   observed.wallHpLost+=report.wallBreachDamage+report.wallSabotageDamage;
+   observed.nearWallKills+=report.lastLineKills;observed.directHp+=report.directHitHpRemoved;
+   assert.equal(p.uniqueClears,trueBestSum(p),'Real waves only');
+   assert.equal(p.sigils,h.sigilLedgerSummary().claimed+h.sigilLedgerSummary().earnedWatch,'No invented finite Sigils');
+   if(n>=82)late.push({n,tier:route.tier,wave:report.lastWave,breaches:report.breaches,
+    redirects:report.focusRedirects,firstClears:p.uniqueClears});
+  }
+  if(p.unlockedTier>=17)assert(p.milestones['16:20']&&(p.bestByTier[16]||0)>=20,'Original wave 20 gate cannot be bypassed');
+  assert(h.save());
+  const loaded=world(seed+1819,{[SAVE]:w.store[SAVE]});
+  assert.equal(loaded.h.p().uniqueClears,p.uniqueClears);
+  assert.equal(loaded.h.p().sigils,p.sigils);
+  assert.equal(loaded.h.p().siegeHistory[0].focusStance,focusStance);
+  targetingPairs.push({seed,focusStance,realSieges:20,actualEssenceSpentAfter66:paidSince66,
+   chapters:p.firstWatchClaimed.length,firstClears:p.uniqueClears,unlockedTier:p.unlockedTier,
+   tier16Best:p.bestByTier[16]||0,attackDamage:+h.damage().toFixed(1),
+   attackSeconds:+h.attackInterval().toFixed(3),wall:h.maxWall(),observed,late});
+ }
+}
+assert.equal(targetingPairs.length,4);
+console.log('ALPHA 0.15.18 IDENTICAL EARNED CHECKPOINT · THREAT SENSE VS WALLGUARD '+JSON.stringify(targetingPairs));
+console.log('LIMIT: Original prices/characters conserved, but after each targeting decision actual fight duration, drops and purchase affordability can diverge. No equal-lifetime-spend or universal winning stance claimed.');
+
 console.log('LIMIT: both policies replay genuine checkpoint save bytes with the same fresh RNG seed, not identical later events or actual Essence expenditure. No full 750-minute First Watch, 1,250h completion or device acceptance claim.');
-console.log('ALPHA 0.15.17 LATE TIER XVI TRUE SIEGE PRESSURE AND PAID STRATEGIES '+JSON.stringify(results));
-console.log('PASS Alpha 0.15.17: correct genuine wall-breach/sabotage damage accounting, old save distinction, bounded archive metrics, 344 genuinely engine-executed sieges, paired earned 66-siege baselines, legal gate unlocks, original save/reload and Sigil integrity');
+console.log('ALPHA 0.15.18 LATE TIER XVI TRUE SIEGE PRESSURE AND PAID STRATEGIES '+JSON.stringify(results));
+console.log('PASS Alpha 0.15.18: correct genuine wall-breach/sabotage damage accounting, old save distinction, bounded archive metrics, 344 genuinely engine-executed sieges, paired earned 66-siege baselines, legal gate unlocks, original save/reload and Sigil integrity');
 console.log('LIMIT: Scripted deterministic runs do not prove human 750-minute First Watch, 1,250-hour completion or physical iPhone acceptance. Never invent Chapter XII or Tier XVII; report only if awarded by normal engine.');

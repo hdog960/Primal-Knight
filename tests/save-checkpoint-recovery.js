@@ -1,4 +1,4 @@
-// Alpha 0.15.17 — honest two-copy save recovery, checksum, quota and legacy import.
+// Alpha 0.15.18 — honest two-copy save recovery, checksum, quota and legacy import.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),
@@ -28,7 +28,7 @@ function boot(store={},blockedKey=null){
  vm.runInNewContext(js,ctx,{filename:'game.js'});
  return {h:ctx.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.17')&&html.includes('game.js?v=0.15.17')&&html.includes('style.css?v=0.15.17'));
+assert(html.includes('ALPHA 0.15.18')&&html.includes('game.js?v=0.15.18')&&html.includes('style.css?v=0.15.18'));
 assert(css.includes('.save-recovery-panel'));
 const fresh=boot(),{h,store}=fresh;
 assert.equal(h.saveRecoverySummary().status,'healthy');
