@@ -1,4 +1,4 @@
-// Alpha 0.15.23: cross-session conflicts and retryable recovery writes.
+// Alpha 0.15.24: cross-session conflicts and retryable recovery writes.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
@@ -21,7 +21,7 @@ function boot(store={},rules={}){
   URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
  vm.runInNewContext(js,env,{filename:'game.js'});return {h:env.window.__PK_TEST_TOOLS__,store,rules,el};
 }
-assert(html.includes('ALPHA 0.15.23')&&html.includes('game.js?v=0.15.23')&&html.includes('style.css?v=0.15.23'));
+assert(html.includes('ALPHA 0.15.24')&&html.includes('game.js?v=0.15.24')&&html.includes('style.css?v=0.15.24'));
 const seed=boot();assert.equal(seed.h.save(),true);
 const original=seed.store[SAVE],checkpoint=seed.store[CK],source=JSON.parse(original);
 const external=boot({...seed.store}),newer=JSON.stringify({...source,level:64,gold:69000});
@@ -61,4 +61,4 @@ assert.equal(imported.h.restoreProgressBackup({...source,gold:1777},true),true);
 assert.equal(imported.h.save(),true);assert.equal(imported.h.undoProgressImport(),true);
 assert.equal(JSON.parse(imported.store[SAVE]).gold,source.gold);
 assert.equal(imported.store[UNDO],undefined);
-console.log('PASS Alpha 0.15.23: cross-tab safety, eviction, read errors, retryable recovery and import/undo');
+console.log('PASS Alpha 0.15.24: cross-tab safety, eviction, read errors, retryable recovery and import/undo');

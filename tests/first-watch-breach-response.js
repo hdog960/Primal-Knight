@@ -1,4 +1,4 @@
-// Alpha 0.15.23 — real measured Breach Response Ledger and exact original Training quotes.
+// Alpha 0.15.24 — real measured Breach Response Ledger and exact original Training quotes.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0=1517,source){
  vm.runInNewContext(game,sandbox,{filename:'game.js'});assert(sandbox.window.__PK_TEST_TOOLS__);
  return {h:sandbox.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.23')&&html.includes('game.js?v=0.15.23')&&html.includes('style.css?v=0.15.23'));
+assert(html.includes('ALPHA 0.15.24')&&html.includes('game.js?v=0.15.24')&&html.includes('style.css?v=0.15.24'));
 assert(css.includes('.breach-response-ledger')&&css.includes('@media(max-width:760px){.breach-response-grid{grid-template-columns:1fr}'));
 assert(css.includes('min-height:44px'));
 // No old save metrics or empty shells should generate a recommendation or false data.
@@ -101,4 +101,4 @@ assert.equal(q2.records[0].hitHpPerSecond,null,'Never divide by 0 or invent DPS'
 assert(restored.h.renderBreachResponseLedger(1).includes('Different starting waystones'));
 assert(restored.h.breachResponseLedger(2)===null,'Synthetic first-tier records cannot spill into other territory');
 assert(restored.h.breachResponseLedger(31)===null,'Invalid tiers rejected');
-console.log('PASS Alpha 0.15.23: genuine original-price earned combat, live read-only Breach Response Ledger, 44px iPhone layout, accurate per-tier pressure and costs, legacy isolation, save/reload, maliciously missing durations and mixed-waystone honesty');
+console.log('PASS Alpha 0.15.24: genuine original-price earned combat, live read-only Breach Response Ledger, 44px iPhone layout, accurate per-tier pressure and costs, legacy isolation, save/reload, maliciously missing durations and mixed-waystone honesty');

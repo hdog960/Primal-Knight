@@ -1,4 +1,4 @@
-// Alpha 0.15.23 baseline; Alpha 0.15.24 checkpoint-aware veteran clear guidance.
+// Alpha 0.15.24 baseline; Alpha 0.15.24 checkpoint-aware veteran clear guidance.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -22,7 +22,7 @@ function world(seed0=1524){
  assert(box.window.__PK_TEST_TOOLS__);
  return {h:box.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.23')&&css.includes('.veteran-route-grid'));
+assert(html.includes('ALPHA 0.15.24')&&css.includes('.veteran-route-grid'));
 const w=world(),h=w.h,p=h.p();
 assert.equal(h.veteranClearRoutes(),null,'No novice route override');
 p.firstWatchClaimed=Array.from({length:11},(_,i)=>i);
