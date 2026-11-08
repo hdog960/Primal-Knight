@@ -1,6 +1,6 @@
-// Alpha 0.15.21: genuine post-Chapter-V Tier III expedition and owned item readiness.
-// Reuses the Alpha 0.15.21 deterministic combat harness and verified existing save behavior.
-// Alpha 0.15.21 — real earned multi-territory First Watch routes and safe player selection.
+// Alpha 0.15.22: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Reuses the Alpha 0.15.22 deterministic combat harness and verified existing save behavior.
+// Alpha 0.15.22 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.21')&&html.includes('game.js?v=0.15.21')&&html.includes('style.css?v=0.15.21'));
+assert(html.includes('ALPHA 0.15.22')&&html.includes('game.js?v=0.15.22')&&html.includes('style.css?v=0.15.22'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -172,9 +172,9 @@ function prepareMidgameBuild(w){
 
 
 
-// Alpha 0.15.21: UI-only price fixtures. All synthetic chapter flags and
+// Alpha 0.15.22: UI-only price fixtures. All synthetic chapter flags and
 // balances below are boundaries, NEVER claimed as earned play.
-assert(html.includes('ALPHA 0.15.21')&&html.includes('game.js?v=0.15.21'));
+assert(html.includes('ALPHA 0.15.22')&&html.includes('game.js?v=0.15.22'));
 assert(css.includes('.veteran-envelope')&&css.includes('.veteran-envelope-paths'));
 assert(css.includes('@media(max-width:610px){.veteran-envelope-paths{grid-template-columns:1fr}}'));
 const price=(id,lv)=>{
@@ -329,6 +329,6 @@ for(const seed of [15411,15423]){
 assert.equal(cohorts.length,4);
 assert(cohorts.every(x=>x.sieges===48&&x.spent<=x.allowed));
 assert(cohorts.every(x=>x.chapters>=8),'All real routes reach at least Chapter VIII');
-console.log('ALPHA 0.15.21 MATCHED PER-ATTEMPT BUDGET CAPS '+JSON.stringify(cohorts));
-console.log('PASS Alpha 0.15.21: price-exact read-only 50% Essence envelope, cap and gate fixtures, 192 earned real sieges with common opening, 8k per-attempt ceilings, exact purchase debits, distinct first-clear/Sigil accounting and real save/reload');
+console.log('ALPHA 0.15.22 MATCHED PER-ATTEMPT BUDGET CAPS '+JSON.stringify(cohorts));
+console.log('PASS Alpha 0.15.22: price-exact read-only 50% Essence envelope, cap and gate fixtures, 192 earned real sieges with common opening, 8k per-attempt ceilings, exact purchase debits, distinct first-clear/Sigil accounting and real save/reload');
 console.log('LIMIT: identical nominal per-attempt spending ceilings are NOT equal actual spending. No synthetic Chapter XII is counted as earned; fixed scripted route/cap observations are not human play, not a full 750-minute Watch, not a measured 1,250-hour completion, and not physical iPhone QA.');

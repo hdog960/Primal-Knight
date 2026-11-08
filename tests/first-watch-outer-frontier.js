@@ -22,7 +22,7 @@ function world(seed0=1522,source){
  assert(box.window.__PK_TEST_TOOLS__);
  return {h:box.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.21')&&html.includes('id="frontierNav"'));
+assert(html.includes('ALPHA 0.15.22')&&html.includes('id="frontierNav"'));
 assert(css.includes('.outer-frontier-actions button{')&&css.includes('min-height:64px'));
 assert(css.includes('@media(max-width:760px){.outer-frontier-actions{grid-template-columns:1fr}}'));
 function click(w,tier){
