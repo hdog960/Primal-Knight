@@ -3250,3 +3250,24 @@
 .focus-stance-grid button:focus-visible{outline:2px solid #fff0ad;outline-offset:2px}
 .focus-stance-panel>small{display:block;margin-top:8px;font:10px/1.55 Arial,sans-serif;color:#cbded5}
 @media(max-width:600px){.focus-stance-grid{grid-template-columns:1fr}.focus-stance-grid button{min-height:76px}}
+
+
+/* Alpha 0.15.19 — bounded, read-only individual wave evidence. */
+.wave-pressure-ledger{margin:12px 0;border:1px solid #a28c6c;background:linear-gradient(145deg,#2b3e3b,#283238);color:#e9e2d2;overflow:hidden}
+.wave-pressure-ledger>summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:13px 14px;cursor:pointer;min-height:46px;background:linear-gradient(#5a4b3a,#39433e)}
+.wave-pressure-ledger>summary strong{font:800 13px/1.4 Georgia,serif;color:#ffe4b2}
+.wave-pressure-ledger>summary small{font:800 10px/1.4 Arial,sans-serif;color:#e1d2b5}
+.wave-pressure-ledger>p{padding:0;margin:12px 14px;font:11px/1.6 Arial,sans-serif;color:#d6e7dd}
+.wave-pressure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:0 12px 12px}
+.wave-pressure-grid article{min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:9px 12px;padding:10px;border:1px solid #7b8b7c;background:linear-gradient(150deg,#324c47,#293a3d)}
+.wave-pressure-grid article>div:first-child{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #b7c4a455;padding-bottom:6px}
+.wave-pressure-grid article>div:first-child strong{font:700 14px/1.4 Georgia,serif;color:#ffe6b7}
+.wave-pressure-grid article>div:first-child span{font:800 10px/1.4 Arial,sans-serif;color:#bfe0c9}
+.wave-pressure-grid article.wave-pressure-fallen{border-color:#be886d;background:linear-gradient(150deg,#4a3c3a,#343638)}
+.wave-pressure-grid article.wave-pressure-fallen>div:first-child span{color:#ffc09b}
+.wave-pressure-grid article>div:not(:first-child){min-width:0;display:flex;flex-direction:column;gap:3px}
+.wave-pressure-grid article small{font:800 9px/1.45 Arial,sans-serif;color:#b8ccc4;overflow-wrap:anywhere}
+.wave-pressure-grid article b{font:800 12px/1.45 Arial,sans-serif;color:#fce5c4;overflow-wrap:anywhere}
+.wave-pressure-note{display:block;margin:0 12px 12px;color:#c6d9d0;font:10px/1.55 Arial,sans-serif}
+@media(max-width:760px){.wave-pressure-grid{grid-template-columns:1fr}}
+@media(max-width:340px){.wave-pressure-grid article{grid-template-columns:1fr}}
