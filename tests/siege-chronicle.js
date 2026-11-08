@@ -135,7 +135,7 @@ assert.equal(ch.siegeReport().bosses,1,'Final chapter victory included in boss c
 assert(conquer.el('siegeReportTitle').textContent.includes('ETERNAL VICTORY'),'Victory report uses correct tone');
 assert(conquer.el('siegeReportRange').textContent.includes('LAST REACHED 10,000'),'Deep-wave victory notation remains readable');
 
-assert(html.includes('ALPHA 0.15.20')&&html.includes('game.js?v=0.15.20'),'iPhone release uses fresh Safari asset URLs');
+assert(html.includes('ALPHA 0.15.21')&&html.includes('game.js?v=0.15.21'),'iPhone release uses fresh Safari asset URLs');
 assert(html.includes('id="siegeReport"')&&html.includes('id="siegeReportMetrics"'),'Battle lobby contains actual Chronicle UI');
 assert(css.includes('.siege-report[hidden]')&&css.includes('grid-template-columns:repeat(2,minmax(0,1fr))'),
  'Responsive 2-column detail grid and hidden status are styled');

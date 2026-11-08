@@ -1,6 +1,9 @@
 # Primal KnIght – Onslaught
 
-## Current release — Alpha 0.15.20 (First Watch & Progression Balance, Slice 21)
+## In-development Alpha 0.15.21 — Battle Plan Field Ledger (Slice 22)
+The player can inspect up to four same-tier original-engine battle plans from recent earned sieges, comparing actual waves cleared, distinct first clears, breaches and pre-healing wall damage without pretending differing runs are controlled experiments. Only exact four-way matches at siege entry are labeled. Original save, all rewards, combat equations, tier gates and 30 × 10,000-wave structure are unchanged. Physical iPhone acceptance, Chapter XII, the full Watch and the 1,250h target remain open. See `docs/ALPHA_01521_PLAN_LEDGER.md`.
+
+## Current released — Alpha 0.15.20 (First Watch & Progression Balance, Slice 21)
 
 The game is a **free iPhone-first, mostly automatic fortress-defense RPG** with **30 tiers and 10,000 waves per tier**, 1,144 finite tier achievements, permanent Training / Ascension / Sovereign Oaths, four skill disciplines, equipment, rune crafting and a 12.5-hour First Watch reward ladder. Its long-term full-progression goal is **around 1,250 active hours (a design target, not measured player completion time)**.
 

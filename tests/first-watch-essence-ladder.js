@@ -1,6 +1,6 @@
-// Alpha 0.15.20: genuine post-Chapter-V Tier III expedition and owned item readiness.
-// Reuses the Alpha 0.15.20 deterministic combat harness and verified existing save behavior.
-// Alpha 0.15.20 — real earned multi-territory First Watch routes and safe player selection.
+// Alpha 0.15.21: genuine post-Chapter-V Tier III expedition and owned item readiness.
+// Reuses the Alpha 0.15.21 deterministic combat harness and verified existing save behavior.
+// Alpha 0.15.21 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.20')&&html.includes('game.js?v=0.15.20')&&html.includes('style.css?v=0.15.20'));
+assert(html.includes('ALPHA 0.15.21')&&html.includes('game.js?v=0.15.21')&&html.includes('style.css?v=0.15.21'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -306,5 +306,5 @@ assert(cohorts.every(x=>x.attempts===28));
 assert(cohorts.filter(x=>x.policy==='repeat-VI').every(x=>!x.best[7]),'Control never gets Tier VII first clears');
 assert(cohorts.filter(x=>x.policy==='frontier-VII-plus').every(x=>x.best[7]>0),'Frontier earns real Tier VII wins');
 console.log('EARNED CHAPTER IX-X ESSENCE LADDER COHORTS '+JSON.stringify(cohorts));
-console.log('PASS Alpha 0.15.20: original exact 1–3 rank cost quotes, high-rank caps, affordability, genuine 28-siege frontiers, chapter/Sigil integrity, actual paid build and original save reload');
+console.log('PASS Alpha 0.15.21: original exact 1–3 rank cost quotes, high-rank caps, affordability, genuine 28-siege frontiers, chapter/Sigil integrity, actual paid build and original save reload');
 console.log('LIMIT: scripted engine-driven 28-attempt policies are not an end-to-end 750-minute human playthrough, 1,250-hour finish proof or physical iPhone acceptance.');
