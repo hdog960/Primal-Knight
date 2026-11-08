@@ -40,7 +40,7 @@ const legacy=h.normalizeSiegeHistory([{reason:'fallen',tier:1,startWave:1,lastWa
 p.siegeHistory=[legacy];
 assert.equal(h.breachResponseLedger(1),null,'Old archives do not claim new offensive measurements');
 p.siegeHistory=[];
-let oldGold=p.gold,oldEssence=p.essence,oldSigils=p.sigils;
+const oldEssence=p.essence;
 assert(h.purchaseCouncilTraining('power'),'Original early Training purchase, not a mock');
 assert(p.essence<oldEssence);
 assert(h.save());
@@ -55,6 +55,7 @@ if(r.phase!=='fallen'&&r.phase!=='completed')h.retreatFromSiege();
 const report=h.siegeReport();
 assert(report.offenseTracked&&report.wallPressureTracked);
 assert(p.siegeHistory.length===1&&p.siegeHistory[0].offenseTracked);
+const goldAtReview=p.gold,sigilsAtReview=p.sigils;
 const before=JSON.stringify(p),q=h.breachResponseLedger(1),rendered=h.renderBreachResponseLedger(1);
 assert(q&&q.records.length===1);
 assert.equal(q.records[0].fired,report.projectilesFired);
@@ -79,8 +80,8 @@ for(const offer of q.offers){
 assert.equal(JSON.stringify(p),before,'Ledger rendering cannot spend/alter saved character');
 h.renderTierLobby();
 assert(w.el('milestoneList').innerHTML.includes('BREACH RESPONSE'));
-assert.equal(p.gold,oldGold,'Read-only ledger did not consume Gold');
-assert.equal(p.sigils,oldSigils,'Read-only ledger did not consume Sigils');
+assert.equal(p.gold,goldAtReview,'Read-only ledger did not consume legitimately earned Gold');
+assert.equal(p.sigils,sigilsAtReview,'Read-only ledger did not consume legitimately earned milestone Sigils');
 assert(h.save());
 const restored=world(15411,{[SAVE]:w.store[SAVE]});
 assert(restored.h.breachResponseLedger(1),'Genuine saved telemetry survives normal character save/load');
