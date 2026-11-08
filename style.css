@@ -3232,3 +3232,21 @@
 .breach-response-offers>button:focus-visible{outline:2px solid #fff0b1;outline-offset:2px}
 .breach-response-caution{display:block;margin:2px 12px 12px;font:10px/1.55 Arial,sans-serif;color:#c9dad3}
 @media(max-width:760px){.breach-response-grid{grid-template-columns:1fr}.breach-response-offers>div{grid-template-columns:1fr}.breach-response-offers>button{width:100%}}
+
+
+/* Alpha 0.15.18 — pre-siege targeting stance, a distinct tactical choice. */
+.focus-stance-panel{margin:12px 0;border:1px solid #9a8b68;background:linear-gradient(140deg,#2a3a3a,#2b353e);padding:12px;color:#f5e8d2;overflow:hidden}
+.focus-stance-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 14px}
+.focus-stance-heading strong{font:800 13px/1.45 Georgia,serif;color:#ffe0af}
+.focus-stance-heading small{font:800 10px/1.4 Arial,sans-serif;color:#d5c5a7}
+.focus-stance-panel>p{margin:9px 0 10px;font:11px/1.55 Arial,sans-serif;color:#dbe7dc}
+.focus-stance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.focus-stance-grid button{min-height:76px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;padding:10px;border:1px solid #806f51;background:linear-gradient(#4b4b3b,#373b37);color:#f5e9d0;text-align:left;touch-action:manipulation}
+.focus-stance-grid button strong{font:800 13px/1.4 Georgia,serif;color:#ffe4b9}
+.focus-stance-grid button span{font:700 11px/1.45 Arial,sans-serif;color:#e6f0e4}
+.focus-stance-grid button small{font:10px/1.5 Arial,sans-serif;color:#d4dbd3}
+.focus-stance-grid button.selected{background:linear-gradient(#3b6659,#2a4a45);border-color:#d4b77d;box-shadow:inset 0 0 0 1px #d4b77d66}
+.focus-stance-grid button[aria-pressed="true"] strong:before{content:"✓ ";color:#d8ffca}
+.focus-stance-grid button:focus-visible{outline:2px solid #fff0ad;outline-offset:2px}
+.focus-stance-panel>small{display:block;margin-top:8px;font:10px/1.55 Arial,sans-serif;color:#cbded5}
+@media(max-width:600px){.focus-stance-grid{grid-template-columns:1fr}.focus-stance-grid button{min-height:76px}}
