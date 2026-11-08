@@ -3291,3 +3291,22 @@
 .siege-plan-choice:focus-visible{outline:2px solid #ffdf96;outline-offset:2px}
 .siege-plans-note{display:block;margin:0 13px 13px;color:#c9dad2;font:10px/1.6 Arial,sans-serif}
 @media(max-width:820px){.siege-plans-grid{grid-template-columns:1fr}.siege-plan-choice{min-height:95px}}
+
+/* Alpha 0.15.21: battle-plan history matched to real engine evidence. */
+.battle-plan-ledger{margin:12px 0;overflow:hidden;border:1px solid #b7a17d;background:linear-gradient(140deg,#293b3a,#252f37);color:#f4e9d4}
+.battle-plan-ledger>summary{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:7px;padding:13px 14px;min-height:48px;cursor:pointer;background:linear-gradient(135deg,#604d38,#354941)}
+.battle-plan-ledger>summary strong{font:800 13px/1.45 Georgia,serif;color:#ffe5b7}
+.battle-plan-ledger>summary small{font:800 10px/1.45 Arial,sans-serif;color:#e5d7bb}
+.battle-plan-ledger>p{margin:11px 14px;font:11px/1.6 Arial,sans-serif;color:#dbe8df}
+.battle-plan-ledger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:0 12px 12px}
+.battle-plan-ledger-grid article{display:flex;flex-direction:column;gap:7px;min-width:0;padding:11px;border:1px solid #8c957f;background:linear-gradient(145deg,#354b43,#303a3e)}
+.battle-plan-ledger-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.battle-plan-ledger-head strong{font:800 13px/1.4 Georgia,serif;color:#ffe3ae}
+.battle-plan-ledger-head span{font:800 10px/1.35 Arial,sans-serif;color:#ffcca2}
+.battle-plan-ledger-grid article>small{font:10px/1.45 Arial,sans-serif;color:#d1dfd3}
+.battle-plan-ledger-grid article>div:not(.battle-plan-ledger-head){display:flex;justify-content:space-between;gap:12px;border-top:1px solid #b4bfa32f;padding-top:6px}
+.battle-plan-ledger-grid article>div:not(.battle-plan-ledger-head)>span{font:10px/1.4 Arial,sans-serif;color:#d4e1d6}
+.battle-plan-ledger-grid article>div:not(.battle-plan-ledger-head)>b{font:800 11px/1.4 Arial,sans-serif;color:#ffe8bc;text-align:right}
+.battle-plan-ledger-note{display:block;padding:0 13px 13px;font:10px/1.55 Arial,sans-serif;color:#cfddd2}
+@media(max-width:760px){.battle-plan-ledger-grid{grid-template-columns:1fr}}
+@media(max-width:360px){.battle-plan-ledger-grid article>div:not(.battle-plan-ledger-head){flex-direction:column;gap:2px}}
