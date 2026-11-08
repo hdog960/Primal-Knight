@@ -130,3 +130,4 @@ jobs:
           node tests/first-watch-battle-plans.js
           node tests/first-watch-battle-plan-ledger.js
           node tests/first-watch-outer-frontier.js
+          node tests/first-watch-dominion-arrival.js

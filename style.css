@@ -3327,3 +3327,9 @@
 .outer-frontier-actions button:focus-visible{outline:2px solid #ffe0a4;outline-offset:2px}
 .outer-frontier-gate{display:block;margin-top:11px;border-top:1px solid #a2ae9555;padding-top:8px;font:800 10px/1.6 Arial,sans-serif;color:#f0d8a7}
 @media(max-width:760px){.outer-frontier-actions{grid-template-columns:1fr}}
+
+/* Alpha 0.15.23 — Glassheart Passage announcement, iPhone legible. */
+.dominion-arrival-note{margin:11px 0;padding:13px;border:1px solid #be9b73;background:linear-gradient(145deg,#433b44,#2b3d3d);color:#efe1cc}
+.dominion-arrival-note strong{display:block;color:#ffe5ae;font:800 13px/1.45 Georgia,serif}
+.dominion-arrival-note p{margin:7px 0 0;font:11px/1.65 Arial,sans-serif;color:#ecdfdf}
+@media(max-width:760px){.dominion-arrival-note{padding:12px;margin:10px 0}}
