@@ -1,4 +1,4 @@
-// Alpha 0.15.24 — deterministic original-default targeting and opt-in Wallguard.
+// Alpha 0.15.25 — deterministic original-default targeting and opt-in Wallguard.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -25,7 +25,7 @@ function world(seed0=1518,source){
  vm.runInNewContext(game,sandbox,{filename:'game.js'});assert(sandbox.window.__PK_TEST_TOOLS__);
  return {h:sandbox.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.24')&&html.includes('game.js?v=0.15.24')&&html.includes('style.css?v=0.15.24'));
+assert(html.includes('ALPHA 0.15.25')&&html.includes('game.js?v=0.15.25')&&html.includes('style.css?v=0.15.25'));
 assert(css.includes('.focus-stance-panel')&&css.includes('min-height:76px')&&css.includes('@media(max-width:600px){.focus-stance-grid{grid-template-columns:1fr}'));
 const f=world(151801),h=f.h,p=h.p(),run=h.run();
 assert.equal(h.selectedFocusStance(),'threat','Existing players retain original target ordering by default');
@@ -113,5 +113,5 @@ for(const seed of [15411,15423]){
  }
 }
 assert.equal(summaries.length,4);
-console.log('ALPHA 0.15.24 GENUINE OPT-IN TARGETING OPENING SIEGES '+JSON.stringify(summaries));
-console.log('PASS Alpha 0.15.24: original default preserved, real near-wall target reordering, per-siege locked opt-in, original doctrine math unaffected, no save key migration, bounded archive provenance, four authentic real-engine starting sieges, mobile stance selection');
+console.log('ALPHA 0.15.25 GENUINE OPT-IN TARGETING OPENING SIEGES '+JSON.stringify(summaries));
+console.log('PASS Alpha 0.15.25: original default preserved, real near-wall target reordering, per-siege locked opt-in, original doctrine math unaffected, no save key migration, bounded archive provenance, four authentic real-engine starting sieges, mobile stance selection');

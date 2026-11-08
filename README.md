@@ -1,6 +1,10 @@
 # Primal KnIght – Onslaught
 
-## In development — Alpha 0.15.24: Record Stretch (Progression Balance slice 25)
+## In development — Alpha 0.15.25: Proven Record Yield (Progression Balance slice 26)
+
+**New in 0.15.25, pending QA:** the existing Veteran Watch now exposes actual latest archived first-clear yields, breaches and the true final completed wave for every suggested territory, using no forecast, no extra saved fields and no gameplay reward changes. The 94th regression checks bounded record integrity, legacy/absent history and source-safe UI rendering. Extend the genuinely earned seed-15423 alternative backtracking career from 8 to 16 original-price source-engine sieges after the proved first 8 earned 51 new unique clears. Report a possible Chapter XII award only if the real engine meets its unchanged 483 distinct-clear and 322 active-minute gates. See docs/ALPHA_01525_RECORD_YIELD.md.
+
+## Previously completed — Alpha 0.15.24: Record Stretch (Progression Balance slice 25)
 
 Veteran Watch now selects up to four **shortest legitimately replayable record paths** across all already unlocked territories, using only actual earned waystones and previous best waves rather than always showing the four highest tiers. It displays the precise start wave, number of previous waves to replay, and up to ten potential distinct first clears, without saying the encounters are easy or promising any wins. Original saved tier selection, rewards and combat formulas are untouched. The 93rd mandated check covers synthetic route arithmetic and checkpoint fraud prevention; the existing earned-character full-game suite gains eight truly fought original-price backtracking sorties from the established seed-15423 Tier XVII career to evaluate whether Chapter XII can progress without weakening wave-100 difficulty. The complete First Watch and ~1,250-hour target remain unverified. See docs/ALPHA_01524_RECORD_STRETCH.md.
 

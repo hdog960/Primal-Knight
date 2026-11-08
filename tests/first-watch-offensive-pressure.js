@@ -1,4 +1,4 @@
-// Alpha 0.15.24 — offensive tempo telemetry and legitimately earned original-engine comparison.
+// Alpha 0.15.25 — offensive tempo telemetry and legitimately earned original-engine comparison.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8');
@@ -37,7 +37,7 @@ function world(seed0=1516,source){
  assert(sandbox.window.__PK_TEST_TOOLS__);
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
-assert(html.includes('ALPHA 0.15.24')&&html.includes('game.js?v=0.15.24')&&html.includes('style.css?v=0.15.24'),
+assert(html.includes('ALPHA 0.15.25')&&html.includes('game.js?v=0.15.25')&&html.includes('style.css?v=0.15.25'),
  'Production shell and assets must be version synchronized');
 const legacy=world();
 const old=legacy.h.normalizeSiegeHistory([{
@@ -116,5 +116,5 @@ for(const seed of [15411,15423]){
  }
 }
 assert.equal(results.length,4);
-console.log('Alpha 0.15.24: four authentic, original-priced opening sieges with conserved rewards and bounded telemetry');
+console.log('Alpha 0.15.25: four authentic, original-priced opening sieges with conserved rewards and bounded telemetry');
 for(const result of results)console.log(JSON.stringify(result));
