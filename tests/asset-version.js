@@ -10,14 +10,16 @@ function assetVersionAtLeast(html, asset, floor) {
   const min = versionParts(floor);
   if (!min) return false;
   const urls = html.matchAll(/(?:href|src)="([^"]+)"/g);
+  let seen = false;
   for (const found of urls) {
     const prefix = asset + '?v=';
     if (!found[1].startsWith(prefix)) continue;
+    seen = true;
     const actual = versionParts(found[1].slice(prefix.length));
-    return !!actual && (actual[0] > min[0] ||
+    if (!actual || !(actual[0] > min[0] ||
       (actual[0] === min[0] && (actual[1] > min[1] ||
-        (actual[1] === min[1] && actual[2] >= min[2]))));
+        (actual[1] === min[1] && actual[2] >= min[2]))))) return false;
   }
-  return false;
+  return seen;
 }
 module.exports = { assetVersionAtLeast };
