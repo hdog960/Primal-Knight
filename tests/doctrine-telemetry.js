@@ -64,5 +64,10 @@ h.enterSiege();
 assert.equal(h.siegeReport(),null);assert.equal(r.doctrineHoldEvents,0);
 assert.equal(r.doctrineCasts,0);assert.equal(r.doctrineHeldSeconds,0);
 assert.equal(Object.keys(r.doctrineCastReasons).length,0);
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+const release='0.15.27';
+const assetVersion=kind=>html.match(new RegExp('(?:href|src)="'+kind+'\\?v=([^"]+)"'))?.[1];
+const versionParts=value=>{const m=value?.match(/^(\d+)\.(\d+)\.(\d+)(?:-[a-z0-9-]+)?$/i);return m&&m.slice(1,4).map(Number);};
+const atLeast=(actual,minimum)=>{const a=versionParts(actual),b=versionParts(minimum);return !!(a&&b&&(a[0]>b[0]||a[0]===b[0]&&(a[1]>b[1]||a[1]===b[1]&&a[2]>=b[2])));};
+assert(html.includes('ALPHA '+release)&&atLeast(assetVersion('game.js'),release)&&atLeast(assetVersion('style.css'),release),
+ 'Release banner and code-asset cache keys must meet the release floor');
 console.log('PASS: live cast reasons, held combat seconds, Waiting/Held UI, genuine Siege Chronicle report, save and clean retry.');
