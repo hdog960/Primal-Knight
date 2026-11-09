@@ -32,3 +32,10 @@
 - Updated `index.html` viewport to retain `width=device-width`, `initial-scale=1`, and `viewport-fit=cover`, while removing `maximum-scale=1` and `user-scalable=no`. This restores browser-controlled magnification for low-vision users without changing combat, saves, economy or tier progression. Implementation commit `ad26e3074bdeabef3a9e4b789fb7d4f151d9109f`.
 - Extended `tests/cache-version-contract.js` with checks that the safe-area viewport remains and browser zoom is not disabled. Test commit `c55b924811f38bcebc7eb3af717bdfa799e71a2a`.
 - Still required: check quality and Pages runs on latest SHA, real iPhone pinch/VoiceOver/landscape testing, and return to substantial First Watch gameplay work. No visual approval claimed.
+
+## 2026-11-09 — World Atlas keyboard focus containment
+- Baseline main `984da7a341f4442b7505a7383bf827d42a3368f8`; quality workflow `42630793750` completed successfully.
+- `index.html`: while the World Atlas is visible, Tab wraps from the final available control to the first, and Shift+Tab wraps backward. Hidden/disabled controls are excluded; hidden Atlas does not intercept keyboard navigation. Existing game-owned Escape dismissal and return-focus behavior remain unchanged. Implementation commit `6f09503822da56cc70fe88cc790833b9de369be9`.
+- `tests/atlas-keyboard-focus.js`: added focused production-inline-handler mock regression covering forward/backward wrapping, intermediate controls, outside focus, and closed dialog; correction commit `0bfd60113380858fee63d5890d4b8706cea4de67`.
+- Not yet verified: executing the new regression with repository files, full GitHub Actions quality workflow on latest head, Pages deployment on latest head, hardware keyboard/VoiceOver or physical iPhone testing. This is a menu-accessibility change, not a combat, economy, progression, artwork or save-format change. Visual approval remains pending.
+- Next: run the new regression and integrate it into required CI if not already auto-discovered; verify Pages and then resume First Watch gameplay roadmap work.
