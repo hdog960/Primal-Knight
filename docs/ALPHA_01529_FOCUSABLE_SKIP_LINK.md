@@ -54,3 +54,10 @@
 - `index.html`: changed stylesheet key to `0.15.29-portrait-guard` for installed Home Screen refresh. Commit `00a5be20b2e9f3b7692d03a5ae5ed3f71a7be5d1`.
 - **Verification pending:** full Node regression suite, GitHub Actions and Pages status on latest SHA, actual iPhone portrait screenshot/scroll and rest-button interactions. Source edits are not visual acceptance. No changes to battle, currency, save format, tiers or earned rewards.
 - Next: inspect latest CI/Pages, then visually check Tier IV at 320–430px widths and correct remaining layout issues before considering this screenshot defect closed.
+
+## 2026-11-09 — Portrait Battle preview and rest-control grid
+- Starting main `ab2b47d22463cbf807a67e40fa1fe86026920f36`: quality Actions run `42660326771` **passed**. Physical iPhone acceptance remains pending.
+- `style.css`: constrained the territory illustration to a self-contained aspect-responsive portrait card, isolated its image from adjacent text, and changed siege-rest options to a two-column grid with 48px minimum touch targets and bounded labels at portrait widths <=680px. This is a further targeted repair for the user's screenshot showing tier/rest panels overlapping; not a redesign or gameplay change. Commit `5d4f445aff944d01c1051a96000f9a480ec9ea90`.
+- `index.html`: refreshed the stylesheet cache key to `0.15.29-portrait-grid` for Home Screen update propagation. Commit `7faa9780d9b8cb4bb3e69d973ee43233ab8f2b88`.
+- Re-fetched both source files and statically checked grid, preview containment, minimum touch target, cache key, release banner and gameplay asset version. These are **static checks only**, not a browser screenshot, full test suite or hardware iPhone verification.
+- Next: verify Actions and Pages on final head; capture real portrait Tier IV layout at 320–430px and test rest toggles/scroll/launch. Continue First Watch gameplay roadmap after visual QA; preserve original earned progression and saves.
