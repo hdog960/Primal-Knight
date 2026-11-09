@@ -14,3 +14,9 @@
 - Obtain failing GitHub Actions log for the full Node suite and fix the specific regression before calling quality gate green.
 - Verify Pages deployment for latest main, and test keyboard skip-link navigation and VoiceOver on a real browser/iPhone; mock execution is not a browser test.
 - Continue the locked Alpha 0.15 roadmap; do not claim art acceptance or unlock later milestones without user approval.
+
+## 2026-11-09 — Doctrine tactics CI regression follow-up
+- At main `8d925b0f26332ee49861123bc9e8804dbdd35d04`, Actions quality run `42576666051` failed at `tests/doctrine-tactics.js:99`: an exact `0.15.27` asset-cache assertion rejected the current `0.15.29-focus-skip` stylesheet. Pages for that SHA succeeded (`42576666625`), but the quality gate did not.
+- Updated the Doctrine Tactics test to check valid release-floor cache keys, matching the War Chest test's version parser. Initial edit `7fa20d0556ba757785aede16196cb3214195fea0` had an over-escaped query separator; corrected immediately in `429c5d12766f482cf3780c506c3356a1111b6a27` by copying the existing War Chest parser verbatim.
+- This is a test-only change; game.js, index.html, style.css, saves and gameplay remain unchanged. At inspection, new Actions quality and Pages runs were queued/pending, NOT verified successful. Physical iPhone QA remains outstanding.
+- Next: inspect the completed quality workflow log for the next specific failing test, fix it without weakening behavioral assertions, and confirm latest Pages deployment. Resume meaningful gameplay work once the CI gate is green.
