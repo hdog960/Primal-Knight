@@ -3577,3 +3577,26 @@
 @media (orientation:landscape) and (max-height:460px) and (max-width:540px) {
   .tier-lobby .tier-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
+
+/* Alpha 0.15.29 — prevent sticky launch controls from hiding the final tier
+   or a keyboard-focused rest option when the Battle lobby scrolls. */
+@media (orientation:portrait) and (max-width:680px) {
+  .tier-lobby:not([hidden]) {
+    scroll-padding-bottom:calc(84px + env(safe-area-inset-bottom));
+  }
+  .tier-lobby .tier-grid button,
+  .tier-lobby .siege-guard-buttons button,
+  .tier-lobby .lobby-milestones button {
+    scroll-margin-bottom:calc(84px + env(safe-area-inset-bottom));
+  }
+}
+@media (orientation:landscape) and (max-height:460px) and (max-width:950px) {
+  .tier-lobby:not([hidden]) {
+    scroll-padding-bottom:calc(72px + env(safe-area-inset-bottom));
+  }
+  .tier-lobby .tier-grid button,
+  .tier-lobby .siege-guard-buttons button,
+  .tier-lobby .lobby-milestones button {
+    scroll-margin-bottom:calc(72px + env(safe-area-inset-bottom));
+  }
+}
