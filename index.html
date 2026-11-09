@@ -21,15 +21,15 @@
     <summary><span id="siegeReportTitle">✦ SIEGE CHRONICLE</span><strong id="siegeReportSummary">0 WAVES · 0 FOES · 0 BREACHES</strong><small class="siege-report-toggle">TAP FOR DETAILS</small></summary>
     <div id="siegeReportMetrics" class="siege-report-metrics"></div><p id="siegeReportRange" class="siege-report-range"></p>
    </details>
-   <div class="lobby-content"><div class="lobby-tiers"><h2>DIFFICULTY TIERS <small id="tierUnlockHint">Tier advancement goals vary by territory</small></h2><div id="frontierNav" class="frontier-nav" aria-label="Earned frontier quick travel"></div><div class="tier-grid" id="tierGrid"></div></div>
-    <div class="lobby-milestones"><div class="lobby-detail-head"><h2 id="tierHeading">TIER I — VERDANT MARCH</h2>
+   <div class="lobby-content"><div class="lobby-tiers"><h2>DIFFICULTY TIERS <small id="tierUnlockHint">Tier advancement goals vary by territory</small></h2><div id="frontierNav" class="frontier-nav" aria-label="Earned frontier quick travel"></div><div class="tier-grid" id="tierGrid" role="group" aria-label="Choose an unlocked territory tier"></div></div>
+    <div class="lobby-milestones"><div class="lobby-detail-head"><h2 id="tierHeading" aria-live="polite" aria-atomic="true">TIER I — VERDANT MARCH</h2>
      <div class="tier-vista-card" id="tierVistaCard" aria-label="Illustrated region preview">
       <img id="tierVistaPreview" src="assets/battlefield.png" alt="The original Verdant March battlefield" decoding="async">
       <div class="tier-vista-caption"><span>THE LAND AHEAD</span><strong id="tierVistaName">VERDANT DAWN</strong><small id="tierVistaWeather">MIST · DAWN LIGHT</small></div>
      </div>
      <p id="tierVistaLore" class="tier-vista-lore">The first watchfires still burn along the orchard road.</p>
      <button id="openAtlasButton" class="atlas-open-button" type="button" aria-haspopup="dialog">✦ WORLD ATLAS · VIEW ALL 30 TERRITORIES</button>
-     <p id="tierDescription"></p></div><div class="milestone-scroll" id="milestoneList"></div></div></div>
+     <p id="tierDescription"></p></div><div class="milestone-scroll" id="milestoneList" role="region" aria-label="Selected territory milestone rewards" tabindex="0"></div></div></div>
    <div id="siegeGuardLobby" class="siege-guard-lobby"></div>
    <div class="lobby-footer"><span>Milestones pay once per tier · Normal enemy rewards pay every run</span><button id="launchTierButton" class="action-primary">⚔ START TIER I • ENDLESS SIEGE</button></div>
   </section>
