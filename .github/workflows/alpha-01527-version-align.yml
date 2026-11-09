@@ -1,4 +1,5 @@
 name: Alpha 0.15.27 temporary version alignment
+# Rerun after correcting the already-selected-tier regression fixture.
 on:
   push:
     branches: [dev/alpha-01527-pioneer-sweep]
