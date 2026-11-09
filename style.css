@@ -3512,3 +3512,26 @@
   }
   .tier-lobby .lobby-footer { box-sizing:border-box; width:100%; }
 }
+
+/* Alpha 0.15.29 — keep the earned-tier launch action reachable while scrolling
+   the full 30-territory selector on portrait phones. This is a normal-flow
+   sticky footer, not an absolute overlay over milestone or rest controls. */
+@media (orientation:portrait) and (max-width:680px) {
+  .tier-lobby:not([hidden]) .lobby-footer {
+    position:sticky;
+    bottom:0;
+    z-index:8;
+    box-sizing:border-box;
+    width:100%;
+    padding:10px 12px max(12px, env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,#263645,#111b29 90%);
+    box-shadow:0 -5px 16px #020813c9;
+  }
+  .tier-lobby:not([hidden]) .lobby-footer button {
+    flex:1 1 auto;
+    min-width:0;
+    min-height:48px;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+}
