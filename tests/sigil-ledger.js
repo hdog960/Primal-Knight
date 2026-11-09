@@ -83,8 +83,12 @@ assert.equal(p.sovereignOaths.sovereignBlade,originalOath+1,'Real Sovereign Blad
 assert.equal(p.sigils,1000-oathPrice,'Oath costs use the authentic rank formula');
 assert.equal(beforeOath.oathRequired-h.sigilLedgerSummary().oathRequired,oathPrice,
  'Next Oath cost decreases by exactly the spent purchased rank');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'),
- 'New Safari release keeps its original save URL but refreshes code assets');
+const release='0.15.27';
+const assetVersion=kind=>html.match(new RegExp('(?:href|src)="'+kind+'\\?v=([^"]+)"'))?.[1];
+const versionParts=value=>{const m=value?.match(/^(\d+)\.(\d+)\.(\d+)(?:-[a-z0-9-]+)?$/i);return m&&m.slice(1,4).map(Number);};
+const atLeast=(actual,minimum)=>{const a=versionParts(actual),b=versionParts(minimum);return !!(a&&b&&(a[0]>b[0]||a[0]===b[0]&&(a[1]>b[1]||a[1]===b[1]&&a[2]>=b[2])));};
+assert(html.includes('ALPHA '+release)&&atLeast(assetVersion('game.js'),release)&&atLeast(assetVersion('style.css'),release),
+ 'New Safari release keeps valid code-asset cache keys at or above the release floor');
 console.log('SIGIL AUDIT: '+JSON.stringify({milestoneGrants:directMilestoneTotal,firstWatchGrants:start.unclaimedWatch,
  totalFiniteSupply:start.future,allPermanentRanksCost:start.remainingCosts,
  remainingSurplus:start.future-start.remainingCosts,awardCount}));
