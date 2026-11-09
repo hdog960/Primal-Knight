@@ -3535,3 +3535,45 @@
     overflow-wrap:anywhere;
   }
 }
+
+/* Alpha 0.15.29 — short landscape iPhones: the tier and rest controls must
+   remain in a single reachable scroll path instead of clipping behind the
+   battlefield HUD. Preserve the normal desktop two-column layout. */
+@media (orientation:landscape) and (max-height:460px) and (max-width:950px) {
+  .tier-lobby:not([hidden]) {
+    display:block;
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  .tier-lobby .lobby-banner { height:auto; min-height:76px; max-height:none; }
+  .tier-lobby .lobby-content { display:block; height:auto; min-height:0; overflow:visible; }
+  .tier-lobby .lobby-tiers,
+  .tier-lobby .lobby-milestones {
+    display:block;
+    height:auto;
+    min-height:0;
+    overflow:visible;
+    border-right:0;
+  }
+  .tier-lobby .tier-grid,
+  .tier-lobby .milestone-scroll { max-height:none; overflow:visible; }
+  .tier-lobby .tier-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .tier-lobby .lobby-detail-head,
+  .tier-lobby .siege-guard-lobby { position:relative; height:auto; max-width:100%; }
+  .tier-lobby .siege-guard-buttons { flex-wrap:wrap; }
+  .tier-lobby .siege-guard-buttons button { min-height:44px; white-space:normal; }
+  .tier-lobby .lobby-footer {
+    position:sticky;
+    bottom:0;
+    z-index:8;
+    min-height:54px;
+    padding:7px max(10px,env(safe-area-inset-right)) 7px max(10px,env(safe-area-inset-left));
+    background:linear-gradient(#263645,#111b29);
+  }
+  .tier-lobby .lobby-footer button { min-height:44px; white-space:normal; }
+}
+@media (orientation:landscape) and (max-height:460px) and (max-width:540px) {
+  .tier-lobby .tier-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
