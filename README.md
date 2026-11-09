@@ -1,5 +1,8 @@
 # Primal KnIght – Onslaught
 
+**Accessibility update (2026-11-08; browser QA pending):** Added a keyboard/switch-accessible, focus-only “Skip to game menus” link before the battlefield; it targets the existing `#nav` menu and is hidden from touch-only play. Added a 44px-high, safe-area-aware visible focus treatment and refreshed the stylesheet cache URL. Source commits `bc30335979355507521a4d665b7e35d58d3b5d73` and `aa5ab437bd65b4f34310ddff3e850514d76f3174`. Re-fetched main source and verified anchor, destination, CSS selector and cache reference. **Not verified:** keyboard traversal in a real browser, screen-reader navigation, full automated gameplay suite, Pages publication or physical iPhone. No combat, save, reward or tier logic changed. Next: browser-check keyboard focus order and run full regression suite.
+
+
 **Mobile QA hotfix (2026-11-08, pending runtime verification):** The World Atlas boss-art selector previously reduced touch targets to 36px in short landscape viewports; the landscape rule now retains 44px targets with larger text. Updated the HTML stylesheet URL to refresh the changed CSS. Source commits: `e47ea4349cdbc293feea508f3d22d5c1140b432c` and `d9b7a92bf1ca93a797e681b6143ed1bedf722a72`. Static source inspection only; browser tap testing, full regression suite, GitHub Pages propagation and physical iPhone QA remain unverified. Next: inspect landscape Atlas layout on actual iPhone; confirm no overlapping boss buttons or clipped scroll, then run full source tests. No battle logic, tier gates, currency, or save data changed.
 
 ## In development — Alpha 0.15.27: Pioneer Sweep (Progression Balance slice 28)
