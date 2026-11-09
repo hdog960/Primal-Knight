@@ -39,3 +39,11 @@
 - `tests/atlas-keyboard-focus.js`: added focused production-inline-handler mock regression covering forward/backward wrapping, intermediate controls, outside focus, and closed dialog; correction commit `0bfd60113380858fee63d5890d4b8706cea4de67`.
 - Not yet verified: executing the new regression with repository files, full GitHub Actions quality workflow on latest head, Pages deployment on latest head, hardware keyboard/VoiceOver or physical iPhone testing. This is a menu-accessibility change, not a combat, economy, progression, artwork or save-format change. Visual approval remains pending.
 - Next: run the new regression and integrate it into required CI if not already auto-discovered; verify Pages and then resume First Watch gameplay roadmap work.
+
+
+## 2026-11-09 — Portrait Battle tier picker overlap repair (awaiting visual QA)
+- User-supplied iPhone screenshot showed the Tier IV illustrated vista, tier details and siege-rest preference controls overlapping, with the launch button below. Prior portrait CSS imposed a fixed 40% tier-section height and a flex-constrained milestone section while guard controls followed outside the scrolling area.
+- `style.css`: in portrait, the lobby is now the single vertically scrollable surface; tier and milestone sections use natural height, tier/milestone lists no longer clip into neighboring content, and guard controls plus the launch footer participate in normal flow. This deliberately retains the existing artwork and game logic.
+- `index.html`: refreshed the stylesheet cache key to `0.15.29-portrait-lobby` so installed iPhone Home Screen clients can receive the CSS.
+- Implementation commits: `94d77a6a53229a08d9318e28e183d1613c0b44d3` (CSS), `729cf86b0c3595aa48f0b637b265776304c636d9` (cache key).
+- QA required: browser screenshot at iPhone portrait widths with Tier IV selected, long guard labels and all rest options; check tier choice, scrolling, launch button and iOS safe areas. No physical iPhone test or visual acceptance claimed. Verify Actions and Pages on the final head. No save, reward, combat or progression changes.
