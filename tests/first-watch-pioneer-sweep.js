@@ -65,6 +65,9 @@ ap.siegeHistory=ah.normalizeSiegeHistory([
  {id:1,reason:'fallen',tier:1,startWave:1,lastWave:24,cleared:23,earned:{firstClears:0}},
  {id:2,reason:'fallen',tier:1,startWave:1,lastWave:24,cleared:23,earned:{firstClears:0}}
 ]);
+assert.equal(ah.veteranPioneerSweep().tier,2,
+ 'Guide suggests the other unlocked route instead of its already-selected territory');
+assert(ah.selectFrontierTier(2));
 assert.equal(ah.veteranPioneerSweep().tier,1,
  'Legacy unmeasured archive must not be treated as proven repeated zero-clear evidence');
 assert.equal(ah.veteranPioneerSweep().recordedZero,false);
