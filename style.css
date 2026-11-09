@@ -3360,3 +3360,8 @@
 .veteran-pioneer-sweep>button:focus-visible{outline:2px solid #fff0b9;outline-offset:2px}
 .veteran-pioneer-sweep>small{display:block;margin-top:9px;font:10px/1.6 Arial,sans-serif;color:#d5e1d4}
 @media(max-width:610px){.veteran-pioneer-sweep{padding:10px}.veteran-pioneer-top{flex-direction:column;align-items:flex-start}}
+
+/* Keyboard and switch-access navigation: bypass the large battlefield without obscuring touch play. */
+.skip-to-controls{position:fixed;z-index:100000;top:max(8px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));padding:12px 16px;min-height:44px;box-sizing:border-box;background:#172a35;color:#fff1c4;border:2px solid #ffe1a0;border-radius:6px;font:800 14px/20px Arial,sans-serif;transform:translateY(-180%);opacity:0;pointer-events:none}
+.skip-to-controls:focus-visible{transform:none;opacity:1;pointer-events:auto;outline:3px solid #fff;outline-offset:2px}
+#nav:focus-visible{outline:3px solid #ffe1a0;outline-offset:3px}
