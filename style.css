@@ -3460,3 +3460,55 @@
     gap:8px;
   }
 }
+
+/* Alpha 0.15.29 — iPhone portrait Battle lobby: isolate the illustrated preview
+   and give rest settings a predictable two-column touch layout. */
+@media (orientation:portrait) and (max-width:680px) {
+  .tier-lobby:not([hidden]) { box-sizing:border-box; }
+  .tier-lobby .lobby-content,
+  .tier-lobby .lobby-tiers,
+  .tier-lobby .lobby-milestones,
+  .tier-lobby .lobby-detail-head { box-sizing:border-box; width:100%; }
+  .tier-lobby .tier-vista-card {
+    box-sizing:border-box;
+    display:block;
+    position:relative;
+    flex:none;
+    height:clamp(118px,32vw,170px);
+    isolation:isolate;
+  }
+  .tier-lobby .tier-vista-card img {
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .tier-lobby .tier-vista-caption {
+    box-sizing:border-box;
+    max-width:100%;
+    overflow-wrap:break-word;
+  }
+  .tier-lobby .siege-guard-lobby {
+    box-sizing:border-box;
+    width:auto;
+    margin:12px 10px;
+    clear:both;
+  }
+  .tier-lobby .siege-guard-panel { box-sizing:border-box; width:100%; }
+  .tier-lobby .siege-guard-buttons {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:stretch;
+  }
+  .tier-lobby .siege-guard-buttons button {
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
+    margin:0;
+    padding:10px 6px;
+    min-height:48px;
+    font-size:clamp(11px,3vw,14px);
+  }
+  .tier-lobby .lobby-footer { box-sizing:border-box; width:100%; }
+}
