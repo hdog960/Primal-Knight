@@ -3360,3 +3360,13 @@
 .veteran-pioneer-sweep>button:focus-visible{outline:2px solid #fff0b9;outline-offset:2px}
 .veteran-pioneer-sweep>small{display:block;margin-top:9px;font:10px/1.6 Arial,sans-serif;color:#d5e1d4}
 @media(max-width:610px){.veteran-pioneer-sweep{padding:10px}.veteran-pioneer-top{flex-direction:column;align-items:flex-start}}
+
+/* Alpha 0.15.28 — source-grounded alternative Pioneer routes, iPhone-safe. */
+.veteran-pioneer-alternatives{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+.veteran-pioneer-alternatives button{min-width:0;min-height:62px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;text-align:left;background:linear-gradient(135deg,#475149,#314840);border:1px solid #b69e77;color:#eddfc4;padding:10px;cursor:pointer;touch-action:manipulation}
+.veteran-pioneer-alternatives button strong{font:800 12px/1.4 Georgia,serif;color:#ffe0ac}
+.veteran-pioneer-alternatives button span{font:11px/1.45 Arial,sans-serif;color:#dce4d7}
+.veteran-pioneer-alternatives button small{font:800 10px/1.4 Arial,sans-serif;color:#e8c997}
+.veteran-pioneer-alternatives button:disabled{opacity:.62;cursor:not-allowed}
+.veteran-pioneer-alternatives button:focus-visible{outline:2px solid #ffebb4;outline-offset:2px}
+@media(max-width:700px){.veteran-pioneer-alternatives{grid-template-columns:1fr}}

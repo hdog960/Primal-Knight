@@ -1,0 +1,13 @@
+# Alpha 0.15.28 — Pioneer Routebook
+
+## Evidence prompting this iteration
+Alpha 0.15.27 passed its complete original-engine 96-check suite. Twelve additional genuine seed-15423 Pioneer Sweep sorties from an original earned character gained 59 first-time wave victories: 506→565, with Chapter XII earned and Chapter XIII still 40 short of its existing 605-clear threshold; Tier XVII remains legitimately unlocked but Tier XVIII is not. The best individual backtracking sorties won 18+22 new clears, while several repeated choices were zero-yield. Outcomes reflect one deterministic character, not representative players.
+
+## Real gameplay addition
+Expand existing iPhone Battle-lobby Pioneer Sweep into a source-grounded **Pioneer Routebook**: keep the current highest-priority short replay route, plus two distinct, already-unlocked optional choices **Fresh Ground** (smallest already achieved personal record, excluding the primary and favoring unselected/unstalled) and **Recent Momentum** (highest actual first clears in the latest up to three archived sorties, excluding already offered choices; no modeled probability). Each shows its original actual tier record, next unclaimed wave, replay distance, and—where appropriate—actual first clears already earned. All use existing `data-veteran-pioneer` click handler and original save-protected `selectFrontierTier`, preserving scroll and exact save schema. Never auto-launch combat, award currencies, override tier gates, or promise victory.
+
+## Genuine career continuation
+From the same exact seed-15423 original earned, Wallguard-restored, 86-siege checkpoint, retain the previous 24 original-price Record Stretch and 12 full Pioneer Sweep sorties. Continue for 12 additional actual original-engine battles (sieges 123–134) rotating through the three genuinely eligible Routebook choices. Check actual paid ranks, best-by-tier first clears, real battle time, finite Sigils, saved character and immutable Tier XVII wave-100→XVIII milestone. Report whether Chapter XIII or XIV actually unlock after BOTH original time and unique-wave gates; do not inject progress.
+
+## Release criteria
+New 97th required regression covers 3 distinct route suggestions, saved historical data, locked-tier isolation, never fewer or extra fake routes, responsive 62px touch targets, true original guarded selection and old save protection. Preserve all prior 96 check scripts. Merge after clean final PR QA, independently green merged-main QA and matching GitHub Pages deployment. The complete 16-chapter Watch, 30×10,000 waves, target 1,250h and user iPhone inspection remain unverified and open.

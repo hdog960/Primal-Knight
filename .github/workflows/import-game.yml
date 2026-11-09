@@ -135,3 +135,4 @@ jobs:
           node tests/first-watch-record-yield.js
           node tests/first-watch-route-compass.js
           node tests/first-watch-pioneer-sweep.js
+          node tests/first-watch-pioneer-routebook.js

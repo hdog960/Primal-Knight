@@ -778,6 +778,49 @@ for(const [seed,baseline] of frontierContinuationSaves){
    earned,uniqueClears:p.uniqueClears,watch:p.firstWatchClaimed.length});
  }
  assert.equal(pioneerSessions.length,12);
+ // 0.15.28: explore complementary real Pioneer route choices after 122
+ // fully earned original-engine sieges, with no fabricated milestone.
+ const beforeRoutebook=p.uniqueClears,routebookSessions=[];
+ for(let n=123;n<=134;n++){
+  spendSkills(h);
+  const purchase=spendUnderSharedCumulativeCap(h,'mixed',paid,n);
+  paid+=purchase.spent;spentAfter86+=purchase.spent;
+  const alternatives=h.veteranPioneerRoutes();
+  assert(alternatives.length>=1&&alternatives.length<=3,
+   'Only actual earned route options may be suggested');
+  assert(new Set(alternatives.map(x=>x.tier)).size===alternatives.length,
+   'Pioneer choices must be distinct, not duplicate the primary tier');
+  const choice=alternatives[(n-123)%alternatives.length];
+  assert(choice.tier<=p.unlockedTier&&choice.nextWave===choice.best+1);
+  assert(h.selectFrontierTier(choice.tier));
+  const prior=p.uniqueClears,active=p.battleSeconds;
+  siege(h,95);
+  const report=h.siegeReport(),earned=p.uniqueClears-prior;
+  assert.equal(report.tier,choice.tier);
+  assert(earned>=0&&earned<=report.cleared&&p.battleSeconds>active,
+   'Only actual engine-completed waves and active siege time count');
+  assert.equal(p.uniqueClears,trueBestSum(p));
+  assert.equal(p.sigils,h.sigilLedgerSummary().claimed+h.sigilLedgerSummary().earnedWatch);
+  if(p.firstWatchClaimed.includes(12))
+   assert(p.uniqueClears>=605&&p.battleSeconds>=403*60,
+    'Chapter XIII requires both unchanged real original Watch gates');
+  if(p.firstWatchClaimed.includes(13))
+   assert(p.uniqueClears>=747&&p.battleSeconds>=498*60,
+    'Chapter XIV likewise requires the real 498 minute and 747 clear gates');
+  if(p.unlockedTier>=18)
+   assert(p.milestones['17:100']&&p.bestByTier[17]>=100,
+    'Tier XVIII requires an actual Tier XVII wave-100 victory');
+  routebookSessions.push({n,kind:choice.kind,tier:choice.tier,
+   previouslyCleared:choice.replayWaves,earned,uniqueClears:p.uniqueClears,
+   chapters:p.firstWatchClaimed.length});
+ }
+ assert.equal(routebookSessions.length,12);
+ console.log('ALPHA 0.15.28 EARNED PIONEER ROUTEBOOK '+JSON.stringify({
+  seed,realEngineSieges:12,startingUniqueClears:beforeRoutebook,
+  endingUniqueClears:p.uniqueClears,newFirstClears:p.uniqueClears-beforeRoutebook,
+  chapterXIIIClaimed:p.firstWatchClaimed.includes(12),
+  chaptersClaimed:p.firstWatchClaimed.length,unlockedTier:p.unlockedTier,
+  paidAfter86:spentAfter86,routebookSessions}));
  const pioneerGain=p.uniqueClears-beforePioneer;
  console.log('ALPHA 0.15.27 EARNED PIONEER SWEEP '+JSON.stringify({
   seed,startUniqueClears:beforePioneer,endUniqueClears:p.uniqueClears,

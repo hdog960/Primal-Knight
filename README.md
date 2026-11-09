@@ -1,6 +1,10 @@
 # Primal KnIght – Onslaught
 
-## In development — Alpha 0.15.27: Pioneer Sweep (Progression Balance slice 28)
+## In development — Alpha 0.15.28: Pioneer Routebook (Progression Balance slice 29)
+
+**New in 0.15.28, pending QA:** Pioneer Sweep now offers distinct voluntary **SHORT REPLAY**, **FRESH GROUND**, and **RECENT MOMENTUM** route choices drawn strictly from already unlocked territories and actually earned waystones. Fresh Ground exposes the smallest personal record, while Momentum uses true first-clear yields in the existing bounded archive. None predicts winning chances, changes character save schema or starts a battle. The 97th mandatory test verifies unique options and original saved selection. From the genuinely earned seed-15423 character at 565 novel clears, the full source-engine QA adds 12 additional paid Routebook sieges in pursuit of Chapter XIII's unchanged 605-clear/403-minute requirements. See `docs/ALPHA_01528_PIONEER_ROUTEBOOK.md`.
+
+## Previously completed — Alpha 0.15.27: Pioneer Sweep (Progression Balance slice 28)
 
 **New in 0.15.27, pending QA:** one-tap, save-protected Pioneer Sweep in Veteran Watch suggests an actual already-unlocked tier with a short earned-waystone route toward its next first clear, while deprioritizing tiers with two recent genuinely *measured* zero-first-clear sorties if an alternative exists. It explains why this is evidence, not a victory probability; never changes battle formulas, rewards, milestone gates or saves. The 96th regression tests genuine UI wiring, locked/legacy record guards, and no fabricated progress. The original source-engine seed-15423 backtracking career adds **12 further genuine paid sieges** after the existing 24, reporting real Chapter XIII progress only if 605 first clears plus 403 active minutes are earned. See `docs/ALPHA_01527_PIONEER_SWEEP.md`.
 
