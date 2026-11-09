@@ -47,3 +47,10 @@
 - `index.html`: refreshed the stylesheet cache key to `0.15.29-portrait-lobby` so installed iPhone Home Screen clients can receive the CSS.
 - Implementation commits: `94d77a6a53229a08d9318e28e183d1613c0b44d3` (CSS), `729cf86b0c3595aa48f0b637b265776304c636d9` (cache key).
 - QA required: browser screenshot at iPhone portrait widths with Tier IV selected, long guard labels and all rest options; check tier choice, scrolling, launch button and iOS safe areas. No physical iPhone test or visual acceptance claimed. Verify Actions and Pages on the final head. No save, reward, combat or progression changes.
+
+## 2026-11-09 — Portrait siege guard containment follow-up
+- Main before this slice: `d9de9618f4d706069eaf8cef53a7331b630391bc`; release banner still Alpha 0.15.27. User's iPhone capture showed overlapping Tier IV preview, milestone and rest settings.
+- `style.css`: added narrow portrait containment for tier/guard regions, bounded territory preview, wrapped long rest-option labels, and a 44px minimum rest-button touch target. Retains the earlier single-scroll lobby repair. Implementation `6388ba10597e13e1cac0ca9ad8070c3821cf795a`.
+- `index.html`: changed stylesheet key to `0.15.29-portrait-guard` for installed Home Screen refresh. Commit `00a5be20b2e9f3b7692d03a5ae5ed3f71a7be5d1`.
+- **Verification pending:** full Node regression suite, GitHub Actions and Pages status on latest SHA, actual iPhone portrait screenshot/scroll and rest-button interactions. Source edits are not visual acceptance. No changes to battle, currency, save format, tiers or earned rewards.
+- Next: inspect latest CI/Pages, then visually check Tier IV at 320–430px widths and correct remaining layout issues before considering this screenshot defect closed.
