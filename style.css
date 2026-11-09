@@ -2613,7 +2613,7 @@
 @media(orientation:landscape) and (max-height:460px){
  .atlas-boss-section{padding:4px 6px;gap:2px}
  .atlas-boss-title,.atlas-boss-status{font-size:8px}
- .atlas-boss-controls button{min-height:36px;padding:5px;font-size:8px}
+ .atlas-boss-controls button{min-height:44px;padding:7px 5px;font-size:9px}
 }
 
 /* Alpha 0.12.18 — full-resolution artwork export without another modal. */
