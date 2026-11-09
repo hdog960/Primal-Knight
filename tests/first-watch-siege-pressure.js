@@ -778,6 +778,7 @@ for(const [seed,baseline] of frontierContinuationSaves){
    earned,uniqueClears:p.uniqueClears,watch:p.firstWatchClaimed.length});
  }
  assert.equal(pioneerSessions.length,12);
+ const pioneerGain=p.uniqueClears-beforePioneer; // the original twelve-siege result only
  // 0.15.28: explore complementary real Pioneer route choices after 122
  // fully earned original-engine sieges, with no fabricated milestone.
  const beforeRoutebook=p.uniqueClears,routebookSessions=[];
@@ -821,7 +822,6 @@ for(const [seed,baseline] of frontierContinuationSaves){
   chapterXIIIClaimed:p.firstWatchClaimed.includes(12),
   chaptersClaimed:p.firstWatchClaimed.length,unlockedTier:p.unlockedTier,
   paidAfter86:spentAfter86,routebookSessions}));
- const pioneerGain=p.uniqueClears-beforePioneer;
  console.log('ALPHA 0.15.27 EARNED PIONEER SWEEP '+JSON.stringify({
   seed,startUniqueClears:beforePioneer,endUniqueClears:p.uniqueClears,
   trulyNewFirstClears:pioneerGain,realSieges:12,chapterXIIIClaimed:p.firstWatchClaimed.includes(12),
