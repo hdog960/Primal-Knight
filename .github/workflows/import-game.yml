@@ -70,6 +70,7 @@ jobs:
           node tests/territory-relics.js
           node tests/territory-heraldry.js
           node tests/world-atlas.js
+          node tests/atlas-keyboard-focus.js
           node tests/atlas-art-compare.js
           node tests/three-banner-cohesion.js
           node tests/adaptive-mobile-render.js
