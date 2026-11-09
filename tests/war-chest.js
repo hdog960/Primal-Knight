@@ -68,6 +68,10 @@ const current=h.sigilLedgerSummary();
 assert.equal(current.eventualCapacity,initialSigilCapacity-(5-p.sigils),'No repeat-claim increases total budget');
 assert(css.includes('.war-chest-offer button')&&css.includes('min-height:44px')&&css.includes('max-width:750px'),
  'Large iPhone portrait tap controls and compact narrow layout exist');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'),
- 'Release banner and cache-busting assets use current version');
+const release='0.15.27';
+const assetVersion=kind=>html.match(new RegExp('(?:href|src)="'+kind+'\\?v=([^"]+)"'))?.[1];
+const versionParts=value=>{const m=value?.match(/^(\d+)\.(\d+)\.(\d+)(?:-[a-z0-9-]+)?$/i);return m&&m.slice(1,4).map(Number);};
+const atLeast=(actual,minimum)=>{const a=versionParts(actual),b=versionParts(minimum);return !!(a&&b&&(a[0]>b[0]||a[0]===b[0]&&(a[1]>b[1]||a[1]===b[1]&&a[2]>=b[2])));};
+assert(html.includes('ALPHA '+release)&&atLeast(assetVersion('game.js'),release)&&atLeast(assetVersion('style.css'),release),
+ 'Release banner and code-asset cache keys must meet the release floor');
 console.log('PASS: one-tap genuine Battle Sigil purchases, actual unlocks/caps/prices, zero duplication, original saves, first-view UI, scroll and touch sizes.');
