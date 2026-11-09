@@ -1,4 +1,4 @@
-// Alpha 0.15.27 source shell; Alpha 0.15.27 original-engine Pioneer Sweep guard.
+// Alpha 0.15.28 source shell; Alpha 0.15.28 original-engine Pioneer Sweep guard.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -23,7 +23,7 @@ function world(seed0=1527,source=null){
  assert(box.window.__PK_TEST_TOOLS__);
  return {h:box.window.__PK_TEST_TOOLS__,el,store};
 }
-assert(html.includes('ALPHA 0.15.27')&&css.includes('.veteran-pioneer-sweep>button{'));
+assert(html.includes('ALPHA 0.15.28')&&css.includes('.veteran-pioneer-sweep>button{'));
 assert(css.includes('min-height:48px'));
 const w=world(),h=w.h,p=h.p();
 assert.equal(h.veteranPioneerSweep(),null,'Novice without qualifying Watch cannot see late-game guide');
@@ -75,5 +75,5 @@ assert.equal(ah.veteranPioneerSweep().measuredAttempts,0);
 assert(!Object.hasOwn(p,'pioneerSweep'),'No new player schema field');
 p.firstWatchClaimed=Array.from({length:16},(_,i)=>i);
 assert.equal(h.veteranPioneerSweep(),null,'Once actual Watch is fully awarded, hide the guide');
-console.log('PASS Alpha 0.15.27: real selected unlocked territory, original save integrity, measured stalled-run evidence, legacy unknowns, mobile touch/scroll, 403m/605-clear guide, no free rewards or hidden progress');
+console.log('PASS Alpha 0.15.28: real selected unlocked territory, original save integrity, measured stalled-run evidence, legacy unknowns, mobile touch/scroll, 403m/605-clear guide, no free rewards or hidden progress');
 console.log('LIMIT: True Chapter XIII award only verified by original engine in extended earned long-career regression.');

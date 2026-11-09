@@ -32,7 +32,7 @@ const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),run=h.run();
 assert(html.includes('id="deviceCheckToggle"')&&html.includes('id="deviceCheckPanel"'));
 assert(html.includes('id="deviceCheckCopy"')&&html.includes('aria-pressed="false"'));
 assert(css.includes('.device-check-panel[hidden]')&&css.includes('min-height:44px'));
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.28')&&html.includes('game.js?v=0.15.28')&&html.includes('style.css?v=0.15.28'));
 const before=JSON.stringify(p),savedBefore=JSON.stringify(storage);
 assert.equal(el('deviceCheckPanel').hidden,true);
 assert.equal(h.toggleDeviceCheck(),true);

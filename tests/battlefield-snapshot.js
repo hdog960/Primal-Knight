@@ -1,4 +1,4 @@
-// Alpha 0.15.27 — one-tap iPhone PNG share, fallback, privacy and save safety.
+// Alpha 0.15.28 — one-tap iPhone PNG share, fallback, privacy and save safety.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const src=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),
@@ -38,7 +38,7 @@ function make(kind='download'){
   shots:()=>screenshots,draws:()=>paints,canvas:el('game')};
 }
 async function test(){
- assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+ assert(html.includes('ALPHA 0.15.28')&&html.includes('game.js?v=0.15.28')&&html.includes('style.css?v=0.15.28'));
  assert(html.includes('id="deviceCheckFrame"')&&html.includes('Share a PNG snapshot of the painted battlefield without HUD overlays'));
  assert(css.includes('.device-check-frame')&&css.includes('min-height:44px'));
  const a=make('download'),p=a.h.p(),r=a.h.run();

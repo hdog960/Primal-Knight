@@ -1,4 +1,4 @@
-// Alpha 0.15.27 — battle plans use only earned existing abilities and real paid combat.
+// Alpha 0.15.28 — battle plans use only earned existing abilities and real paid combat.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0=1520,source){
  assert(box.window.__PK_TEST_TOOLS__,'Original game QA hooks remain available');
  return {h:box.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.27')&&html.includes('style.css?v=0.15.27')&&html.includes('game.js?v=0.15.27'),
+assert(html.includes('ALPHA 0.15.28')&&html.includes('style.css?v=0.15.28')&&html.includes('game.js?v=0.15.28'),
  'Live shell must reference the current version');
 assert(css.includes('.siege-plans-grid')&&css.includes('min-height:48px')&&css.includes('@media(max-width:820px){.siege-plans-grid{grid-template-columns:1fr}'));
 const instance=world(),h=instance.h,p=h.p(),r=h.run();
@@ -124,5 +124,5 @@ for(const seed of [15411,15423]){
   earnedLevel:ch.level,sieges:ch.siegeHistory.length,finalPlan:'tempest'});
 }
 assert.equal(results.length,2);
-console.log('ALPHA 0.15.27 TRUE PAID BATTLE PLAN CAREERS '+JSON.stringify(results));
-console.log('PASS Alpha 0.15.27: three coherent opt-in battle plans, original level locks and partial-failure protection, real paid original-game combat progression, real unlocked Guardian and Storm play, save/device preference reload, bounded siege archive, original target-cap integrity, responsive iPhone controls, no new character data or invented reward');
+console.log('ALPHA 0.15.28 TRUE PAID BATTLE PLAN CAREERS '+JSON.stringify(results));
+console.log('PASS Alpha 0.15.28: three coherent opt-in battle plans, original level locks and partial-failure protection, real paid original-game combat progression, real unlocked Guardian and Storm play, save/device preference reload, bounded siege archive, original target-cap integrity, responsive iPhone controls, no new character data or invented reward');
