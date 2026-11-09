@@ -24,4 +24,8 @@ for (const asset of ['game.js', 'style.css']) {
   assert(!assetVersionAtLeast(stale + good, asset, '0.15.27'), 'reject earlier stale duplicate ' + asset);
   assert(assetVersionAtLeast(good + good, asset, '0.15.27'), 'allow valid duplicate ' + asset);
 }
+// Battle territory selection must remain navigable without a pointer.
+assert(/id="tierGrid"[^>]*role="group"[^>]*aria-label="Choose an unlocked territory tier"/.test(html), 'tier picker has a named accessible group');
+assert(/id="tierHeading"[^>]*aria-live="polite"[^>]*aria-atomic="true"/.test(html), 'tier changes are announced once');
+assert(/id="milestoneList"[^>]*role="region"[^>]*aria-label="Selected territory milestone rewards"[^>]*tabindex="0"/.test(html), 'milestone list can be focused and scrolled by keyboard');
 console.log('PASS: shared Home Screen asset-version floor, newer suffixes, invalid/stale cache keys');
