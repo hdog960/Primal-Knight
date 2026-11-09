@@ -20,3 +20,9 @@
 - Updated the Doctrine Tactics test to check valid release-floor cache keys, matching the War Chest test's version parser. Initial edit `7fa20d0556ba757785aede16196cb3214195fea0` had an over-escaped query separator; corrected immediately in `429c5d12766f482cf3780c506c3356a1111b6a27` by copying the existing War Chest parser verbatim.
 - This is a test-only change; game.js, index.html, style.css, saves and gameplay remain unchanged. At inspection, new Actions quality and Pages runs were queued/pending, NOT verified successful. Physical iPhone QA remains outstanding.
 - Next: inspect the completed quality workflow log for the next specific failing test, fix it without weakening behavioral assertions, and confirm latest Pages deployment. Resume meaningful gameplay work once the CI gate is green.
+
+## 2026-11-09 — Doctrine tactics parser follow-up
+- Latest quality run `42584497838` failed at `tests/doctrine-tactics.js:103`, despite the prior patch: its `versionParts` regex accidentally used doubled backslashes inside a regex literal (`\\d`, `\\.`), matching literal escapes rather than numeric versions. This made valid current cache keys fail the release-floor assertion.
+- Corrected the numeric regex literal to use `\d` and `\.` while preserving the release-floor and negative validation. Implementation commit `5752bfa4772fc521f0ecd5805c831bde64181b73`.
+- Independently checked the actual current `index.html` values (`style.css?v=0.15.29-focus-skip`, `game.js?v=0.15.27`) against the corrected parser and verified stale/malformed keys are rejected. This is a focused static/parser check, **not** the complete GitHub Actions suite or physical iPhone testing.
+- Prior Pages workflow `42584497126` succeeded for `916265e`; latest commit deployment and full CI must be checked. No gameplay, economy, art, save or tier changes. Next: inspect latest CI job logs; if green, resume the locked gameplay roadmap.
