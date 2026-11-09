@@ -1,4 +1,4 @@
-// Alpha 0.15.26 — real Scout Routebook mission launches from existing earned waystones.
+// Alpha 0.15.27 — real Scout Routebook mission launches from existing earned waystones.
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -19,7 +19,7 @@ const sandbox={Math,Date,Blob,Image,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test';},revokeObjectURL(){}}};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.26')&&html.includes('game.js?v=0.15.26')&&html.includes('style.css?v=0.15.26'));
+assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
 assert(css.includes('.scout-routebook')&&css.includes('.scout-route-option'));
 assert(css.includes('touch-action:manipulation'));
 assert.deepEqual(Array.from(h.scoutRouteOptions(1).map(x=>x.wave)),[47,117,147,347,747,1001]);
