@@ -14,5 +14,10 @@ for (const asset of ['game.js', 'style.css']) {
   assert(assetVersionAtLeast('<script ' + tag + '="' + asset + '?v=0.15.29-focus-skip">', asset, '0.15.27'));
   assert(assetVersionAtLeast('<script ' + tag + '="' + asset + '?v=0.15.27">', asset, '0.15.27'));
   assert(!assetVersionAtLeast('<script ' + tag + '="' + asset + '">', asset, '0.15.27'));
+  const good = '<script ' + tag + '="' + asset + '?v=0.15.29-focus-skip">';
+  const stale = '<script ' + tag + '="' + asset + '?v=0.15.26">';
+  assert(!assetVersionAtLeast(good + stale, asset, '0.15.27'), 'reject later stale duplicate ' + asset);
+  assert(!assetVersionAtLeast(stale + good, asset, '0.15.27'), 'reject earlier stale duplicate ' + asset);
+  assert(assetVersionAtLeast(good + good, asset, '0.15.27'), 'allow valid duplicate ' + asset);
 }
 console.log('PASS: shared Home Screen asset-version floor, newer suffixes, invalid/stale cache keys');
