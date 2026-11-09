@@ -1,6 +1,10 @@
 # Primal KnIght – Onslaught
 
-## In development — Alpha 0.15.26: Veteran Watch Route Compass (Progression Balance slice 27)
+## In development — Alpha 0.15.27: Pioneer Sweep (Progression Balance slice 28)
+
+**New in 0.15.27, pending QA:** one-tap, save-protected Pioneer Sweep in Veteran Watch suggests an actual already-unlocked tier with a short earned-waystone route toward its next first clear, while deprioritizing tiers with two recent genuinely *measured* zero-first-clear sorties if an alternative exists. It explains why this is evidence, not a victory probability; never changes battle formulas, rewards, milestone gates or saves. The 96th regression tests genuine UI wiring, locked/legacy record guards, and no fabricated progress. The original source-engine seed-15423 backtracking career adds **12 further genuine paid sieges** after the existing 24, reporting real Chapter XIII progress only if 605 first clears plus 403 active minutes are earned. See `docs/ALPHA_01527_PIONEER_SWEEP.md`.
+
+## Previously completed — Alpha 0.15.26: Veteran Watch Route Compass (Progression Balance slice 27)
 
 **New in 0.15.26, pending QA:** use two 48px+ touch-friendly in-game Veteran Watch controls to choose between the original **shortest earned-waystone replay distance** and **most actual recent archived first clears** to rank previously unlocked incomplete territory routes. The latter uses already recorded three-sortie outcomes, not a forecasted win rate, and explicitly warns about archive limits. All gates, upgrades, rewards, economy, saved character schema and past choices remain unchanged. The 95th required regression tests these modes; the real original-price seed-15423 alternate-progression test now advances from 16 to 24 genuinely fought backtracking sieges after 86 earlier legitimate fights. No Chapter XII/XIII success is assumed. See `docs/ALPHA_01526_ROUTE_COMPASS.md`.
 

@@ -1,4 +1,4 @@
-// Alpha 0.15.26 — real per-wave pre-heal siege diagnostics, bounded history, no progression grants.
+// Alpha 0.15.27 — real per-wave pre-heal siege diagnostics, bounded history, no progression grants.
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -26,7 +26,7 @@ function world(seed0=1519,source){
  assert(box.window.__PK_TEST_TOOLS__,'Original test instrumentation must remain enabled');
  return {h:box.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.26')&&html.includes('game.js?v=0.15.26')&&html.includes('style.css?v=0.15.26'),'Versioned iPhone assets');
+assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'),'Versioned iPhone assets');
 assert(css.includes('.wave-pressure-ledger')&&css.includes('@media(max-width:760px){.wave-pressure-grid{grid-template-columns:1fr}}'));
 const empty=world(151901);
 assert.equal(empty.h.wavePressureLedger(1),null,'No invented evidence before actual wave');
@@ -126,5 +126,5 @@ assert.equal(rc.wavePressureSamples[0].outcome,'retreated');
 assert.equal(hc.p().siegeHistory[0].wavePressureSamples[0].outcome,'retreated');
 assert.equal(rc.wavePressureStart,null);
 assert.equal(hc.captureWavePressure('retreated'),false,'No duplicate unfinished wave');
-console.log('ALPHA 0.15.26 ACTUAL WAVE RECORDS '+JSON.stringify(records));
-console.log('PASS Alpha 0.15.26: authentic earned before-heal individual wave accounting, original paid Training, bounded 6-wave archive, strict legacy and invalid-input handling, real save/reload, single unfinished-wave capture, responsive player-visible wave review, unchanged first-clear and Sigil constraints');
+console.log('ALPHA 0.15.27 ACTUAL WAVE RECORDS '+JSON.stringify(records));
+console.log('PASS Alpha 0.15.27: authentic earned before-heal individual wave accounting, original paid Training, bounded 6-wave archive, strict legacy and invalid-input handling, real save/reload, single unfinished-wave capture, responsive player-visible wave review, unchanged first-clear and Sigil constraints');

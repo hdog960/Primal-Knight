@@ -3345,3 +3345,18 @@
 .veteran-route-compass button:focus-visible{outline:2px solid #f1d7a2;outline-offset:2px}
 .veteran-route-compass-note{display:block;font:800 10px/1.55 Arial,sans-serif;color:#dbd3af;margin-bottom:10px}
 @media(max-width:610px){.veteran-route-compass{grid-template-columns:1fr}.veteran-route-compass button{min-height:48px}}
+
+/* Alpha 0.15.27 — readable, accessible Pioneer Sweep route control. */
+.veteran-pioneer-sweep{margin:12px 0;border:1px solid #bca176;background:linear-gradient(145deg,#324b40,#313a46);padding:12px;color:#e9e2c9}
+.veteran-pioneer-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;align-items:center}
+.veteran-pioneer-top strong{font:800 13px/1.45 Georgia,serif;color:#ffe2ab}
+.veteran-pioneer-top small{font:800 10px/1.4 Arial,sans-serif;color:#e9d4a9}
+.veteran-pioneer-sweep p{font:11px/1.6 Arial,sans-serif;margin:9px 0;color:#e6e3d7}
+.veteran-pioneer-goal{display:flex;flex-direction:column;gap:4px;padding:10px 0;border-top:1px solid #a3ba9655}
+.veteran-pioneer-goal strong{font:800 12px/1.45 Georgia,serif;color:#ffe5ba}
+.veteran-pioneer-goal span{font:10px/1.6 Arial,sans-serif;color:#e7dfd2}
+.veteran-pioneer-sweep>button{display:block;min-height:48px;width:100%;background:linear-gradient(120deg,#806840,#4a6652);border:1px solid #d6bf90;color:#fff1c4;padding:11px;font:800 12px/1.45 Arial,sans-serif;cursor:pointer;touch-action:manipulation}
+.veteran-pioneer-sweep>button:disabled{opacity:.65;cursor:not-allowed}
+.veteran-pioneer-sweep>button:focus-visible{outline:2px solid #fff0b9;outline-offset:2px}
+.veteran-pioneer-sweep>small{display:block;margin-top:9px;font:10px/1.6 Arial,sans-serif;color:#d5e1d4}
+@media(max-width:610px){.veteran-pioneer-sweep{padding:10px}.veteran-pioneer-top{flex-direction:column;align-items:flex-start}}
