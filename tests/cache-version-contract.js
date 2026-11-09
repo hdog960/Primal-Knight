@@ -28,4 +28,9 @@ for (const asset of ['game.js', 'style.css']) {
 assert(/id="tierGrid"[^>]*role="group"[^>]*aria-label="Choose an unlocked territory tier"/.test(html), 'tier picker has a named accessible group');
 assert(/id="tierHeading"[^>]*aria-live="polite"[^>]*aria-atomic="true"/.test(html), 'tier changes are announced once');
 assert(/id="milestoneList"[^>]*role="region"[^>]*aria-label="Selected territory milestone rewards"[^>]*tabindex="0"/.test(html), 'milestone list can be focused and scrolled by keyboard');
+// A long 30-tier list must offer a direct path to the selected territory details.
+assert(/id="jumpToTierDetails"[^>]*aria-controls="tierHeading"/.test(html), 'Battle provides a direct details jump');
+assert(/id="tierHeading"[^>]*tabindex="-1"/.test(html), 'selected territory heading accepts programmatic focus');
+assert(/getElementById\('jumpToTierDetails'\)\?\.addEventListener\('click'/.test(html), 'jump button has a click handler');
+assert(/heading\.focus\(\{preventScroll:true\}\)/.test(html) && /heading\.scrollIntoView\(\{block:'start'/.test(html), 'jump focuses and reveals the selected territory');
 console.log('PASS: shared Home Screen asset-version floor, newer suffixes, invalid/stale cache keys');
