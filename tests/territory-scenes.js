@@ -94,7 +94,12 @@ assert.equal(JSON.stringify({inventory:p.inventory,runes:p.runes,essence:p.essen
  gold:JSON.parse(original).gold,sigils:JSON.parse(original).sigils
 }),'Changing background scenery never edits existing resources or equipment');
 assert(!Object.keys(w.store).some(key=>key.includes('terrain')),'Territory art creates no new persistent save keys');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'),'iPhone Safari Home Screen cache keys are updated');
+const release='0.15.27';
+const assetVersion=kind=>html.match(new RegExp('(?:href|src)="'+kind+'\\?v=([^"]+)"'))?.[1];
+const versionParts=value=>{const m=value?.match(/^(\d+)\.(\d+)\.(\d+)(?:-[a-z0-9-]+)?$/i);return m&&m.slice(1,4).map(Number);};
+const atLeast=(actual,minimum)=>{const a=versionParts(actual),b=versionParts(minimum);return !!(a&&b&&(a[0]>b[0]||a[0]===b[0]&&(a[1]>b[1]||a[1]===b[1]&&a[2]>=b[2])));};
+assert(html.includes('ALPHA '+release)&&atLeast(assetVersion('game.js'),release)&&atLeast(assetVersion('style.css'),release),
+ 'iPhone Safari Home Screen cache keys must meet the release floor');
 console.log('PASS: 30 unique landscape compositions, 13 regional palettes, original Tier I retained, textured perspective causeway, one terrain plus one banner decode per selected tier, genuine canvas depth order and no economy mutations.');
 console.log('ART SIZES: min '+Math.min(...sizes)+' max '+Math.max(...sizes)+' avg '+Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length)+' encoded chars per SVG.');
 console.log('LIMIT: generated painterly pixel mattes require human visual review on actual Safari iPhones; no physical thermal test performed.');
