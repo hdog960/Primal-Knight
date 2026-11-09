@@ -34,3 +34,10 @@
 - Pause/speed/panel state interactions need device QA; action tab panels pause combat.
 - Stage numbering changes after 10 waves but biome/boss encounters are not distinct stage locations yet.
 - No offline idle progression (intentional for Alpha 0.1).
+
+## 2026-11-09 — Doctrine telemetry CI follow-up
+
+- Quality workflow `42591312123` failed at `tests/doctrine-telemetry.js:67`, which still demanded the old exact `style.css?v=0.15.27` although `index.html` correctly uses `0.15.29-focus-skip`.
+- Reused the already existing War Chest release-floor parser in the Doctrine Telemetry regression. Implementation commit `61f7dcda88961e9b8572c508589a61127b453df9`.
+- Checked the parser against the current HTML: accepts `game.js?v=0.15.27` and `style.css?v=0.15.29-focus-skip`; rejects `style.css?v=0.15.26`. The full Actions suite and latest Pages publication still require verification. No game, save, art, progression or balance logic changed.
+- Next: inspect the newest completed quality-check logs; fix the next failing assertion if any, then perform actual browser/mobile QA and resume roadmap gameplay work.
