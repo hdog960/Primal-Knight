@@ -74,3 +74,9 @@
 - Re-fetched both changed files and passed focused source assertions for the landscape breakpoint, scrolling, sticky action, portrait rules, cache key and unchanged gameplay asset. These are static checks, **not** visual browser or hardware QA.
 - No combat, tier unlocks, currency, saves, equipment or earned progression modified. Creator visual acceptance remains pending.
 - Next: verify Actions and Pages for the latest head, capture short-landscape and portrait Battle screenshots, confirm tier/rest/launch interactions, then resume substantive First Watch progression work.
+
+## 2026-11-09 — Battle lobby sticky-footer focus clearance
+- Starting main: `8072b080ada05eaa25a7ada48c3cc7585a0f13c3`. Following the portrait and short-landscape lobby fixes, keyboard/switch focus and scroll-to-control behavior could still put the last tier/rest option behind the sticky launch footer.
+- `style.css`: scoped scroll padding on the visible Battle lobby and scroll margins on tier, siege-rest and milestone buttons to the existing portrait (<=680px) and short-landscape (<=460px high, <=950px wide) breakpoints. This does not alter tier eligibility, earned rewards, saves or battle rules. Commit `13078dae001a62f32cbfce506f6991fb98d7c519`.
+- `index.html`: advanced only the CSS cache key to `0.15.29-focus-clearance` for installed iPhone refresh; gameplay script and release banner unchanged. Commit `e1decd88ed2000d3e004bc1297c5b7143634a9b0`.
+- Verification pending: GitHub Actions and Pages for final head, real keyboard focus scrolling, portrait and short-landscape browser captures, and physical iPhone QA. No creator visual approval claimed. Next: confirm CI/deployment, validate actual focus clearance in browser, then prioritize First Watch progression gameplay over further cosmetic-only adjustments.
