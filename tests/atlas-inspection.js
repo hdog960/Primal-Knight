@@ -1,5 +1,6 @@
 // Alpha 0.12.10 — preserve portrait-safe button zoom, swipe and modal keyboard focus.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8');
 const html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -83,5 +84,5 @@ assert.equal(h.atlasPointerDown({pointerId:3,clientX:220,clientY:90}),false);
 assert.equal(el('atlasArtwork').style.transform,'none');
 assert.equal(JSON.stringify({tier:p.unlockedTier,selected:p.selectedTier,gold:p.gold,essence:p.essence,sigils:p.sigils,inventory:p.inventory}),previous,
  'Swipe, pan and zoom are art inspection only: no new tier, money or equipment changes');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 console.log('PASS: single-wrapper 1.8x zoom, pan clamp, swipe without scrolling false positives, unchanged decoded art, reset on navigation/close, keyboard focus trap and zero progression changes.');

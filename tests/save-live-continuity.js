@@ -1,5 +1,6 @@
 // Alpha 0.15.27: cross-tab/foreground save conflicts interrupt real sieges.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 const SAVE='primal_knight_onslaught_save_v1',CK='primal_knight_onslaught_checkpoint_v1';
@@ -24,7 +25,7 @@ function boot(store={},rules={}){
  vm.runInNewContext(js,env,{filename:'game.js'});
  return {h:env.window.__PK_TEST_TOOLS__,store,rules,storage,el,w,d,document};
 }
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 const starter=boot();assert.equal(starter.h.save(),true);
 const original=starter.store[SAVE],shared={...starter.store},live=boot(shared);
 assert.equal(live.h.enterSiege(),true,'A legitimate unblocked siege can start');

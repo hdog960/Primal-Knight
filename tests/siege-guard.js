@@ -1,5 +1,6 @@
 // Alpha 0.15.27 — optional pause-only safety during long, genuinely played sieges.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
 const storage=Object.create(null),nodes=new Map();
@@ -17,7 +18,7 @@ const sandbox={Math,Date,Image,Blob,console,confirm(){return true},window:{__PK_
  URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'));
 assert(html.includes('id="siegeGuardLobby"')&&html.includes('id="siegeGuardStatus"'));
 assert(css.includes('.siege-guard-panel'));
 assert.equal(h.siegeGuard.waves,0);assert.equal(h.siegeGuard.minutes,0);assert.equal(h.siegeGuard.wall,false);

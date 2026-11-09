@@ -1,5 +1,6 @@
 // Alpha 0.10.8 — deterministic iPhone render pacing and legibility QA.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('game.js','utf8'),css=fs.readFileSync('style.css','utf8'),html=fs.readFileSync('index.html','utf8');
 function world(reducedMotion=false){
@@ -102,7 +103,7 @@ assert(css.includes('(orientation:portrait) and (max-width:540px)'),'Compact iPh
 assert(css.includes('.hud-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))'),'Mobile HUD prevents the three resource blocks from overflowing narrow viewports');
 assert(css.includes('.fight-actions button{min-height:44px;min-width:44px'),'Portrait battle controls meet 44px touch target guidance');
 assert(css.includes('.encounter-ribbon .encounter-goal,.encounter-ribbon .encounter-hint{font-size:10px'),'Objective and attack warnings have larger text');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'),'Release assets are cache-busted for Safari and Home Screen updates');
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'),'Release assets are cache-busted for Safari and Home Screen updates');
 console.log('PASS: Alpha 0.10.8 time-independent VFX, visual pause, 120/60/30Hz frame pacing, low-refresh menu and background behavior, DOM resource cache and iPhone HUD CSS.');
 
 

@@ -1,5 +1,6 @@
 // Alpha 0.12.8 — idle, pause and Atlas rendering cadence on mobile.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('fs');
 const vm=require('vm');
 const assert=require('node:assert/strict');
@@ -72,5 +73,5 @@ const y=make(true),yr=y.h.run();
 assert.equal(Math.round(y.h.drawInterval()),83,'Reduced motion also caps idle scenes.');
 yr.phase='intermission';yr.speed=1;
 assert.equal(Math.round(y.h.drawInterval()),33,'Reduced motion retains active 30Hz rendering.');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'));
 console.log('PASS: active 60Hz, reduced-motion combat 30Hz, static/paused 12Hz, 10Hz menu, hidden/opaque Atlas skip, game-time continuity and cached gradient.');

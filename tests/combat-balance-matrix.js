@@ -1,5 +1,6 @@
 // Alpha 0.11.3 — actual combat matrix across 9 hero builds and 10 rotating factions.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const script=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 function world(seedValue=1131){
@@ -183,5 +184,5 @@ assert(guard.casts>0&&offense.casts>0,'Both real builds use their active doctrin
 assert(guard.hp>offense.hp,'Defensive Guardian pairing preserves more real wall HP during a prolonged push');
 assert(guard.breaches<=offense.breaches,'Guardian knockback cannot worsen the paired fortress breach count');
 console.log('CONTROLLED FORTRESS PRESSURE: Hunter Volley '+JSON.stringify(offense)+' vs Aegis Rampart '+JSON.stringify(guard));
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'),'Latest iPhone Safari release assets are cache-busted');
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'),'Latest iPhone Safari release assets are cache-busted');
 console.log('PASS: Alpha 0.11.3 306 real seeded encounter battles, 9 hero combinations, unique armor-piercing magic, no station bonus leakage, original caps, measurable Guardian niche and valid deep-wave states.');

@@ -1,5 +1,6 @@
 // Alpha 0.11.1 — live single-slot passives, safe three-slot loadouts, save round trips.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
 function fixture(){
@@ -179,7 +180,7 @@ assert.equal(legacy.h.p().combatLoadouts[0],null,'Malformed saved build is safel
 assert.throws(()=>legacy.h.validateProgressBackup({...prior,combatLoadouts:{bad:true}}),/Invalid combatLoadouts/,
  'Incorrect preset container structure is rejected by save validation');
 assert.equal(h.normalizeCombatLoadouts([null,null,null,null]).length,3,'Imported presets cannot exceed three slots');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'),'Home Screen receives cache-busted iPhone build');
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'),'Home Screen receives cache-busted iPhone build');
 assert(css.includes('.hall-passive-grid')&&css.includes('.combat-build-grid'),'Hero Hall shows real passive and build visual sections');
 assert(css.includes('grid-template-columns:1fr;gap:7px'),'Portrait selector and quick-load buttons stack legibly');
 console.log('PASS: Alpha 0.11.1 one-slot passive damage and wall mechanics, three safe build presets, full owned-item validation, no duplication, iPhone quick loading, active-siege restrictions, and backwards-compatible saves.');

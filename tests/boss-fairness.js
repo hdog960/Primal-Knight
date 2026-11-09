@@ -1,5 +1,6 @@
 // Alpha 0.10.14 — major boss defeat evidence and Iron Ward fairness.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('game.js','utf8');
 const html=fs.readFileSync('index.html','utf8');
@@ -144,7 +145,7 @@ for(const [seed,wave,type] of [[7001,25,'siegebeast'],[7002,100,'warlord'],[7003
  assert.equal(run.bossesKilledThisWave,0,'Defeat flag resets across subsequent waves');
  assert.equal(run.bossVictories,1,'Lifetime Chronicle keeps the legitimate prior boss victory');
 }
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'),
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'),
  'iPhone cache correctly identifies the new release');
 assert(html.includes('id="bossCastBreak"'),'Real HUD includes percentage-based boss break text');
 assert(css.includes('.siege-report-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}'),

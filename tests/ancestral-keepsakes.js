@@ -1,5 +1,6 @@
 // Alpha 0.15.27 — 90 authentic deep-milestone keepsakes and retroactive save safety.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8');
 const html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -20,7 +21,7 @@ const sandbox={Math,Date,Image,Blob,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test';},revokeObjectURL(){}}};
 vm.runInNewContext(js,sandbox,{filename:'game.js'});
 let h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),r=h.run();
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 assert(css.includes('.milestone-entry.milestone-keepsake'),'Deep reward has themed visible identity');
 assert.deepEqual(Array.from(h.keepsakeWaves),[1500,3000,6000]);
 assert.equal(h.milestoneKeepsake(0,1500),null);assert.equal(h.milestoneKeepsake(31,1500),null);

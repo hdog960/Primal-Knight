@@ -1,5 +1,6 @@
 // Alpha 0.12.2 — original landscape preview, lore and selected-tier cache regression.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('game.js','utf8'),css=fs.readFileSync('style.css','utf8'),html=fs.readFileSync('index.html','utf8');
 class El{
@@ -68,6 +69,6 @@ assert.equal(JSON.stringify({gold:p.gold,essence:p.essence,knowledge:p.knowledge
  'Selecting regional artwork never spends currency or edits equipment');
 assert(css.includes('.tier-vista-card')&&css.includes('.tier-vista-caption'),'Preview uses authentic castle-palette composition');
 assert(css.includes('max-height:470px')&&css.includes('max-width:370px'),'Very short and narrow iPhone layouts have dedicated preview heights');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'),
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'),
  'Safari Home Screen assets and release banner are updated');
 console.log('PASS: 30 distinct territorial lore excerpts, real selected-painting preview, no 30 eager image loads, one per newly selected tier, zero repeated assignment on 70+ lobby refreshes, accessibility, original Tier I, currency integrity and small iPhone layout.');

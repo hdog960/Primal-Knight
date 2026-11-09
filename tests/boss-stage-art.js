@@ -1,5 +1,6 @@
 // Alpha 0.15.27 — four painted battle setpieces, 30 biomes, real canvas order.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 const stored=Object.create(null),nodes=new Map(),paint={events:[]};
@@ -27,7 +28,7 @@ const sandbox={Math,Date,Image,Blob,console,confirm(){return true},
  URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
 vm.runInNewContext(game,sandbox,{filename:'game.js'});
 const h=sandbox.window.__PK_TEST_TOOLS__,run=h.run(),player=h.p(),before=JSON.stringify(player);
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 assert.deepEqual(Object.keys(h.bossStageTemplates).sort(),['beast','ember','iron','rift']);
 assert.equal(h.bossStageEdges.length,8);
 for(const list of Object.values(h.bossStageTemplates)){

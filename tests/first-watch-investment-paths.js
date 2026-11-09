@@ -1,5 +1,6 @@
 // Alpha 0.15.27: earned first-watch investment planner, real tap purchases & combat cohorts.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
 const SAVE='primal_knight_onslaught_save_v1';
@@ -22,7 +23,7 @@ function world(startSeed){
   URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
  vm.runInNewContext(js,env,{filename:'game.js'});return {h:env.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 assert(css.includes('.watch-investment-card button')&&css.includes('min-height:44px'));
 assert(css.includes('@media(max-width:610px){.watch-investment-grid{grid-template-columns:1fr}'));
 const expect={

@@ -1,5 +1,6 @@
 // Alpha 0.10.12 — permanent First Watch rewards survive full bags.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
 const code=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 function game(seedValue=12012){
@@ -110,5 +111,5 @@ assert.equal(fp.inventory.length,origCount+4,'First Watch gear still grants imme
 assert.equal(fp.runes.length,origRunes+2,'First Watch runes still grant immediately with free space');
 assert.equal(fp.pendingGear.length,0,'No unnecessary gear vault when inventory has room');
 assert.equal(fp.pendingRelics.length,0,'No unnecessary rune vault when pouch has room');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'),'Safari receives the updated version without old cached assets');
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'),'Safari receives the updated version without old cached assets');
 console.log('PASS: Alpha 0.10.12 all sixteen First Watch rewards, 4 protected gear pieces and 2 protected runes, actual claim UI/action, no duplicate payouts, full-bag caps, save restore, and normal free-space grants.');

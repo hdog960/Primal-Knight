@@ -1,5 +1,6 @@
 // Alpha 0.15.27 — two visual modes in one true frame, share and restore safety.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const src=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
 const PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mP8/5+hHgAHggJ/PX4csgAAAABJRU5ErkJggg==';
@@ -43,7 +44,7 @@ function world(mode='download'){
  return{h,el,store,composites,gamePaints,links,shares,exports:()=>exports};
 }
 async function test(){
- assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+ assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
  assert(html.includes('id="deviceCheckCompare"')&&html.includes('aria-label="Share a side-by-side original and tactical lens battlefield comparison PNG"'));
  assert(css.includes('.device-check-compare')&&css.includes('min-height:44px'));
  const w=world(),{h,store,composites}=w,r=h.run(),p=h.p();

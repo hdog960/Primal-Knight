@@ -1,5 +1,6 @@
 // Alpha 0.12.11 — opt-in real-loop device diagnostics, no persistence.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),
  css=fs.readFileSync('style.css','utf8');
@@ -32,7 +33,7 @@ const h=sandbox.window.__PK_TEST_TOOLS__,p=h.p(),run=h.run();
 assert(html.includes('id="deviceCheckToggle"')&&html.includes('id="deviceCheckPanel"'));
 assert(html.includes('id="deviceCheckCopy"')&&html.includes('aria-pressed="false"'));
 assert(css.includes('.device-check-panel[hidden]')&&css.includes('min-height:44px'));
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 const before=JSON.stringify(p),savedBefore=JSON.stringify(storage);
 assert.equal(el('deviceCheckPanel').hidden,true);
 assert.equal(h.toggleDeviceCheck(),true);

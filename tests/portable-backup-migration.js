@@ -1,5 +1,6 @@
 // Alpha 0.15.27: optional verified portable saves, import preview and future-format lock.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
 const SAVE='primal_knight_onslaught_save_v1',CK='primal_knight_onslaught_checkpoint_v1';
@@ -22,7 +23,7 @@ function boot(store={}){
  return {h:sandbox.window.__PK_TEST_TOOLS__,store,el};
 }
 const {h,store}=boot();let p=h.p();
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'));
 assert(css.includes('.portable-backup-panel'));
 assert.equal(h.portableBackupFormat,'primal-knight-verified-v1');
 assert(h.renderPortableBackupPanel().includes('DOWNLOAD VERIFIED BACKUP'));

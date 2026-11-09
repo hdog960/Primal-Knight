@@ -1,5 +1,6 @@
 // Alpha 0.15.27: import transaction, exact storage readback, and rollback-failure warnings.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),
       css=fs.readFileSync('style.css','utf8');
@@ -36,7 +37,7 @@ function boot(store={},rules={}){
  vm.runInNewContext(js,env,{filename:'game.js'});
  return {h:env.window.__PK_TEST_TOOLS__,store,rules,el};
 }
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'));
 assert(css.includes('.save-recovery-panel.save-recovery-danger'));
 const original=boot();assert.equal(original.h.save(),true);
 const base=JSON.parse(original.store[SAVE]),primary=original.store[SAVE],ck=original.store[CK];

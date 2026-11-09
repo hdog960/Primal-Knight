@@ -1,5 +1,6 @@
 // Alpha 0.12.4 — region battlement cloth without repainting hero or abilities.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const source=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 const paint={ops:[]};
@@ -71,7 +72,7 @@ assert(!paint.ops.some(x=>x.kind==='image'&&x.src.startsWith('data:image/svg+xml
 assert.equal(JSON.stringify({gold:p.gold,essence:p.essence,sigils:p.sigils,inventory:p.inventory,runes:p.runes}),saved,
  'Changing visual banners never changes resources, gear or runes');
 assert(!Object.keys(store).some(k=>k.includes('heraldry')));
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 console.log('PASS: 13 region banner glyph families, full-height aligned fabric, 30 deterministic heraldic cloth variants, hero-safe x bounds, real fortress/projectile draw ordering, original Tier I and 75 redraws without allocations.');
 console.log('SOURCE SIZE: min '+Math.min(...sizes)+' max '+Math.max(...sizes)+' average '+Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length)+'.');
 console.log('LIMIT: iPhone screenshots, visuals and long-session energy use not measured.');

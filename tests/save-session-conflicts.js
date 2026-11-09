@@ -1,5 +1,6 @@
 // Alpha 0.15.27: cross-session conflicts and retryable recovery writes.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const js=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 const SAVE='primal_knight_onslaught_save_v1',UNDO='primal_knight_onslaught_pre_import_backup_v1',CK='primal_knight_onslaught_checkpoint_v1';
@@ -21,7 +22,7 @@ function boot(store={},rules={}){
   URL:{createObjectURL(){return'blob:test'},revokeObjectURL(){}}};
  vm.runInNewContext(js,env,{filename:'game.js'});return {h:env.window.__PK_TEST_TOOLS__,store,rules,el};
 }
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 const seed=boot();assert.equal(seed.h.save(),true);
 const original=seed.store[SAVE],checkpoint=seed.store[CK],source=JSON.parse(original);
 const external=boot({...seed.store}),newer=JSON.stringify({...source,level:64,gold:69000});

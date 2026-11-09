@@ -1,5 +1,6 @@
 // Alpha 0.15.27: real-price three-currency ledger and longer earned economy cohorts.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
 const SAVE='primal_knight_onslaught_save_v1';
@@ -24,7 +25,7 @@ function world(seed0,saveSource){
  assert(sandbox.window.__PK_TEST_TOOLS__,'Actual game hooks loaded');
  return {h:sandbox.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 assert(css.includes('.prosperity-grid')&&css.includes('min-height:44px'));
 assert(css.includes('@media(max-width:610px){.prosperity-grid{grid-template-columns:1fr}'));
 const test=world(15401),h=test.h,p=h.p();

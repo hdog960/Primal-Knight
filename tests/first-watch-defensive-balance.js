@@ -1,11 +1,12 @@
 // Alpha 0.15.27: matched-seed early Fortitude comparison and earned second attempts.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const source=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 const wardTerm='*(1-fortitudeBreachWard())';
 assert.equal(source.split(wardTerm).length-1,1,'One precise Fortitude ward multiplier in actual breach damage');
 const oldFormulaSource=source.replace(wardTerm,'');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 const SAVE='primal_knight_onslaught_save_v1',paths=['might','balanced','guardian'];
 class El{
  constructor(id){this.id=id;this.dataset={};this.style={};this.attrs={};this.innerHTML='';this.textContent='';this.disabled=false;this.hidden=false;this.className='';this.scrollTop=0;this.width=960;this.height=540;this.listeners={};this.classList={add(){},remove(){},toggle(){}}}

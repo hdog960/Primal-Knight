@@ -1,5 +1,6 @@
 // Alpha 0.12.3 — illustrated relic landmarks and restrained boss-stage atmosphere.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
 const paint={events:[],images:0,frames:0};
@@ -95,7 +96,7 @@ assert(!paint.events.some(x=>x.type==='rect'&&x.x===18&&x.w===3),'Returning to B
 assert.equal(JSON.stringify({gold:p.gold,essence:p.essence,knowledge:p.knowledge,sigils:p.sigils,inventory:p.inventory,runes:p.runes}),before,
  'Paint and combat presentation cannot change money, gear or runes');
 assert.equal(store.primal_knight_onslaught_save_v1,undefined,'Environment art never creates a persistent save');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'),
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'),
  'Safari version strings stay aligned');
 console.log('PASS: 30 painted territory relics with 14+ motif families, road-preserving art, 32 bounded stage marks with original eight light marks and themed architecture, reduced-motion fallback, correct sprite/fortress depth, deterministic no-economy redraws.');
 console.log('SIZES: min '+Math.min(...sizes)+' max '+Math.max(...sizes)+' average '+Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length)+' terrain SVG source characters.');

@@ -2,6 +2,7 @@
 // Reuses the Alpha 0.15.27 deterministic combat harness and verified existing save behavior.
 // Alpha 0.15.27 — real earned multi-territory First Watch routes and safe player selection.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
 const SAVE='primal_knight_onslaught_save_v1';
@@ -26,7 +27,7 @@ function world(seed0,source){
  return {h:sandbox.window.__PK_TEST_TOOLS__,el,store};
 }
 
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'));
 assert(css.includes('.march-build-audit')&&css.includes('.march-build-sections'));
 assert(css.includes('@media(max-width:760px){.march-build-sections{grid-template-columns:1fr}}'));
 assert(css.includes('min-height:44px'));
@@ -175,7 +176,7 @@ function prepareMidgameBuild(w){
 
 // Alpha 0.15.27: UI-only fixture; these flags/currencies are synthetic
 // layout and arithmetic inputs, NEVER scored as earned gameplay.
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'));
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'));
 assert(css.includes('.veteran-envelope-options')&&css.includes('min-height:44px'));
 assert(css.includes('@media(max-width:360px){.veteran-envelope-options{grid-template-columns:1fr}}'));
 const fixture=world(151301),fh=fixture.h,fp=fh.p();

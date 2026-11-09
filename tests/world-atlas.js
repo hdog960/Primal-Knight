@@ -1,5 +1,6 @@
 // Alpha 0.12.5 — inspect all 30 locked/unlocked artwork previews WITHOUT unlocks.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
 const documentListeners=Object.create(null),elements=new Map();
@@ -81,7 +82,7 @@ assert.equal(h.openWorldAtlas(30),false,'Cannot open the art modal during live s
 r.phase='ready';
 assert(css.includes('.world-atlas[hidden]')&&css.includes('.atlas-scene .atlas-matte'),'Composited full-battle illustration and hidden rules exist');
 assert(css.includes('max-height:460px')&&css.includes('min-height:44px'),'Responsive narrow/landscape layout and touch targets are present');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27')&&html.includes('style.css?v=0.15.27'),
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27')&&assetVersionAtLeast(html,'style.css','0.15.27'),
  'Home Screen Safari picks up the next game release');
 console.log('PASS: all 30 locked/unlocked territories have view-only full-layer illustrations, correct original Tier I, navigable boundaries, 2 SVG image types, no original-tier select/reward change, no canvas cache churn, Escape/close and iPhone layout.');
 console.log('LIMIT: art quality and GPU thermals still need real iPhone device testing.');

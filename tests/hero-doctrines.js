@@ -1,5 +1,6 @@
 // Alpha 0.11.0 — three real auto-cast combat doctrines and save-compatible selection.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('game.js','utf8');
 const html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -159,7 +160,7 @@ const invalid={...snapshot,combatDoctrine:'unknown-dangerous-ability'};
 restored.h.restoreProgressBackup(invalid,false);
 assert.equal(restored.h.p().combatDoctrine,'vanguard','Invalid imported combat ability is never equipped');
 
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'),'Safari Home Screen receives cache-busted doctrine implementation');
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'),'Safari Home Screen receives cache-busted doctrine implementation');
 assert(html.includes('id="doctrineHud"'),'Battle canvas has a real doctrine cooldown HUD');
 assert(css.includes('.hall-doctrine-grid')&&css.includes('.doctrine-hud'),'Visual design and accessibility classes exist');
 assert(css.includes('grid-template-columns:1fr;gap:7px'),'Doctrine selector stacks into one-column mobile layout');

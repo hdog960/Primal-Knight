@@ -1,5 +1,6 @@
 // Alpha 0.11.2 — grounded faction-specific pre-siege intelligence and safe equip.
 'use strict';
+const { assetVersionAtLeast } = require('./asset-version.js');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const game=fs.readFileSync('game.js','utf8');
 const html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
@@ -168,7 +169,7 @@ assert.equal(p.combatDoctrine,'vanguard','Unrelated tier navigation cannot accid
 const saveData=JSON.parse(sim.store.primal_knight_onslaught_save_v1);
 assert.equal(Object.prototype.hasOwnProperty.call(saveData,'warCouncil'),false,'Recommendations do not add a permanent save field');
 assert.equal(Object.prototype.hasOwnProperty.call(saveData,'tactics'),false,'No artificial permanent encounter data is stored');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('game.js?v=0.15.27'),
+assert(html.includes('ALPHA 0.15.27')&&assetVersionAtLeast(html,'game.js','0.15.27'),
  'Alpha 0.11.2 has new iPhone Home Screen cache-busted assets');
 assert(css.includes('.war-council-choice button')&&css.includes('min-height:44px'),
  'One-tap recommendation is a readable 44px mobile control');
