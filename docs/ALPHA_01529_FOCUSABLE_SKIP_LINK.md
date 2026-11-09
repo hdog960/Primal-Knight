@@ -87,3 +87,9 @@
 - Production markup commit: `a560d7559cf7d376ac1efc9af4d3180eac8e6b39`. Existing mandatory cache-version regression extended with three Battle semantics checks in `d2834207f29bf28daf8f2a1b9350922c385dfcd3`.
 - Re-fetched both committed files and confirmed all three assertions match the deployed-source markup. **Not verified:** running Node tests, GitHub Actions quality result, Pages publication, actual keyboard scrolling, VoiceOver, physical iPhone or the original Tier IV overlap visual gate.
 - Next: check final-head Actions/Pages, test milestone focus and screen-reader announcements in a browser, then prioritize genuine First Watch gameplay/progression improvements. Creator visual acceptance remains pending.
+
+## 2026-11-09 — Battle selected-territory jump (mobile reachability)
+- Starting main `516f5c47297a809e6e23e5245a40c007af88de40` had successful GitHub Actions quality run `42707701473`. Alpha 0.15.27 remains the gameplay banner; no progression gates, save data, combat, rewards or equipment were changed.
+- `index.html`: added a visible **VIEW SELECTED TERRITORY & REWARDS** control after the long 30-tier grid. It focuses and scrolls to the current tier's heading, without selecting a different tier or starting a siege. Reuses the existing Atlas-style button class, and makes the heading programmatically focusable. Commit `8c1a6d60e84dac1d6867c8e7ae6ebb654faec63e`.
+- `tests/cache-version-contract.js`: required static assertions for button wiring, target focus and scrolling. Commit `951894381ee56b57e32d4a32493f7d27cc5c369c`. Re-fetched both files and checked five source conditions; all five passed. This is not full Node execution or iPhone browser QA.
+- Next: confirm quality and Pages workflows on final head, test mobile jump/scroll/launch behavior on iPhone portrait, and resume First Watch progression work. Original user-reported Battle overlap remains visually unapproved; do not declare it fixed from static checks.
