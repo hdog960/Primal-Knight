@@ -4,6 +4,10 @@ const fs = require('node:fs');
 const { assetVersionAtLeast } = require('./asset-version.js');
 const html = fs.readFileSync('index.html', 'utf8');
 assert(html.includes('ALPHA 0.15.27'), 'Release banner is still Alpha 0.15.27');
+const viewport = /<meta\s+name="viewport"\s+content="([^"]+)"/.exec(html);
+assert(viewport, 'mobile viewport metadata exists');
+assert(/(?:^|,)\s*viewport-fit=cover(?:,|$)/.test(viewport[1]), 'safe-area layout retained');
+assert(!/(?:^|,)\s*(?:user-scalable\s*=\s*no|maximum-scale\s*=)/i.test(viewport[1]), 'browser zoom is not disabled for accessibility');
 for (const asset of ['game.js', 'style.css']) {
   assert(assetVersionAtLeast(html, asset, '0.15.27'), asset + ' uses a valid, up-to-date cache key');
   for (const version of ['0.15.26', '0.14.999', 'broken', '0.15.29-!bad', '0.15.27.1']) {
