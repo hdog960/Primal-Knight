@@ -746,10 +746,50 @@ for(const [seed,baseline] of frontierContinuationSaves){
    unlockedTier:p.unlockedTier});
  }
  assert.equal(sessions.length,24);
+ // 0.15.27: genuine source-engine Pioneer Sweep continuation after the
+ // existing 24 legitimately earned Record Stretch sorties. No synthetic
+ // purchases, simulated wave clears, instant rewards, or award fixtures.
+ const beforePioneer=p.uniqueClears,pioneerSessions=[];
+ for(let n=111;n<=122;n++){
+  spendSkills(h);
+  const paidChange=spendUnderSharedCumulativeCap(h,'mixed',paid,n);
+  paid+=paidChange.spent;spentAfter86+=paidChange.spent;
+  const choice=h.veteranPioneerSweep();
+  assert(choice&&choice.tier<=p.unlockedTier&&choice.nextWave===choice.best+1,
+   'Only already legitimately unlocked unfinished realms can be suggested');
+  assert(choice.startWave<=choice.nextWave);
+  assert(h.selectFrontierTier(choice.tier),'Original protected tier selection honored');
+  const prior=p.uniqueClears,priorTime=p.battleSeconds;
+  siege(h,95);
+  const report=h.siegeReport(),earned=p.uniqueClears-prior;
+  assert(report.tier===choice.tier&&earned>=0&&earned<=report.cleared,
+   'Only actual wave completions earn first clears');
+  assert(p.battleSeconds>priorTime,'Actual combat time must pass');
+  assert.equal(p.uniqueClears,trueBestSum(p));
+  assert.equal(p.sigils,h.sigilLedgerSummary().claimed+h.sigilLedgerSummary().earnedWatch);
+  if(p.firstWatchClaimed.includes(12)){
+   assert(p.uniqueClears>=605,'Genuine Chapter XIII requires 605 unique victories');
+   assert(p.battleSeconds>=403*60,'Genuine Chapter XIII requires 403 active minutes');
+  }
+  if(p.unlockedTier>=18)assert(p.milestones['17:100']&&p.bestByTier[17]>=100,
+   'Original Tier XVIII gate remains a real wave-100 victory');
+  pioneerSessions.push({n,tier:choice.tier,replayed:choice.replayWaves,
+   measuredZero:choice.recordedZero,cleared:report.cleared,
+   earned,uniqueClears:p.uniqueClears,watch:p.firstWatchClaimed.length});
+ }
+ assert.equal(pioneerSessions.length,12);
+ const pioneerGain=p.uniqueClears-beforePioneer;
+ console.log('ALPHA 0.15.27 EARNED PIONEER SWEEP '+JSON.stringify({
+  seed,startUniqueClears:beforePioneer,endUniqueClears:p.uniqueClears,
+  trulyNewFirstClears:pioneerGain,realSieges:12,chapterXIIIClaimed:p.firstWatchClaimed.includes(12),
+  earnedChapterCount:p.firstWatchClaimed.length,highestUnlockedTier:p.unlockedTier,
+  actualPaidAfterOriginal86:spentAfter86,sessions:pioneerSessions}));
  const verify=world(seed+2223,{[SAVE]:w.store[SAVE]});
  assert.equal(verify.h.p().uniqueClears,p.uniqueClears);
  assert.equal(verify.h.p().sigils,p.sigils);
  assert.equal(verify.h.p().unlockedTier,p.unlockedTier);
+ assert.equal(verify.h.p().firstWatchClaimed.length,p.firstWatchClaimed.length,
+  'Chapter awards only from actual combat persist on original save reload');
  // Only the actual engine may claim Chapter XII, and both original gates
  // must be satisfied before that reward is persisted or reported.
  if(p.firstWatchClaimed.includes(11)){
