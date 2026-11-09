@@ -23,7 +23,7 @@ function world(seed0=1528){
  assert(box.window.__PK_TEST_TOOLS__);
  return {h:box.window.__PK_TEST_TOOLS__,store,el};
 }
-assert(html.includes('ALPHA 0.15.27'));
+assert(html.includes('ALPHA 0.15.28'));
 assert(css.includes('.veteran-pioneer-alternatives button{'));
 assert(css.includes('@media(max-width:700px){.veteran-pioneer-alternatives{grid-template-columns:1fr}}'));
 const w=world(),h=w.h,p=h.p();
