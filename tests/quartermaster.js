@@ -99,8 +99,14 @@ assert.equal(JSON.stringify({training:p.training,essence:p.essence}),beforeFight
  'No extra healing or free rank can be gained through a forged mid-battle click');
 r.phase='intermission';
 assert.equal(h.purchaseCouncilTraining('fort'),false,'Between-wave waits cannot bypass purchase restriction');
-assert(html.includes('ALPHA 0.15.27')&&html.includes('style.css?v=0.15.27')&&html.includes('game.js?v=0.15.27'),
- 'iPhone web assets and release banner display latest version');
+const release='0.15.27';
+const stylesheet=html.match(/href="style\.css\?v=([^"]+)"/);
+const gameplay=html.match(/src="game\.js\?v=([^"]+)"/);
+const versionParts=value=>{const m=value.match(/^(\d+)\.(\d+)\.(\d+)(?:-[a-z0-9-]+)?$/i);return m&&m.slice(1,4).map(Number);};
+const atLeast=(actual,minimum)=>{const a=versionParts(actual),b=versionParts(minimum);return !!(a&&b&&(a[0]>b[0]||a[0]===b[0]&&(a[1]>b[1]||a[1]===b[1]&&a[2]>=b[2])));};
+assert(html.includes('ALPHA '+release)&&stylesheet&&gameplay&&
+ atLeast(stylesheet[1],release)&&atLeast(gameplay[1],release),
+ 'iPhone assets must be at least the banner version; cache-busting suffixes are valid');
 assert(css.includes('.war-quartermaster-grid')&&css.includes('min-height:44px'),
  'Original art-consistent Quartermaster cards have large touch targets');
 assert(css.includes('@media(max-width:750px)')||css.includes('@media(max-width:750px),'),
