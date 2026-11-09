@@ -118,4 +118,19 @@ document.querySelector('.skip-to-controls')?.addEventListener('click', function(
   navigation.scrollIntoView({block:'nearest'});
   if (location.hash !== '#nav') history.replaceState(null, '', '#nav');
 });
+
+// Keep keyboard and switch navigation inside the visible Atlas dialog.
+// The game owns opening, closing, Escape and return-focus behavior.
+document.getElementById('worldAtlas')?.addEventListener('keydown', function(event) {
+  if (event.key !== 'Tab' || this.hidden) return;
+  const controls = Array.from(this.querySelectorAll('button:not([disabled]):not([hidden]), [href], [tabindex]:not([tabindex="-1"])'))
+    .filter(element => !element.closest('[hidden]') && element.getClientRects().length);
+  if (!controls.length) { event.preventDefault(); this.focus(); return; }
+  const first = controls[0], last = controls[controls.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !this.contains(document.activeElement))) {
+    event.preventDefault(); last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !this.contains(document.activeElement))) {
+    event.preventDefault(); first.focus();
+  }
+});
 </script></body></html>
