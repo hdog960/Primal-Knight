@@ -97,7 +97,7 @@ assert.equal(h.p().doctrineTactic,'rapid','Untrusted stored strategy is normaliz
 assert(css.includes('.doctrine-tactics-options')&&css.includes('min-height:48px'),
  'Mobile strategy touch controls have accessible height');
 const release='0.15.27';
-const assetVersion=kind=>html.match(new RegExp('(?:href|src)="'+kind+'\\\\?v=([^\"]+)"'))?.[1];
+const assetVersion=kind=>html.match(new RegExp('(?:href|src)="'+kind+'\\?v=([^"]+)"'))?.[1];
 const versionParts=value=>{const m=value?.match(/^(\\d+)\\.(\\d+)\\.(\\d+)(?:-[a-z0-9-]+)?$/i);return m&&m.slice(1,4).map(Number);};
 const atLeast=(actual,minimum)=>{const a=versionParts(actual),b=versionParts(minimum);return !!(a&&b&&(a[0]>b[0]||a[0]===b[0]&&(a[1]>b[1]||a[1]===b[1]&&a[2]>=b[2])));};
 assert(html.includes('ALPHA '+release)&&atLeast(assetVersion('game.js'),release)&&atLeast(assetVersion('style.css'),release),
