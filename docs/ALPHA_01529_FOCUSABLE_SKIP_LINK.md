@@ -26,3 +26,9 @@
 - Corrected the numeric regex literal to use `\d` and `\.` while preserving the release-floor and negative validation. Implementation commit `5752bfa4772fc521f0ecd5805c831bde64181b73`.
 - Independently checked the actual current `index.html` values (`style.css?v=0.15.29-focus-skip`, `game.js?v=0.15.27`) against the corrected parser and verified stale/malformed keys are rejected. This is a focused static/parser check, **not** the complete GitHub Actions suite or physical iPhone testing.
 - Prior Pages workflow `42584497126` succeeded for `916265e`; latest commit deployment and full CI must be checked. No gameplay, economy, art, save or tier changes. Next: inspect latest CI job logs; if green, resume the locked gameplay roadmap.
+
+## 2026-11-09 — iPhone browser zoom accessibility
+- Main baseline `406647e441e54072b51305b4a40abeb5758424d6` had successful quality workflow `42621963822` and Pages deployment `42621963707`.
+- Updated `index.html` viewport to retain `width=device-width`, `initial-scale=1`, and `viewport-fit=cover`, while removing `maximum-scale=1` and `user-scalable=no`. This restores browser-controlled magnification for low-vision users without changing combat, saves, economy or tier progression. Implementation commit `ad26e3074bdeabef3a9e4b789fb7d4f151d9109f`.
+- Extended `tests/cache-version-contract.js` with checks that the safe-area viewport remains and browser zoom is not disabled. Test commit `c55b924811f38bcebc7eb3af717bdfa799e71a2a`.
+- Still required: check quality and Pages runs on latest SHA, real iPhone pinch/VoiceOver/landscape testing, and return to substantial First Watch gameplay work. No visual approval claimed.
