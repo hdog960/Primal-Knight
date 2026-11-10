@@ -148,6 +148,15 @@ assert.equal(ah.veteranPioneerSweep().tier,1,
 assert.equal(ah.veteranPioneerSweep().recordedZero,false);
 assert.equal(ah.veteranPioneerSweep().measuredAttempts,0);
 assert(ah.renderVeteranPioneerSweep().includes('VERIFIED PRESSURE RECORDS 0/2'),'Legacy history must not masquerade as measured evidence');
+// Route controls must visibly honor the same siege/save guard as the selector.
+const routeMarkup=h.renderVeteranClearRoutes();
+assert(routeMarkup.includes('data-veteran-clear-route='),'Veteran Watch has territory route buttons');
+assert(!routeMarkup.includes('aria-disabled="true"'),'Idle, verified-save routes remain usable');
+const sourceContract=game.slice(game.indexOf('function renderVeteranClearRoutes(){'),game.indexOf('function renderVeteranWatchStrategy(){'));
+assert(sourceContract.includes("run.phase==='fighting'"),'Active combat disables route buttons');
+assert(sourceContract.includes("run.phase==='intermission'"),'Intermission disables route buttons');
+assert(sourceContract.includes('saveWriteBlocked'),'Save protection disables route buttons');
+assert(sourceContract.includes('selectionLocked?\' disabled aria-disabled="true"'),'Disabled routes disclose their inaccessible state');
 assert(!Object.hasOwn(p,'pioneerSweep'),'No new player schema field');
 p.firstWatchClaimed=Array.from({length:16},(_,i)=>i);
 assert.equal(h.veteranPioneerSweep(),null,'Once actual Watch is fully awarded, hide the guide');
