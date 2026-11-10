@@ -16,3 +16,8 @@ Continue the same genuinely earned seed-15423 original-price character after 24 
 - Battle's Pioneer Sweep now displays the count of archived sorties and the actual number of qualifying measured pressure records (0–2). One or zero measured records explicitly states evidence is insufficient to rule out a stall; two records without both zero clears are not labeled a proven success. If all candidate routes have measured zero-clear stalls, the panel warns that all routes may be stalled.
 - `game.js` implementation `0ce7c41b651f06b9e6291e68b8d4fe2056ed2eda`; regression assertions in `tests/first-watch-pioneer-sweep.js` commit `a2cf65b132273e11bdea301506bf0630def9037e`.
 - No route-selection formulas, combat, save fields, currency, earned tier unlocks or First Watch awards changed. CI and Pages on final documentation commit must be checked separately; real iPhone Tier IV overlap/visual approval still pending. Next: verify complete workflow and live deployment, then pursue earned progression/First Watch and real mobile QA.
+
+## 2026-11-10 — Pioneer Sweep Watch time-gate clarity
+- The Pioneer Sweep card now shows remaining **active combat minutes** for its actual First Watch chapter, or confirms the time requirement is met. It reuses the existing Watch gate calculation; no invented progress or new save field.
+- `game.js` and `tests/first-watch-pioneer-sweep.js` updated, with regression assertions for both met and unmet time gates. No combat, rewards, wave or tier unlock changes.
+- Full CI, Pages publication and real iPhone layout remain separate verification gates.
