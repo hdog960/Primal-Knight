@@ -2784,8 +2784,16 @@ function veteranPioneerSweep(){
  const route=options.find(x=>!x.selected&&x.recordedZero===bestEvidence&&x.replayWaves===shortest)||options[0];
  return {...route,chapter:guide.index+1,remaining:guide.missingClears,secondsLeft:guide.secondsLeft,
   verifiedNonStalled:!route.recordedZero,alternatives:options.length,
-  // Show real alternatives, but never present a stalled route as equivalent evidence.
-  otherRoutes:options.filter(x=>x.tier!==route.tier).slice(0,2),
+  // Keep a measured-stalled route visible for an honest comparison, even
+  // when two safer alternatives sort ahead of it. The player can then see
+  // that route's actual earned wave and two recorded stalls instead of an
+  // unexplained disappearance; it is still never recommended as equivalent.
+  otherRoutes:(()=>{
+   const alternatives=options.filter(x=>x.tier!==route.tier);
+   const stalled=alternatives.find(x=>x.recordedZero);
+   if(!stalled)return alternatives.slice(0,2);
+   return [...alternatives.filter(x=>x!==stalled).slice(0,1),stalled];
+  })(),
   potentialFirstClears:Math.min(guide.missingClears,MAX_WAVE-route.best,10)};
 }
 function renderVeteranPioneerSweep(){
