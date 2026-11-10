@@ -58,6 +58,16 @@ assert.equal(h.veteranPioneerSweep().tier,4,'No-combat sorties cannot falsely st
 assert.equal(h.veteranPioneerSweep().measuredAttempts,0,'No-combat sorties are not measured combat evidence');
 p.siegeHistory=h.normalizeSiegeHistory([
  record(1,4,0),record(2,4,0),record(3,3,4),record(4,2,1)]);
+// An intervening newer unmeasured sortie breaks a consecutive measured-stall claim.
+p.siegeHistory=h.normalizeSiegeHistory([
+ record(12,4,0), {...record(11,4,0),offenseTracked:false},
+ record(10,4,0), record(3,3,4)]);
+assert.equal(h.veteranPioneerSweep().tier,4,
+ 'Old measured failures separated by a newer unmeasured sortie cannot prove two recent stalls');
+assert.equal(h.veteranPioneerSweep().measuredAttempts,1,
+ 'Only the two latest territory sorties may count toward recent stall evidence');
+p.siegeHistory=h.normalizeSiegeHistory([
+ record(1,4,0),record(2,4,0),record(3,3,4),record(4,2,1)]);
 const afterCombat=h.veteranPioneerSweep();
 assert.equal(after.tier,3,'Two genuinely measured zero-first-clear sorties skip stalled Tier IV');
 assert.equal(after.recordedZero,false);
