@@ -2784,6 +2784,8 @@ function veteranPioneerSweep(){
  const route=options.find(x=>!x.selected&&x.recordedZero===bestEvidence&&x.replayWaves===shortest)||options[0];
  return {...route,chapter:guide.index+1,remaining:guide.missingClears,secondsLeft:guide.secondsLeft,
   verifiedNonStalled:!route.recordedZero,alternatives:options.length,
+  // Show real alternatives, but never present a stalled route as equivalent evidence.
+  otherRoutes:options.filter(x=>x.tier!==route.tier).slice(0,2),
   potentialFirstClears:Math.min(guide.missingClears,MAX_WAVE-route.best,10)};
 }
 function renderVeteranPioneerSweep(){
@@ -2804,6 +2806,12 @@ function renderVeteranPioneerSweep(){
   '<button type="button" data-veteran-pioneer="'+q.tier+'"'+
    (locked||q.selected?' disabled':'')+'>'+
    (q.selected?'TERRITORY ALREADY PREPARED':'PREPARE PIONEER TERRITORY')+'</button>'+
+  (q.otherRoutes.length?'<small>OTHER EARNED ROUTES · COMPARE REPLAY COST AND RECENT EVIDENCE</small>'+q.otherRoutes.map(x=>
+   '<button type="button" data-veteran-pioneer="'+x.tier+'"'+(locked||x.selected?' disabled':'')+
+   ' aria-label="Prepare alternative tier '+roman(x.tier)+'">'+
+   'TIER '+roman(x.tier)+' · '+fmt(x.replayWaves)+' REPLAY WAVES · '+
+   (x.recordedZero?'TWO MEASURED STALLS':'STALL NOT ESTABLISHED')+
+   (x.selected?' · ALREADY PREPARED':' · PREPARE')+'</button>').join(''):'')+
   '<small>Only the existing guarded Battle tier selector is used. No skip, reward, ability, wave completion or permanent character update is granted by this suggestion.</small></section>';
 }
 
