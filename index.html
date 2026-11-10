@@ -148,8 +148,10 @@ document.getElementById('backToTierGrid')?.addEventListener('click', function() 
 // The 30-territory picker supports conventional grid arrow/Home/End focus.
 // Focus alone never selects a territory or changes a saved unlock.
 document.getElementById('tierGrid')?.addEventListener('keydown', function(event) {
-  if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key)) return;
-  const buttons = Array.from(this.querySelectorAll('button:not([disabled])'));
+  if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
+      !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key)) return;
+  const buttons = Array.from(this.querySelectorAll('button:not([disabled])'))
+    .filter(button => !button.hidden && !button.closest('[hidden]'));
   if (!buttons.length || !buttons.includes(event.target)) return;
   const current = buttons.indexOf(event.target);
   const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 :
