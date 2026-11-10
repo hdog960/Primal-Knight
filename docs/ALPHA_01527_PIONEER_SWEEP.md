@@ -21,3 +21,8 @@ Continue the same genuinely earned seed-15423 original-price character after 24 
 - The Pioneer Sweep card now shows remaining **active combat minutes** for its actual First Watch chapter, or confirms the time requirement is met. It reuses the existing Watch gate calculation; no invented progress or new save field.
 - `game.js` and `tests/first-watch-pioneer-sweep.js` updated, with regression assertions for both met and unmet time gates. No combat, rewards, wave or tier unlock changes.
 - Full CI, Pages publication and real iPhone layout remain separate verification gates.
+
+## 2026-11-10 — Shortest-replay recommendation correction
+- Fixed a recommendation-order defect in `game.js`: Pioneer Sweep previously bypassed the shortest legitimate earned-waystone replay whenever that territory was already selected, even if the alternative required substantially more previously completed waves. It now prefers an unselected non-stalled alternative only when replay distance ties the best eligible route. A selected best route remains visible as already prepared, with no battle or save mutation.
+- Source implementation commit `35a06546b6e3cef77f8400d484f6f544a66eb3bd`; regression assertion in `tests/first-watch-pioneer-sweep.js` commit `bb4e5ac927892c38ac95f82e2739fa15ef466b65`.
+- Source syntax was checked in the JavaScript tool runtime; full Node regression, latest-head Actions and Pages deployment must be verified separately. No combat formulas, First Watch gates, tier unlocks, rewards or save fields changed. Tier IV mobile visual acceptance remains pending.
