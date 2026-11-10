@@ -25,6 +25,8 @@ function world(seed0=1527,source=null){
 }
 assert(html.includes('ALPHA 0.15.27')&&css.includes('.veteran-pioneer-sweep>button{'));
 assert(css.includes('min-height:48px'));
+assert(game.includes("const locked=saveWriteBlocked||run.phase==='fighting'||run.phase==='intermission'||!verifyPrimaryContinuity();\n return '<section class=\"veteran-pioneer-sweep\""),
+ 'Pioneer Sweep route controls must mirror the guarded selector continuity check');
 const w=world(),h=w.h,p=h.p();
 assert.equal(h.veteranPioneerSweep(),null,'Novice without qualifying Watch cannot see late-game guide');
 p.firstWatchClaimed=Array.from({length:12},(_,i)=>i);
