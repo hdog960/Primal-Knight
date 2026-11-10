@@ -35,6 +35,11 @@ assert(first&&first.tier===4,'Untried route has zero historical replay distance'
 assert.equal(first.startWave,1);assert.equal(first.replayWaves,0);
 assert.equal(first.nextWave,1);assert.equal(first.remaining,99);
 assert.equal(first.secondsLeft,0,'Earned Chapter XIII time gate is met');
+assert.equal(first.potentialFirstClears,10,'Only ten genuine future victories are previewed, not awarded');
+assert(h.renderVeteranPioneerSweep().includes('NO VICTORY IS GUARANTEED.'));
+p.bestByTier[4]=9998;
+assert.equal(h.veteranPioneerSweep().potentialFirstClears,2,'Preview cannot exceed remaining real territory waves');
+p.bestByTier[4]=0;
 assert(h.renderVeteranPioneerSweep().includes('ACTIVE-TIME REQUIREMENT MET'));
 assert(h.renderVeteranPioneerSweep().includes('PIONEER SWEEP · CHAPTER XIII'));
 assert.equal(JSON.stringify(p),prior,'Guide cannot mutate user save/economy/milestones');
