@@ -155,7 +155,10 @@ assert(ah.renderVeteranPioneerSweep().includes('VERIFIED PRESSURE RECORDS 0/2'),
 // Route controls must visibly honor the same siege/save guard as the selector.
 const routeMarkup=h.renderVeteranClearRoutes();
 assert(routeMarkup.includes('data-veteran-clear-route='),'Veteran Watch has territory route buttons');
-assert(!routeMarkup.includes('aria-disabled="true"'),'Idle, verified-save routes remain usable');
+const routeButtons=[...routeMarkup.matchAll(/<button\\b[^>]*\\bdata-veteran-clear-route="\\d+"[^>]*>/g)].map(x=>x[0]);
+assert(routeButtons.length>0,'Actual territory-route controls are present in Veteran Watch');
+assert(routeButtons.every(button=>!button.includes('aria-disabled="true"')&&!/\\sdisabled(?:\\s|$)/.test(button)),
+ 'Idle, verified-save territory-route controls remain usable (other sections may legitimately disable their own buttons)');
 const sourceContract=game.slice(game.indexOf('function renderVeteranClearRoutes(){'),game.indexOf('function renderVeteranWatchStrategy(){'));
 assert(sourceContract.includes("run.phase==='fighting'"),'Active combat disables route buttons');
 assert(sourceContract.includes("run.phase==='intermission'"),'Intermission disables route buttons');
