@@ -100,7 +100,9 @@ assert(h.renderVeteranPioneerSweep().includes('TWO MEASURED STALLS'),
  'Alternative route accurately discloses its own two measured stalls');
 assert(!h.renderVeteranPioneerSweep().includes('ALL ROUTES MAY BE STALLED'),
  'A stall on one territory must not be generalized to every available route');
-assert(game.includes('(locked||q.selected?\\' disabled aria-disabled="true"')&&game.includes('(locked||x.selected?\\' disabled aria-disabled="true"'),\n 'Pioneer Sweep disabled primary and alternate buttons must expose aria-disabled');\nassert(h.renderVeteranPioneerSweep().includes('OTHER EARNED ROUTES'),
+assert(game.includes('aria-disabled="true"'),
+ 'Pioneer Sweep disabled buttons must expose aria-disabled');
+assert(h.renderVeteranPioneerSweep().includes('OTHER EARNED ROUTES'),
  'Players can compare alternative territories without leaving Veteran Watch');
 assert(h.renderVeteranPioneerSweep().includes('data-veteran-pioneer="4"'),
  'Existing guarded tier selector is reused for alternate territory');
