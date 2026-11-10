@@ -67,6 +67,14 @@ assert.equal(h.veteranPioneerSweep().measuredAttempts,0,
 assert.equal(h.veteranPioneerSweep().recordedZero,false,
  'A pair of replay-only sorties cannot be mistaken for two failed record pushes');
 p.bestByTier={1:30,2:24,3:20,4:0};
+// A victorious sortie cannot establish a failed frontier push, even if its
+// imported counters are inconsistent with the earned first-clear ledger.
+p.siegeHistory=h.normalizeSiegeHistory([
+ {...record(21,4,0),reason:'victory'},record(20,4,0),record(3,3,4)]);
+assert.equal(h.veteranPioneerSweep().measuredAttempts,1,
+ 'A victory must not count as a measured failed frontier push');
+assert.equal(h.veteranPioneerSweep().recordedZero,false,
+ 'A victory paired with one loss cannot prove a two-failure stall');
 // An intervening newer unmeasured sortie breaks a consecutive measured-stall claim.
 p.siegeHistory=h.normalizeSiegeHistory([
  record(12,4,0), {...record(11,4,0),offenseTracked:false},
