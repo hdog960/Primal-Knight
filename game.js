@@ -2789,6 +2789,9 @@ function renderVeteranPioneerSweep(){
   '<div class="veteran-pioneer-goal"><strong>TIER '+roman(q.tier)+' · '+q.name+'</strong>'+
    '<span>RECORD '+fmt(q.best)+' · NEXT UNCLAIMED WAVE '+fmt(q.nextWave)+
     ' · START '+fmt(q.startWave)+' · REPLAY '+fmt(q.replayWaves)+'</span></div>'+
+  '<small>ARCHIVED SORTIES '+fmt(q.recentAttempts)+' · VERIFIED PRESSURE RECORDS '+fmt(q.measuredAttempts)+'/2 · '+
+   (q.recordedZero?'TWO MEASURED ZERO-CLEAR SORTIES; ALL ROUTES MAY BE STALLED':
+    q.measuredAttempts<2?'INSUFFICIENT MEASURED EVIDENCE TO RULE OUT A STALL':'NO TWO-RECORD ZERO-CLEAR STALL')+'</small>'+ 
   '<button type="button" data-veteran-pioneer="'+q.tier+'"'+
    (locked||q.selected?' disabled':'')+'>'+
    (q.selected?'TERRITORY ALREADY PREPARED':'PREPARE PIONEER TERRITORY')+'</button>'+
