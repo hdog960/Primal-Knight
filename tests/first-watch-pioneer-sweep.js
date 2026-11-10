@@ -45,11 +45,20 @@ assert(h.renderVeteranPioneerSweep().includes('PIONEER SWEEP · CHAPTER XIII'));
 assert.equal(JSON.stringify(p),prior,'Guide cannot mutate user save/economy/milestones');
 function record(id,tier,earned){
  return {id,reason:'fallen',tier,startWave:1,lastWave:21,cleared:20,
-  offenseTracked:true,wavePressureTracked:true,earned:{firstClears:earned}};
+  offenseTracked:true,wavePressureTracked:true,combatSeconds:60,earned:{firstClears:earned}};
 }
 p.siegeHistory=h.normalizeSiegeHistory([
  record(1,4,0),record(2,4,0),record(3,3,4),record(4,2,1)]);
 const after=h.veteranPioneerSweep();
+// Zero-duration records cannot establish that the hero actually fought and stalled.
+p.siegeHistory=h.normalizeSiegeHistory([
+ {...record(9,4,0),combatSeconds:0}, {...record(8,4,0),combatSeconds:0},
+ record(3,3,4),record(4,2,1)]);
+assert.equal(h.veteranPioneerSweep().tier,4,'No-combat sorties cannot falsely stall a zero-replay route');
+assert.equal(h.veteranPioneerSweep().measuredAttempts,0,'No-combat sorties are not measured combat evidence');
+p.siegeHistory=h.normalizeSiegeHistory([
+ record(1,4,0),record(2,4,0),record(3,3,4),record(4,2,1)]);
+const afterCombat=h.veteranPioneerSweep();
 assert.equal(after.tier,3,'Two genuinely measured zero-first-clear sorties skip stalled Tier IV');
 assert.equal(after.recordedZero,false);
 assert.equal(after.replayWaves,20);
