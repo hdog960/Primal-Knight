@@ -22,7 +22,7 @@
     <div id="siegeReportMetrics" class="siege-report-metrics"></div><p id="siegeReportRange" class="siege-report-range"></p>
    </details>
    <div class="lobby-content"><div class="lobby-tiers"><h2>DIFFICULTY TIERS <small id="tierUnlockHint">Tier advancement goals vary by territory</small></h2><div id="frontierNav" class="frontier-nav" aria-label="Earned frontier quick travel"></div><div class="tier-grid" id="tierGrid" role="group" aria-label="Choose an unlocked territory tier"></div><button id="jumpToTierDetails" class="atlas-open-button" type="button" aria-controls="tierHeading">↓ VIEW SELECTED TERRITORY &amp; REWARDS</button></div>
-    <div class="lobby-milestones"><div class="lobby-detail-head"><h2 id="tierHeading" tabindex="-1" aria-live="polite" aria-atomic="true">TIER I — VERDANT MARCH</h2>
+    <div class="lobby-milestones"><div class="lobby-detail-head"><button id="backToTierGrid" class="atlas-open-button" type="button" aria-controls="tierGrid">↑ BACK TO TERRITORY TIERS</button><h2 id="tierHeading" tabindex="-1" aria-live="polite" aria-atomic="true">TIER I — VERDANT MARCH</h2>
      <div class="tier-vista-card" id="tierVistaCard" aria-label="Illustrated region preview">
       <img id="tierVistaPreview" src="assets/battlefield.png" alt="The original Verdant March battlefield" decoding="async">
       <div class="tier-vista-caption"><span>THE LAND AHEAD</span><strong id="tierVistaName">VERDANT DAWN</strong><small id="tierVistaWeather">MIST · DAWN LIGHT</small></div>
@@ -126,6 +126,23 @@ document.getElementById('jumpToTierDetails')?.addEventListener('click', function
   if (!heading) return;
   heading.focus({preventScroll:true});
   heading.scrollIntoView({block:'start', behavior:'instant'});
+});
+
+// Return to the tier selector after reviewing a territory's rewards.
+// Focus the first currently enabled tier; never change selection or saves.
+document.getElementById('backToTierGrid')?.addEventListener('click', function() {
+  const grid = document.getElementById('tierGrid');
+  if (!grid) return;
+  const selected = grid.querySelector('[aria-pressed="true"]:not([disabled]), .selected:not([disabled])');
+  const target = selected || grid.querySelector('button:not([disabled])');
+  if (target) {
+    target.focus({preventScroll:true});
+    target.scrollIntoView({block:'nearest', behavior:'instant'});
+  } else {
+    grid.setAttribute('tabindex', '-1');
+    grid.focus({preventScroll:true});
+    grid.scrollIntoView({block:'nearest', behavior:'instant'});
+  }
 });
 
 // Keep keyboard and switch navigation inside the visible Atlas dialog.
