@@ -2817,6 +2817,9 @@ function renderVeteranPioneerSweep(){
 
 function renderVeteranClearRoutes(){
  const q=veteranClearRoutes();if(!q)return '';
+ // Mirror the guarded selector's active-siege and save-protection constraints
+ // in the UI, so a player is not offered a button that cannot work.
+ const selectionLocked=saveWriteBlocked||run.phase==='fighting'||run.phase==='intermission'||!verifyPrimaryContinuity();
  return '<section class="veteran-clear-routes" aria-label="First Watch upcoming time and unique clear gates with existing territory records">'+
    '<div class="veteran-route-heading"><strong>✦ RECORD STRETCH · CHAPTER '+roman(q.index+1)+'</strong>'+
     '<span>'+fmt(q.clears)+' / '+fmt(q.waveGate)+' FIRST CLEARS</span></div>'+
@@ -2843,7 +2846,7 @@ function renderVeteranClearRoutes(){
        (r.recent.lastCleared===null?'NONE':fmt(r.recent.lastCleared)):
        'NO RECENT SORTIE RECORDED FOR THIS TERRITORY')+
      '</small>'+
-     '<button type="button" data-veteran-clear-route="'+r.tier+'"'+(r.selected?' aria-current="true"':'')+
+     '<button type="button" data-veteran-clear-route="'+r.tier+'"'+(r.selected?' aria-current="true"':'')+(selectionLocked?' disabled aria-disabled="true" title="Territory selection is unavailable during combat or while save protection is active"':'')+
       '>'+(r.selected?'SELECTED TERRITORY':'VIEW TIER '+roman(r.tier))+'</button></article>').join('')+'</div>'+
    '<small>Only originally earned checkpoints count. Low replay count does not mean an easy fight. Selecting a territory changes only the guarded Battle lobby; no skipped rewards, auto-combat or new first clears.</small>'+
   '</section>';
