@@ -48,6 +48,8 @@ assert.equal(after.recordedZero,false);
 assert.equal(after.replayWaves,20);
 assert.equal(after.recentAttempts,1);
 assert(h.renderVeteranPioneerSweep().includes('NEXT UNCLAIMED WAVE 21'));
+assert(h.renderVeteranPioneerSweep().includes('VERIFIED PRESSURE RECORDS 1/2'),'Guide displays real measured sample size');
+assert(h.renderVeteranPioneerSweep().includes('INSUFFICIENT MEASURED EVIDENCE'),'One measured sortie cannot establish absence of a stall');
 // A selected non-stalled territory must beat an unselected proven stalled one.
 p.selectedTier=3;
 assert.equal(h.veteranPioneerSweep().tier,3,
@@ -77,6 +79,7 @@ assert.equal(ah.veteranPioneerSweep().tier,1,
  'Legacy unmeasured archive must not be treated as proven repeated zero-clear evidence');
 assert.equal(ah.veteranPioneerSweep().recordedZero,false);
 assert.equal(ah.veteranPioneerSweep().measuredAttempts,0);
+assert(ah.renderVeteranPioneerSweep().includes('VERIFIED PRESSURE RECORDS 0/2'),'Legacy history must not masquerade as measured evidence');
 assert(!Object.hasOwn(p,'pioneerSweep'),'No new player schema field');
 p.firstWatchClaimed=Array.from({length:16},(_,i)=>i);
 assert.equal(h.veteranPioneerSweep(),null,'Once actual Watch is fully awarded, hide the guide');
