@@ -118,6 +118,7 @@ container.listeners.click({target:{closest(sel){return sel==='[data-veteran-pion
 assert.equal(p.selectedTier,4,'Alternate Pioneer route can be prepared through the guarded selector');
 assert.equal(JSON.parse(w.store['primal_knight_onslaught_save_v1']).selectedTier,4,
  'Alternative route selection persists the actual unlocked tier');
+assert(h.selectFrontierTier(3),'Restore recommended tier for remaining regression checks');
 assert.equal(container.scrollTop,131,'Preserves mobile scroll');
 assert.equal(JSON.parse(w.store['primal_knight_onslaught_save_v1']).selectedTier,3);
 assert.equal(p.uniqueClears,506);assert.equal(p.gold,JSON.parse(snapshot).gold);
