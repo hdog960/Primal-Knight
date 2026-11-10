@@ -92,6 +92,12 @@ assert.equal(after.replayWaves,20);
 assert.equal(after.otherRoutes.length,2,'Pioneer Sweep exposes two real earned alternatives');
 assert(after.otherRoutes.every(x=>x.tier<=p.unlockedTier&&x.tier!==after.tier),
  'Alternative routes must be unlocked, distinct from recommendation');
+assert(h.renderVeteranPioneerSweep().includes('TIER IV · NEXT UNCLAIMED 11 · START 1 · 10 REPLAY WAVES'),
+ 'Alternative territory exposes the earned start and next unclaimed wave, not just replay cost');
+assert(h.renderVeteranPioneerSweep().includes('TWO MEASURED STALLS'),
+ 'Alternative route accurately discloses its own two measured stalls');
+assert(!h.renderVeteranPioneerSweep().includes('ALL ROUTES MAY BE STALLED'),
+ 'A stall on one territory must not be generalized to every available route');
 assert(h.renderVeteranPioneerSweep().includes('OTHER EARNED ROUTES'),
  'Players can compare alternative territories without leaving Veteran Watch');
 assert(h.renderVeteranPioneerSweep().includes('data-veteran-pioneer="4"'),
