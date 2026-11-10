@@ -58,6 +58,14 @@ assert.equal(h.veteranPioneerSweep().tier,4,'No-combat sorties cannot falsely st
 assert.equal(h.veteranPioneerSweep().measuredAttempts,0,'No-combat sorties are not measured combat evidence');
 p.siegeHistory=h.normalizeSiegeHistory([
  record(1,4,0),record(2,4,0),record(3,3,4),record(4,2,1)]);
+// Replay-only sorties that never reach the current record frontier are not failed pushes.
+p.bestByTier[4]=30;
+p.siegeHistory=h.normalizeSiegeHistory([record(15,4,0),record(14,4,0),record(3,3,4)]);
+assert.equal(h.veteranPioneerSweep().measuredAttempts,0,
+ 'Replays ending below wave 31 cannot prove that the current record frontier is stalled');
+assert.equal(h.veteranPioneerSweep().recordedZero,false,
+ 'A pair of replay-only sorties cannot be mistaken for two failed record pushes');
+p.bestByTier[4]=0;
 // An intervening newer unmeasured sortie breaks a consecutive measured-stall claim.
 p.siegeHistory=h.normalizeSiegeHistory([
  record(12,4,0), {...record(11,4,0),offenseTracked:false},
