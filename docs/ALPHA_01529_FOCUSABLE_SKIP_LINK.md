@@ -109,3 +109,9 @@
 - Next: confirm mandatory regression green and Pages on final head; then prioritize actual First Watch combat/progression milestone work rather than more tier navigation polish. The 30 x 10,000 structure, saves and 1,250-hour unverified design target remain unchanged.
 
 - Follow-up: copied the already established inline-script extraction expression from `tests/atlas-keyboard-focus.js` into the new regression verbatim; correction commit `bd2b64ddd16d8b542be7e0bb8845813ac9435d3e`. Final-head CI and Pages must be rechecked.
+
+## 2026-11-09 — Battle keyboard focus guard for hidden tiers and modifier shortcuts
+- Baseline `dec9232e9a42f2201154dcea896040e3356cd066`: GitHub Actions quality run `42732345746` and Pages deployment `42732345683` both completed successfully (API verified). Gameplay banner remains Alpha 0.15.27.
+- `index.html` keyboard tier handler now preserves Alt/Ctrl/Meta/Shift arrow shortcuts instead of intercepting them and excludes hidden territory buttons from focus movement. This is a narrowly scoped input bug fix; no combat, save schema, equipment, rewards or unlock gates changed. Implementation `9e772d84ce022fee1135d363ec50ef3ed68744b4`.
+- `tests/battle-tier-keyboard.js` now checks all four modifier cases and hidden-territory skipping using the production inline handler. Test commit `0cd44985d4363a7edb9f5b846d8c7da506892c01`.
+- Verification pending: mandatory CI for final head, Pages deployment and real iPhone/browser keyboard behavior. Original Tier IV portrait visual defect and creator acceptance remain open. Next: inspect full CI and Pages; return to substantive First Watch gameplay and long-term progression validation.
