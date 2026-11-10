@@ -2812,10 +2812,10 @@ function renderVeteranPioneerSweep(){
    (q.recordedZero?'TWO MEASURED ZERO-CLEAR SORTIES ON THIS ROUTE':
     q.measuredAttempts<2?'INSUFFICIENT MEASURED EVIDENCE TO RULE OUT A STALL':'NO TWO-RECORD ZERO-CLEAR STALL')+'</small>'+ 
   '<button type="button" data-veteran-pioneer="'+q.tier+'"'+
-   (locked||q.selected?' disabled':'')+'>'+
+   (locked||q.selected?' disabled aria-disabled="true"':'')+'>'+
    (q.selected?'TERRITORY ALREADY PREPARED':'PREPARE PIONEER TERRITORY')+'</button>'+
   (q.otherRoutes.length?'<small>OTHER EARNED ROUTES · COMPARE REPLAY COST AND RECENT EVIDENCE</small>'+q.otherRoutes.map(x=>
-   '<button type="button" data-veteran-pioneer="'+x.tier+'"'+(locked||x.selected?' disabled':'')+
+   '<button type="button" data-veteran-pioneer="'+x.tier+'"'+(locked||x.selected?' disabled aria-disabled="true"':'')+
    ' aria-label="Prepare alternative tier '+roman(x.tier)+'">'+
    'TIER '+roman(x.tier)+' · NEXT UNCLAIMED '+fmt(x.nextWave)+' · START '+fmt(x.startWave)+' · '+fmt(x.replayWaves)+' REPLAY WAVES · '+
    (x.recordedZero?'TWO MEASURED STALLS':x.measuredAttempts<2?'STALL EVIDENCE INCOMPLETE':'NO TWO-RECORD STALL')+
