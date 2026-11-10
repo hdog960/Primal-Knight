@@ -89,6 +89,13 @@ const afterCombat=h.veteranPioneerSweep();
 assert.equal(after.tier,3,'Two genuinely measured zero-first-clear sorties skip stalled Tier IV');
 assert.equal(after.recordedZero,false);
 assert.equal(after.replayWaves,20);
+assert.equal(after.otherRoutes.length,2,'Pioneer Sweep exposes two real earned alternatives');
+assert(after.otherRoutes.every(x=>x.tier<=p.unlockedTier&&x.tier!==after.tier),
+ 'Alternative routes must be unlocked, distinct from recommendation');
+assert(h.renderVeteranPioneerSweep().includes('OTHER EARNED ROUTES'),
+ 'Players can compare alternative territories without leaving Veteran Watch');
+assert(h.renderVeteranPioneerSweep().includes('data-veteran-pioneer="4"'),
+ 'Existing guarded tier selector is reused for alternate territory');
 assert.equal(after.recentAttempts,1);
 assert(h.renderVeteranPioneerSweep().includes('NEXT UNCLAIMED WAVE 21'));
 assert(h.renderVeteranPioneerSweep().includes('VERIFIED PRESSURE RECORDS 1/2'),'Guide displays real measured sample size');
@@ -105,6 +112,12 @@ const container=w.el('milestoneList'); container.scrollTop=131;
 const chosen={dataset:{veteranPioneer:'3'},disabled:false};
 container.listeners.click({target:{closest(sel){return sel==='[data-veteran-pioneer]'?chosen:null;}}});
 assert.equal(p.selectedTier,3,'Real guarded selector picks earned territory');
+// An alternative uses the same save-protected selection path, not a bypass.
+const alternate={dataset:{veteranPioneer:'4'},disabled:false};
+container.listeners.click({target:{closest(sel){return sel==='[data-veteran-pioneer]'?alternate:null;}}});
+assert.equal(p.selectedTier,4,'Alternate Pioneer route can be prepared through the guarded selector');
+assert.equal(JSON.parse(w.store['primal_knight_onslaught_save_v1']).selectedTier,4,
+ 'Alternative route selection persists the actual unlocked tier');
 assert.equal(container.scrollTop,131,'Preserves mobile scroll');
 assert.equal(JSON.parse(w.store['primal_knight_onslaught_save_v1']).selectedTier,3);
 assert.equal(p.uniqueClears,506);assert.equal(p.gold,JSON.parse(snapshot).gold);
