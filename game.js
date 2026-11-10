@@ -2790,7 +2790,7 @@ function veteranPioneerSweep(){
 }
 function renderVeteranPioneerSweep(){
  const q=veteranPioneerSweep();if(!q)return '';
- const locked=saveWriteBlocked||run.phase==='fighting'||run.phase==='intermission';
+ const locked=saveWriteBlocked||run.phase==='fighting'||run.phase==='intermission'||!verifyPrimaryContinuity();
  return '<section class="veteran-pioneer-sweep" aria-label="Suggest a real unlocked record-stretch territory">'+
   '<div class="veteran-pioneer-top"><strong>✦ PIONEER SWEEP · CHAPTER '+roman(q.chapter)+'</strong>'+
    '<small>'+fmt(q.remaining)+' FIRST CLEARS REMAIN</small></div>'+
