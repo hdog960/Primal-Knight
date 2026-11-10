@@ -2772,7 +2772,10 @@ function veteranPioneerSweep(){
  options.sort((a,b)=>Number(a.recordedZero)-Number(b.recordedZero)||
   a.replayWaves-b.replayWaves||a.recentAttempts-b.recentAttempts||
   Number(a.selected)-Number(b.selected)||a.tier-b.tier);
- const route=options.find(x=>!x.selected)||options[0];
+ // Never trade a genuinely non-stalled route for a measured stalled route
+ // merely to avoid recommending the territory already selected.
+ const bestEvidence=options[0].recordedZero;
+ const route=options.find(x=>!x.selected&&x.recordedZero===bestEvidence)||options[0];
  return {...route,chapter:guide.index+1,remaining:guide.missingClears,
   verifiedNonStalled:!route.recordedZero,alternatives:options.length};
 }
