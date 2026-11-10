@@ -154,8 +154,13 @@ document.getElementById('tierGrid')?.addEventListener('keydown', function(event)
     .filter(button => !button.hidden && !button.closest('[hidden]'));
   if (!buttons.length || !buttons.includes(event.target)) return;
   const current = buttons.indexOf(event.target);
+  // Vertical arrows follow the rendered CSS grid, not the next item in the row.
+  // Use actual column positions so portrait and landscape layouts both work.
+  const columns = Math.max(1, (getComputedStyle(this).gridTemplateColumns.match(/\S+/g) || []).length);
+  const step = event.key === 'ArrowUp' ? -columns : event.key === 'ArrowDown' ? columns :
+    event.key === 'ArrowLeft' ? -1 : 1;
   const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 :
-    Math.max(0, Math.min(buttons.length - 1, current + (event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1)));
+    Math.max(0, Math.min(buttons.length - 1, current + step));
   event.preventDefault();
   buttons[next].focus({preventScroll:true});
   buttons[next].scrollIntoView({block:'nearest'});
