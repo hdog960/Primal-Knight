@@ -2758,7 +2758,7 @@ function veteranPioneerSweep(){
   const startWave=nearestEarnedWaystone(tier,best+1)||1;
   const measured=(Array.isArray(p.siegeHistory)?p.siegeHistory:[])
    .filter(x=>x&&x.tier===tier).slice(0,2)
-   .filter(x=>x.wavePressureTracked===true&&x.offenseTracked===true&&x.combatSeconds>0);
+   .filter(x=>x.wavePressureTracked===true&&x.offenseTracked===true&&x.combatSeconds>0&&x.lastWave>best);
   const recordedZero=measured.length===2&&
    measured.every(x=>safeHistoryCount(x.earned?.firstClears)===0);
   const attempts=(Array.isArray(p.siegeHistory)?p.siegeHistory:[])
