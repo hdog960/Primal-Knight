@@ -48,6 +48,11 @@ assert.equal(after.recordedZero,false);
 assert.equal(after.replayWaves,20);
 assert.equal(after.recentAttempts,1);
 assert(h.renderVeteranPioneerSweep().includes('NEXT UNCLAIMED WAVE 21'));
+// A selected non-stalled territory must beat an unselected proven stalled one.
+p.selectedTier=3;
+assert.equal(h.veteranPioneerSweep().tier,3,
+ 'Do not recommend a measured stalled alternative just to avoid the selected tier');
+p.selectedTier=1;
 const snapshot=JSON.stringify(p);
 h.renderTierLobby();
 const container=w.el('milestoneList'); container.scrollTop=131;
