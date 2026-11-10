@@ -3569,7 +3569,7 @@
     bottom:0;
     z-index:8;
     min-height:54px;
-    padding:7px max(10px,env(safe-area-inset-right)) 7px max(10px,env(safe-area-inset-left));
+    padding:7px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
     background:linear-gradient(#263645,#111b29);
   }
   .tier-lobby .lobby-footer button { min-height:44px; white-space:normal; }
