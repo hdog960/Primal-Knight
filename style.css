@@ -3601,6 +3601,18 @@
   }
 }
 
+/* Short-landscape touch scrolling: reserve a full launch-footer height below the
+   last content row, not just focus scroll-padding. A sticky footer otherwise
+   covers the final rest controls while the player drags the page by touch. */
+@media (orientation:landscape) and (max-height:460px) and (max-width:950px) {
+  .tier-lobby:not([hidden]) .lobby-content {
+    padding-bottom:calc(76px + env(safe-area-inset-bottom));
+  }
+  .tier-lobby .siege-guard-buttons button {
+    scroll-margin-bottom:calc(84px + env(safe-area-inset-bottom));
+  }
+}
+
 /* Alpha 0.15.29 — short-landscape Battle detail containment. The territory
    illustration and rest controls must occupy normal flow, never paint over
    the next section or force a horizontal page pan on narrow iPhones. */
