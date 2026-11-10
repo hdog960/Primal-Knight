@@ -11,3 +11,8 @@ Continue the same genuinely earned seed-15423 original-price character after 24 
 
 ## Release bar
 96th mandatory regression checks original source player UI, untried-vs-stalled rules, legacy unmeasured history, no reward mutation, locked-tier rejection, active selection and save persistence, 48+px iPhone target and no fake Watch completion. Existing 95 tests remain; release only after final-head PR green checks, independent merged-main checks and matching GitHub Pages deployment. All 16 Watch chapters, later Tier XVIII–XXX, 10,000 waves each and 1,250-hour target remain unverified. Physical iPhone review deferred as requested.
+
+## 2026-11-10 — Route evidence visibility
+- Battle's Pioneer Sweep now displays the count of archived sorties and the actual number of qualifying measured pressure records (0–2). One or zero measured records explicitly states evidence is insufficient to rule out a stall; two records without both zero clears are not labeled a proven success. If all candidate routes have measured zero-clear stalls, the panel warns that all routes may be stalled.
+- `game.js` implementation `0ce7c41b651f06b9e6291e68b8d4fe2056ed2eda`; regression assertions in `tests/first-watch-pioneer-sweep.js` commit `a2cf65b132273e11bdea301506bf0630def9037e`.
+- No route-selection formulas, combat, save fields, currency, earned tier unlocks or First Watch awards changed. CI and Pages on final documentation commit must be checked separately; real iPhone Tier IV overlap/visual approval still pending. Next: verify complete workflow and live deployment, then pursue earned progression/First Watch and real mobile QA.
