@@ -2801,7 +2801,7 @@ function renderVeteranPioneerSweep(){
    '<small>IF YOU REALLY CLEAR THE NEXT '+fmt(q.potentialFirstClears)+' UNCLAIMED WAVE'+(q.potentialFirstClears===1?'':'S')+', UP TO '+fmt(q.potentialFirstClears)+' NEW FIRST CLEARS CAN COUNT TOWARD THIS CHAPTER. NO VICTORY IS GUARANTEED.</small></div>'+
   '<small>WATCH TIME GATE · '+(q.secondsLeft?Math.ceil(q.secondsLeft/60)+' ACTIVE MINUTES STILL NEEDED':'ACTIVE-TIME REQUIREMENT MET')+'</small>'+ 
   '<small>ARCHIVED SORTIES '+fmt(q.recentAttempts)+' · VERIFIED PRESSURE RECORDS '+fmt(q.measuredAttempts)+'/2 · '+
-   (q.recordedZero?'TWO MEASURED ZERO-CLEAR SORTIES; ALL ROUTES MAY BE STALLED':
+   (q.recordedZero?'TWO MEASURED ZERO-CLEAR SORTIES ON THIS ROUTE':
     q.measuredAttempts<2?'INSUFFICIENT MEASURED EVIDENCE TO RULE OUT A STALL':'NO TWO-RECORD ZERO-CLEAR STALL')+'</small>'+ 
   '<button type="button" data-veteran-pioneer="'+q.tier+'"'+
    (locked||q.selected?' disabled':'')+'>'+
@@ -2809,8 +2809,8 @@ function renderVeteranPioneerSweep(){
   (q.otherRoutes.length?'<small>OTHER EARNED ROUTES · COMPARE REPLAY COST AND RECENT EVIDENCE</small>'+q.otherRoutes.map(x=>
    '<button type="button" data-veteran-pioneer="'+x.tier+'"'+(locked||x.selected?' disabled':'')+
    ' aria-label="Prepare alternative tier '+roman(x.tier)+'">'+
-   'TIER '+roman(x.tier)+' · '+fmt(x.replayWaves)+' REPLAY WAVES · '+
-   (x.recordedZero?'TWO MEASURED STALLS':'STALL NOT ESTABLISHED')+
+   'TIER '+roman(x.tier)+' · NEXT UNCLAIMED '+fmt(x.nextWave)+' · START '+fmt(x.startWave)+' · '+fmt(x.replayWaves)+' REPLAY WAVES · '+
+   (x.recordedZero?'TWO MEASURED STALLS':x.measuredAttempts<2?'STALL EVIDENCE INCOMPLETE':'NO TWO-RECORD STALL')+
    (x.selected?' · ALREADY PREPARED':' · PREPARE')+'</button>').join(''):'')+
   '<small>Only the existing guarded Battle tier selector is used. No skip, reward, ability, wave completion or permanent character update is granted by this suggestion.</small></section>';
 }
