@@ -93,3 +93,10 @@
 - `index.html`: added a visible **VIEW SELECTED TERRITORY & REWARDS** control after the long 30-tier grid. It focuses and scrolls to the current tier's heading, without selecting a different tier or starting a siege. Reuses the existing Atlas-style button class, and makes the heading programmatically focusable. Commit `8c1a6d60e84dac1d6867c8e7ae6ebb654faec63e`.
 - `tests/cache-version-contract.js`: required static assertions for button wiring, target focus and scrolling. Commit `951894381ee56b57e32d4a32493f7d27cc5c369c`. Re-fetched both files and checked five source conditions; all five passed. This is not full Node execution or iPhone browser QA.
 - Next: confirm quality and Pages workflows on final head, test mobile jump/scroll/launch behavior on iPhone portrait, and resume First Watch progression work. Original user-reported Battle overlap remains visually unapproved; do not declare it fixed from static checks.
+
+## 2026-11-09 — Battle rewards return navigation
+- Baseline main `b7689c10f355d9d12b2a641660ec35ed962fdfb9`; latest previous Pages workflow `42717145647` completed successfully for that baseline. Release banner still Alpha 0.15.27.
+- Added **BACK TO TERRITORY TIERS** inside the Battle rewards pane. Activating it focuses the currently marked unlocked tier when available, otherwise the first enabled tier, and scrolls the control into view. If no buttons are enabled, it focuses the grid itself. It does not launch combat, unlock tiers, modify the selected territory, or write saves.
+- Production markup and handler commit `2c5d2b8c141cd2398d9175cccef4117df0f044a6`; required source regression assertions commit `b4fd31273a9dd1db7020d6e7e3c0e8df4557b295`.
+- Re-fetched both files and evaluated four source contract assertions; all passed. **Not yet verified:** full Node test suite, new-head GitHub Actions and Pages, actual keyboard focus in a browser, or physical iPhone visual QA. Original Battle overlap and creator visual approval remain open.
+- Next: confirm final-head CI and Pages; test back-and-forth tier navigation in a browser and return to substantial First Watch progression work.
