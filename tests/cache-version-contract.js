@@ -33,4 +33,8 @@ assert(/id="jumpToTierDetails"[^>]*aria-controls="tierHeading"/.test(html), 'Bat
 assert(/id="tierHeading"[^>]*tabindex="-1"/.test(html), 'selected territory heading accepts programmatic focus');
 assert(/getElementById\('jumpToTierDetails'\)\?\.addEventListener\('click'/.test(html), 'jump button has a click handler');
 assert(/heading\.focus\(\{preventScroll:true\}\)/.test(html) && /heading\.scrollIntoView\(\{block:'start'/.test(html), 'jump focuses and reveals the selected territory');
+assert(/id="backToTierGrid"[^>]*aria-controls="tierGrid"/.test(html), 'Battle rewards offer return navigation');
+assert(/getElementById\('backToTierGrid'\)\?\.addEventListener\('click'/.test(html), 'return navigation has a click handler');
+assert(/grid\.querySelector\('button:not\(\[disabled\]\)'\)/.test(html), 'return navigation ignores locked tier buttons');
+assert(/target\.focus\(\{preventScroll:true\}\)/.test(html), 'return navigation transfers focus');
 console.log('PASS: shared Home Screen asset-version floor, newer suffixes, invalid/stale cache keys');
