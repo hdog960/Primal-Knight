@@ -145,6 +145,20 @@ document.getElementById('backToTierGrid')?.addEventListener('click', function() 
   }
 });
 
+// The 30-territory picker supports conventional grid arrow/Home/End focus.
+// Focus alone never selects a territory or changes a saved unlock.
+document.getElementById('tierGrid')?.addEventListener('keydown', function(event) {
+  if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key)) return;
+  const buttons = Array.from(this.querySelectorAll('button:not([disabled])'));
+  if (!buttons.length || !buttons.includes(event.target)) return;
+  const current = buttons.indexOf(event.target);
+  const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 :
+    Math.max(0, Math.min(buttons.length - 1, current + (event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1)));
+  event.preventDefault();
+  buttons[next].focus({preventScroll:true});
+  buttons[next].scrollIntoView({block:'nearest'});
+});
+
 // Keep keyboard and switch navigation inside the visible Atlas dialog.
 // The game owns opening, closing, Escape and return-focus behavior.
 document.getElementById('worldAtlas')?.addEventListener('keydown', function(event) {
