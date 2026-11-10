@@ -54,6 +54,7 @@ assert(h.renderVeteranPioneerSweep().includes('VERIFIED PRESSURE RECORDS 1/2'),'
 assert(h.renderVeteranPioneerSweep().includes('INSUFFICIENT MEASURED EVIDENCE'),'One measured sortie cannot establish absence of a stall');
 // A selected non-stalled territory must beat an unselected proven stalled one.
 p.selectedTier=3;
+assert.equal(h.veteranPioneerSweep().replayWaves,20,'Best genuinely earned replay remains shortest');
 assert.equal(h.veteranPioneerSweep().tier,3,
  'Do not recommend a measured stalled alternative just to avoid the selected tier');
 p.selectedTier=1;
