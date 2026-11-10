@@ -2775,7 +2775,10 @@ function veteranPioneerSweep(){
  // Never trade a genuinely non-stalled route for a measured stalled route
  // merely to avoid recommending the territory already selected.
  const bestEvidence=options[0].recordedZero;
- const route=options.find(x=>!x.selected&&x.recordedZero===bestEvidence)||options[0];
+ // A prepared territory with the shortest earned replay is still the best route.
+ // Only prefer an unselected alternative when it ties that shortest replay.
+ const shortest=options[0].replayWaves;
+ const route=options.find(x=>!x.selected&&x.recordedZero===bestEvidence&&x.replayWaves===shortest)||options[0];
  return {...route,chapter:guide.index+1,remaining:guide.missingClears,secondsLeft:guide.secondsLeft,
   verifiedNonStalled:!route.recordedZero,alternatives:options.length};
 }
