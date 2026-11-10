@@ -107,3 +107,5 @@
 - Added production-inline-handler regression `tests/battle-tier-keyboard.js`, corrected test regex escaping in `bbed5ecbebcec8fa51d758c745e93bab998966d6`, and wired it to mandatory Actions quality checks in `6f0e48fbea6136ff8bc16fde3cd87301584bc82d`.
 - New-head full CI, Pages deployment, actual hardware keyboard/iPhone and Tier IV visual acceptance remain to be verified. Container network DNS prevented a local clone; do not call this a locally executed test.
 - Next: confirm mandatory regression green and Pages on final head; then prioritize actual First Watch combat/progression milestone work rather than more tier navigation polish. The 30 x 10,000 structure, saves and 1,250-hour unverified design target remain unchanged.
+
+- Follow-up: copied the already established inline-script extraction expression from `tests/atlas-keyboard-focus.js` into the new regression verbatim; correction commit `bd2b64ddd16d8b542be7e0bb8845813ac9435d3e`. Final-head CI and Pages must be rechecked.
