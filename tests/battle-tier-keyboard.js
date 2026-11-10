@@ -38,6 +38,10 @@ function key(k, target = active, modifiers = {}) {
   handlers.keydown.call(grid, {key:k, target, ...modifiers, preventDefault() { prevented++; }});
 }
 active = buttons[0];
+// Keyboard events can bubble from icons or text nested inside a tier button.
+const nestedLabel = {closest(selector) { assert.equal(selector, 'button'); return buttons[0]; }};
+key('ArrowRight', nestedLabel); assert.equal(active, buttons[1], 'nested label supports arrow navigation');
+active = buttons[0];
 key('ArrowRight'); assert.equal(active, buttons[1]);
 key('ArrowDown'); assert.equal(active, buttons[4], 'down follows three-column grid');
 key('ArrowUp'); assert.equal(active, buttons[1], 'up returns to same column');
@@ -49,7 +53,7 @@ key('ArrowUp'); assert.equal(active, buttons[2]);
 const before = prevented;
 key('Enter'); assert.equal(prevented, before, 'native activation is preserved');
 key('ArrowRight', {name:'unrelated'}); assert.equal(prevented, before, 'unrelated targets ignored');
-assert.equal(scrolls, 8);
+assert.equal(scrolls, 9);
 for (const modifier of ['altKey', 'ctrlKey', 'metaKey', 'shiftKey']) {
   const previous = active, count = prevented;
   key('ArrowRight', active, {[modifier]: true});
