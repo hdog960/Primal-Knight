@@ -100,3 +100,10 @@
 - Production markup and handler commit `2c5d2b8c141cd2398d9175cccef4117df0f044a6`; required source regression assertions commit `b4fd31273a9dd1db7020d6e7e3c0e8df4557b295`.
 - Re-fetched both files and evaluated four source contract assertions; all passed. **Not yet verified:** full Node test suite, new-head GitHub Actions and Pages, actual keyboard focus in a browser, or physical iPhone visual QA. Original Battle overlap and creator visual approval remain open.
 - Next: confirm final-head CI and Pages; test back-and-forth tier navigation in a browser and return to substantial First Watch progression work.
+
+## 2026-11-09 — Battle tier keyboard grid navigation
+- Baseline main `d1a9655d92d2159f6cff7287994eb836d19583a3`: quality run `42725563342` and Pages run `42725563813` both succeeded (verified via GitHub Actions API).
+- Added native arrow-key and Home/End focus movement among **currently enabled** Battle territory buttons, with clamped boundaries and scroll-to-focused control. Focus alone does not select, unlock, launch, or save anything; Enter/Space activation remains native. Implementation `f29d58c65a5280dfd1992148821dc36597701efd`.
+- Added production-inline-handler regression `tests/battle-tier-keyboard.js`, corrected test regex escaping in `bbed5ecbebcec8fa51d758c745e93bab998966d6`, and wired it to mandatory Actions quality checks in `6f0e48fbea6136ff8bc16fde3cd87301584bc82d`.
+- New-head full CI, Pages deployment, actual hardware keyboard/iPhone and Tier IV visual acceptance remain to be verified. Container network DNS prevented a local clone; do not call this a locally executed test.
+- Next: confirm mandatory regression green and Pages on final head; then prioritize actual First Watch combat/progression milestone work rather than more tier navigation polish. The 30 x 10,000 structure, saves and 1,250-hour unverified design target remain unchanged.
