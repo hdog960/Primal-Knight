@@ -2780,7 +2780,8 @@ function veteranPioneerSweep(){
  const shortest=options[0].replayWaves;
  const route=options.find(x=>!x.selected&&x.recordedZero===bestEvidence&&x.replayWaves===shortest)||options[0];
  return {...route,chapter:guide.index+1,remaining:guide.missingClears,secondsLeft:guide.secondsLeft,
-  verifiedNonStalled:!route.recordedZero,alternatives:options.length};
+  verifiedNonStalled:!route.recordedZero,alternatives:options.length,
+  potentialFirstClears:Math.min(guide.missingClears,MAX_WAVE-route.best,10)};
 }
 function renderVeteranPioneerSweep(){
  const q=veteranPioneerSweep();if(!q)return '';
@@ -2791,7 +2792,8 @@ function renderVeteranPioneerSweep(){
   '<p>One-tap preparation for a genuinely unlocked territory with an outstanding record. The guide avoids two recently measured zero-first-clear sorties where an alternative exists; otherwise it considers earned-waystone replay distance. This is not a victory prediction.</p>'+
   '<div class="veteran-pioneer-goal"><strong>TIER '+roman(q.tier)+' · '+q.name+'</strong>'+
    '<span>RECORD '+fmt(q.best)+' · NEXT UNCLAIMED WAVE '+fmt(q.nextWave)+
-    ' · START '+fmt(q.startWave)+' · REPLAY '+fmt(q.replayWaves)+'</span></div>'+
+    ' · START '+fmt(q.startWave)+' · REPLAY '+fmt(q.replayWaves)+'</span>'+ 
+   '<small>IF YOU REALLY CLEAR THE NEXT '+fmt(q.potentialFirstClears)+' UNCLAIMED WAVE'+(q.potentialFirstClears===1?'':'S')+', UP TO '+fmt(q.potentialFirstClears)+' NEW FIRST CLEARS CAN COUNT TOWARD THIS CHAPTER. NO VICTORY IS GUARANTEED.</small></div>'+
   '<small>WATCH TIME GATE · '+(q.secondsLeft?Math.ceil(q.secondsLeft/60)+' ACTIVE MINUTES STILL NEEDED':'ACTIVE-TIME REQUIREMENT MET')+'</small>'+ 
   '<small>ARCHIVED SORTIES '+fmt(q.recentAttempts)+' · VERIFIED PRESSURE RECORDS '+fmt(q.measuredAttempts)+'/2 · '+
    (q.recordedZero?'TWO MEASURED ZERO-CLEAR SORTIES; ALL ROUTES MAY BE STALLED':
