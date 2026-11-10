@@ -34,6 +34,8 @@ const prior=JSON.stringify(p),first=h.veteranPioneerSweep();
 assert(first&&first.tier===4,'Untried route has zero historical replay distance');
 assert.equal(first.startWave,1);assert.equal(first.replayWaves,0);
 assert.equal(first.nextWave,1);assert.equal(first.remaining,99);
+assert.equal(first.secondsLeft,0,'Earned Chapter XIII time gate is met');
+assert(h.renderVeteranPioneerSweep().includes('ACTIVE-TIME REQUIREMENT MET'));
 assert(h.renderVeteranPioneerSweep().includes('PIONEER SWEEP · CHAPTER XIII'));
 assert.equal(JSON.stringify(p),prior,'Guide cannot mutate user save/economy/milestones');
 function record(id,tier,earned){
@@ -67,7 +69,9 @@ assert.equal(p.uniqueClears,506);assert.equal(p.gold,JSON.parse(snapshot).gold);
 assert.equal(h.selectFrontierTier(5),false,'Locked realm cannot be reached via Pioneer Sweep');
 const absent=world(1528),ah=absent.h,ap=ah.p();
 ap.firstWatchClaimed=Array.from({length:11},(_,i)=>i);ap.unlockedTier=2;
-ap.uniqueClears=450;ap.bestByTier={1:23,2:25};
+ap.uniqueClears=450;ap.battleSeconds=0;ap.bestByTier={1:23,2:25};
+assert(ah.veteranPioneerSweep().secondsLeft>0);
+assert(ah.renderVeteranPioneerSweep().includes('ACTIVE MINUTES STILL NEEDED'));
 ap.siegeHistory=ah.normalizeSiegeHistory([
  {id:1,reason:'fallen',tier:1,startWave:1,lastWave:24,cleared:23,earned:{firstClears:0}},
  {id:2,reason:'fallen',tier:1,startWave:1,lastWave:24,cleared:23,earned:{firstClears:0}}
