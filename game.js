@@ -4756,10 +4756,14 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
    (e.type==='raider'&&e.dashTime>0?.11:casting?-.07:stride*(heavy?.018:.042));
   const squash=attackPose?(crushing?1.09:furious?.94:1.02):
    1+Math.abs(stride)*(heavy?.014:.035);
+  // A landed arrow produces a short, visible recoil, grounded to the feet.
+  // The existing 0.15-second hit flash is the sole clock; no new combat state.
+  const impact=clamp((e.buildup||0)/.15,0,1);
+  const stagger=impact>0?Math.sin((1-impact)*Math.PI)*impact:0;
   const footY=py+sh;
   ctx.translate(e.x,footY);
-  ctx.rotate(lean);
-  ctx.scale(1/squash,squash);
+  ctx.rotate(lean-stagger*(heavy?.055:.12));
+  ctx.scale(1/squash, squash*(1-stagger*(heavy?.035:.075)));
   ctx.drawImage(im,-sw/2,-sh,sw,sh);
  }else ctx.drawImage(im,e.x-sw/2,py,sw,sh);
  ctx.restore();
@@ -4830,6 +4834,18 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
    }
    ctx.restore();
   }
+ }
+ // Short impact sparks use real hit feedback and respect reduced motion.
+ // They stay behind target indicators and never affect combat collision.
+ if(!reduceMotion&&e.buildup>0&&run.phase==='fighting'){
+  const impact=clamp(e.buildup/.15,0,1);
+  const spread=(1-impact)*Math.max(9,12*s);
+  ctx.save();ctx.globalAlpha=impact*.85;ctx.fillStyle='#ffe5a4';
+  for(const side of [-1,1]){
+   ctx.fillRect(Math.round(e.x+side*spread),Math.round(py+sh*.32-spread*.4),
+    Math.max(2,3*s),Math.max(2,3*s));
+  }
+  ctx.restore();
  }
  if(e===castFocus&&run.phase==='fighting'&&castFocusActive(e,castFocusKind)){
   // One static cast-specific target marker; no extra images or HUD panel.
