@@ -462,7 +462,7 @@ console.log('PASS: Alpha 0.10.5 boss ward shatter, Cinder/void/crusher interrupt
  assert(hint.textContent.includes('FROST RITE'),'Second live threat appears when a higher danger is defeated');
  live.enemies[0].dead=true;tact.refreshHUD();
  assert.equal(ribbon.dataset.threat,'false','Threat ribbon returns to normal when warned enemies die');
- assert(hint.textContent.includes('RUSHERS')||hint.hidden,'Fallback advice displays only when applicable');
+ assert(hint.textContent.includes('THREE-LANE PINCER')&&hint.textContent.includes('CENTER FEINT'),'Night ambush advice returns after the last live cast threat is defeated');
  // Real-time warnings also work for every main chapter boss ability.
  live.enemies=[{type:'warlord',dead:false,x:480,y:200,bossFuryWindup:.8}];
  assert(tact.activeEncounterThreat().text.includes('EMBER CHARGE'),'Ember windups are announced to the hero');
