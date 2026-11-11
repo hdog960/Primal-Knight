@@ -4969,7 +4969,6 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
    for(let i=0;i<3;i++)ctx.fillRect(19+i*8,-6+i*5,5,2);
   }
   ctx.restore();
- }
  }ctx.restore();}
 /* Alpha 0.12.14 — truthful specialist cast timer and interruption progress.
    Uses only the same live enemy windup and damage fields as combat; never
