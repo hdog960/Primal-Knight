@@ -4934,21 +4934,42 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  for(const s of run.shots){ctx.beginPath();ctx.lineWidth=s.kind==='lightning'?3:2;ctx.strokeStyle=s.kind==='lightning'?'#90f2ff':s.kind==='ballista'?'#ffd285':'#ffe8a9';ctx.moveTo(s.x,s.y);const history=s.trailHead*2;ctx.lineTo(s.trailCount?s.trail[history]:s.x-7,s.trailCount?s.trail[history+1]:s.y+6);ctx.stroke();ctx.fillStyle='#fff5b9';ctx.fillRect(s.x-2,s.y-2,4,4);}
  for(const t of run.particles){ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.fillRect(t.x,t.y,t.size,t.size)}ctx.globalAlpha=1;
  for(const f of run.floats){ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y)}ctx.globalAlpha=1;
- // The lone defender's bow now visibly recoils and recovers with each real
- // attack flash. All geometry stays in the foreground firing position and
- // is purely visual: no new projectile, timer, damage or saved state.
- if(run.flashes>0&&!reduceMotion){
-  const recoil=clamp(run.flashes*5,0,1),release=1-recoil;
-  ctx.save();ctx.translate(540,360);ctx.rotate(-.16*recoil);
-  ctx.globalAlpha=.42+.52*recoil;
-  ctx.strokeStyle='#ffd88d';ctx.lineWidth=3;ctx.beginPath();
-  ctx.moveTo(-12,-16);ctx.quadraticCurveTo(12+9*recoil,-4,7,17);ctx.stroke();
-  ctx.strokeStyle='#fff4cf';ctx.lineWidth=1.5;ctx.beginPath();
-  ctx.moveTo(-12,-16);ctx.lineTo(-7+13*recoil,0);ctx.lineTo(7,17);ctx.stroke();
-  ctx.fillStyle='#fff1b6';ctx.fillRect(-8+13*recoil,-2,11,3);
-  ctx.globalAlpha=.35*recoil;ctx.strokeStyle='#ffe29a';ctx.lineWidth=2;
-  ctx.beginPath();ctx.arc(0,0,18+release*18,-.65,.45);ctx.stroke();
+ // First Watch hero frame study: three readable combat poses and a subtle
+ // guarded idle. All poses are derived from the existing real attack flash.
+ // The painted fortress and single hero remain unchanged; no new state.
+ if(run.phase==='fighting'){
+  const flash=clamp(Number(run.flashes)||0,0,1);
+  const firing=flash>0;
+  const phase=firing?(flash>.65?'release':flash>.28?'followthrough':'recover'):'guard';
+  const motion=reduceMotion?0:1;
+  const breathe=motion&&!firing?Math.sin(run.time*2.2)*1.2:0;
+  const pull=phase==='release'?14:phase==='followthrough'?8:phase==='recover'?3:0;
+  const lean=phase==='release'?-5:phase==='followthrough'?4:0;
+  ctx.save();ctx.translate(540,360+breathe);ctx.imageSmoothingEnabled=false;
+  // Dark pixel-outline arm, bronze bracer, and three-point bowstring
+  // preserve a crisp 32-bit silhouette even on narrow iPhone viewports.
+  ctx.fillStyle='#182534';ctx.fillRect(-20+lean,-8,13,7);
+  ctx.fillStyle='#7e9eb1';ctx.fillRect(-18+lean,-7,9,4);
+  ctx.fillStyle='#e4bd7c';ctx.fillRect(-11+lean,-5,7,3);
+  ctx.strokeStyle='#302632';ctx.lineWidth=5;ctx.beginPath();
+  ctx.moveTo(-15,-24);ctx.quadraticCurveTo(14+pull,-6,9,23);ctx.stroke();
+  ctx.strokeStyle='#dba55b';ctx.lineWidth=3;ctx.beginPath();
+  ctx.moveTo(-15,-24);ctx.quadraticCurveTo(14+pull,-6,9,23);ctx.stroke();
+  ctx.strokeStyle='#fff0cf';ctx.lineWidth=1.6;ctx.beginPath();
+  ctx.moveTo(-15,-24);ctx.lineTo(-10+pull,0);ctx.lineTo(9,23);ctx.stroke();
+  // An arrow is nocked while guarding, then departs with the real flash.
+  ctx.fillStyle='#e7c68c';ctx.fillRect(-11+pull,-2,20,3);
+  ctx.fillStyle='#f4e5c4';ctx.beginPath();ctx.moveTo(12+pull,-4);
+  ctx.lineTo(18+pull,0);ctx.lineTo(12+pull,3);ctx.fill();
+  if(firing&&motion){
+   const alpha=phase==='release'?.75:phase==='followthrough'?.4:.18;
+   ctx.globalAlpha=alpha;ctx.strokeStyle='#ffdf92';ctx.lineWidth=2;
+   ctx.beginPath();ctx.arc(1,0,22+(1-flash)*12,-.75,.48);ctx.stroke();
+   ctx.globalAlpha=alpha*.65;ctx.fillStyle='#fff1bb';
+   for(let i=0;i<3;i++)ctx.fillRect(19+i*8,-6+i*5,5,2);
+  }
   ctx.restore();
+ }
  }ctx.restore();}
 /* Alpha 0.12.14 — truthful specialist cast timer and interruption progress.
    Uses only the same live enemy windup and damage fields as combat; never
