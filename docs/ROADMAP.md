@@ -1,5 +1,11 @@
 # Roadmap — PRIMAL KNIGHT
 
+## CURRENT DEVELOPMENT CHECKPOINT — 2026-11-11 (First Watch combat animation)
+Active milestone: Priority 0.2, original First Watch hero/enemy combat sprite and visual readability, NOT approved/complete. Starting main 6069a317 had successful final-head gameplay regression, quality checks and Pages deployment (verified via GitHub Actions REST). Implemented layered pixel-cloak silhouette on the live rear-view defender, shot-synchronized cape recoil, real heroChill color/weight response, and reduced-motion-safe sway in game.js (9b51f898). Extended existing mandatory mobile-render regression with four animation-state guards (dbb2e622). Production JavaScript and test script parsed in V8; local full Node execution unavailable because this container cannot resolve raw.githubusercontent.com. Final-head CI and Pages for dbb2e622 were queued at last check, NOT yet passed or published. No combat numbers, saves, unlocks or economy changed. Rendered iPhone landscape/portrait visual QA, especially Tier IV Battle lobby overlap, remains pending creator approval.
+
+**Next exact coding step:** Check final-head gameplay/quality/Pages Actions and diagnose any completed red job first; then inspect actual iPhone-sized rendered First Watch hero pose and cape layering (including reduced motion and chilled hero) and correct visible defects; continue earned Tier XVI–XVII progression investigation with existing original-engine harness. Do not claim the visual gate passed without a screenshot and creator review.
+
+
 ## Completed in Alpha 0.1
 
 Static-site foundation; rear-view illustrated siege scene; standalone enemy sprites; automated target selection/projectiles; wave spawning, damage and wave rewards; basic boss; permanent local save; four currencies/resources (Gold, Hero Essence, Knowledge, Skill Points); 16 hero training branches; 24 skill nodes; 9 rarity equipment progression and enhancement; 4 rune types with 12 tiers and socketing; 5 station lines with mechanical effects; research and suppression; touch menu structure; import/export save.
