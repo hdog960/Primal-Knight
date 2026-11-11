@@ -4938,7 +4938,9 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  // derived only from the existing live attack flash; no gameplay state added.
  // Draw the defender's equipment as a foreground layer behind the battlements.
  if(run.phase==='fighting'){
-  const flash=clamp(Number(run.flashes)||0,0,1);
+  const flash=clamp((Number(run.flashes)||0)/.13,0,1);
+  // shoot() creates a 0.13-second flash, not a 0..1 flash. Normalize
+  // against its real lifetime so release and follow-through actually render.
   const phase=flash>.68?'release':flash>.35?'followthrough':flash>0?'recover':'guard';
   const moving=!reduceMotion;
   const breathe=moving&&phase==='guard'?Math.sin(run.time*2.2)*1.1:0;
