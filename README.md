@@ -260,6 +260,9 @@ A free, single-hero, rear-view fortress defense RPG for iPhone browsers and desk
 
 https://hdog960.github.io/Primal-Knight/
 
+
+**Alpha 0.15.31 — narrow landscape Battle footer containment (2026-11-10):** On landscape iPhones at ≤540 CSS px wide and ≤460 px tall, the launch footer now stays in normal layout flow rather than sticking over the final rest controls when text wraps or accessibility text size increases. Larger landscape/portrait layouts retain their existing sticky behavior. Updated the stylesheet cache key for installed Home Screen clients and extended `tests/battle-tier-keyboard.js` to guard the scoped rule. No progression, economy, combat or save changes. Physical iPhone Tier IV visual approval remains outstanding; final-head CI/Pages results must be checked before claiming release verification.
+
 ## Earlier foundational features
 
 - One auto-attacking hero protects the wall from escalating monster waves. Battle speed/pause and boss encounters.
