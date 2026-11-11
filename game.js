@@ -4789,7 +4789,38 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
    ctx.beginPath();ctx.arc(e.x,cy,radius,
     crush?Math.PI*.12:fury?Math.PI*.65:Math.PI*1.2,
     crush?Math.PI*.88:fury?Math.PI*1.35:Math.PI*1.8);
-   ctx.stroke();ctx.restore();
+   ctx.stroke();
+   // Attack-specific floor silhouettes let players read the actual boss
+   // windup even when the sprite is partially obscured by another enemy.
+   // Crush: forward impact wedge. Fury: lateral cleave. Blink: split portals.
+   // These marks are purely visual; combat positions/timers are untouched.
+   const remaining=crush?e.crushWindup:fury?e.bossFuryWindup:e.bossBlinkWindup;
+   const duration=crush?1.1:fury?.9:1.05;
+   const fill=clamp(1-remaining/duration,0,1);
+   const groundY=e.y+sh*.4,reach=Math.max(20,sw*.58);
+   ctx.globalAlpha=.32+.5*fill;
+   ctx.lineWidth=Math.max(2,2.5*s);
+   if(crush){
+    ctx.beginPath();ctx.moveTo(e.x,groundY);
+    ctx.lineTo(e.x-reach*(.65+fill*.35),groundY+reach*.65);
+    ctx.lineTo(e.x+reach*(.65+fill*.35),groundY+reach*.65);
+    ctx.closePath();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(e.x-reach*fill,groundY+reach*.65);
+    ctx.lineTo(e.x+reach*fill,groundY+reach*.65);ctx.stroke();
+   }else if(fury){
+    ctx.beginPath();ctx.ellipse(e.x,groundY,reach*(.6+.4*fill),
+     Math.max(7,reach*.23),0,Math.PI*.05,Math.PI*.95);ctx.stroke();
+    ctx.beginPath();ctx.ellipse(e.x,groundY,reach*(.6+.4*fill),
+     Math.max(7,reach*.23),0,Math.PI*1.05,Math.PI*1.95);ctx.stroke();
+   }else{
+    for(const side of [-1,1]){
+     const portalX=e.x+side*reach*(.55+.35*fill);
+     ctx.beginPath();ctx.ellipse(portalX,groundY,Math.max(6,reach*.18),
+      Math.max(4,reach*.1),0,0,Math.PI*2);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(e.x,groundY);ctx.lineTo(portalX,groundY);ctx.stroke();
+    }
+   }
+   ctx.restore();
   }else if(e.type==='raider'&&e.dashTime>0){
    ctx.save();ctx.strokeStyle='rgba(250,184,112,.65)';ctx.lineWidth=Math.max(1.5,2*s);
    for(let i=0;i<2;i++){
