@@ -4947,6 +4947,20 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
   const recoil=phase==='release'?-7:phase==='followthrough'?4:phase==='recover'?1:0;
   const draw=phase==='guard'?11:phase==='release'?0:phase==='followthrough'?2:7;
   ctx.save();ctx.translate(540+recoil,360+breathe);ctx.imageSmoothingEnabled=false;
+  // The First Watch defender's cloak is a separate, depth-layered silhouette.
+  // A planted stance braces against real shots, while chilled movement reads
+  // as a tighter, heavier cape. Motion is purely visual and never affects DPS.
+  const chilled=run.heroChill>0;
+  const capeSwing=moving?Math.sin(run.time*(chilled?1.2:3.1))*2.5:0;
+  const capeKick=phase==='release'?5:phase==='followthrough'?-3:0;
+  ctx.fillStyle='#101e2b';ctx.beginPath();
+  ctx.moveTo(-27,-9);ctx.lineTo(-33,14);ctx.lineTo(-27+capeSwing+capeKick,37);
+  ctx.lineTo(5+capeSwing+capeKick*.5,37);ctx.lineTo(1,12);ctx.lineTo(-9,-8);ctx.closePath();ctx.fill();
+  ctx.fillStyle=chilled?'#648ea4':'#7b3444';ctx.beginPath();
+  ctx.moveTo(-25,-8);ctx.lineTo(-29,15);ctx.lineTo(-23+capeSwing+capeKick,33);
+  ctx.lineTo(1+capeSwing+capeKick*.5,33);ctx.lineTo(-3,13);ctx.lineTo(-12,-7);ctx.closePath();ctx.fill();
+  ctx.fillStyle=chilled?'#b6e4f2':'#d7a36c';
+  ctx.fillRect(-25,15,3,12);ctx.fillRect(-20+capeSwing+capeKick,30,13,3);
   // The planted shield-side arm and layered shoulder give the lone hero a
   // readable, armored silhouette, not a floating bow on a static backdrop.
   ctx.fillStyle='#172331';ctx.fillRect(-29,-12,20,12);
