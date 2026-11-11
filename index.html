@@ -145,11 +145,11 @@ document.getElementById('backToTierGrid')?.addEventListener('click', function() 
   }
 });
 
-// The 30-territory picker supports conventional grid arrow/Home/End focus.
+// The 30-territory picker supports grid arrows, three-row PageUp/PageDown, and Home/End focus.
 // Focus alone never selects a territory or changes a saved unlock.
 document.getElementById('tierGrid')?.addEventListener('keydown', function(event) {
   if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
-      !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key)) return;
+      !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(event.key)) return;
   const buttons = Array.from(this.querySelectorAll('button:not([disabled])'))
     .filter(button => !button.hidden && !button.closest('[hidden]'));
   const targetButton = event.target.closest?.('button') || event.target;
@@ -159,7 +159,7 @@ document.getElementById('tierGrid')?.addEventListener('keydown', function(event)
   // Use actual column positions so portrait and landscape layouts both work.
   const columns = Math.max(1, (getComputedStyle(this).gridTemplateColumns.match(/\S+/g) || []).length);
   const step = event.key === 'ArrowUp' ? -columns : event.key === 'ArrowDown' ? columns :
-    event.key === 'ArrowLeft' ? -1 : 1;
+    event.key === 'ArrowLeft' ? -1 : event.key === 'PageUp' ? -columns * 3 : event.key === 'PageDown' ? columns * 3 : 1;
   const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 :
     Math.max(0, Math.min(buttons.length - 1, current + step));
   event.preventDefault();
