@@ -62,6 +62,18 @@ for(const tier of [1,4,15,30]){
   if(i%3===2)assert(pos.x>=438&&pos.x<=522&&pos.y<170,'Center feint deploys between the two flanks');
  }
 }
+// Successive night ambushes use different center-feint lanes without changing
+// the established left-warg/right-raider flanks or saved progression.
+for(const [wave,center] of [[34,412],[51,548],[68,412],[85,548]]){
+ const enc=h.encounterDirector(wave,4);
+ if(enc.kind!=='ambush')continue; // existing higher-priority wave events win
+ for(let i=0;i<18;i++){
+  const pos=h.formationPosition(enc,i,i%3===0?'warg':'raider');
+  if(i%3===2)assert(Math.abs(pos.x-center)<=32,'Later ambush center feint sweeps into its planned lane');
+  if(i%3===0)assert(pos.x>=157&&pos.x<=193,'Warg flank remains left');
+  if(i%3===1)assert(pos.x>=767&&pos.x<=803,'Raider flank remains right');
+ }
+}
 assert.equal(JSON.stringify(p),original,'Inspecting territory formation plans does not change character progression');
 for(let tier=1;tier<=30;tier++){
  const w=world(),g=w.h,r=g.run(),plan=g.nativeMarchOrder(tier);

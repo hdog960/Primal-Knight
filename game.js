@@ -1605,9 +1605,14 @@ function formationPosition(encounter,spawned,type,isBoss=false,relicGuardian=fal
   // Night ambushes now stage a visible two-flank pincer with a center feint.
   // Three alternating approach groups force a real targeting choice without
   // adding enemies, changing their stats, or modifying saved progression.
+  // Later ambushes sweep their center feint across the approach instead of
+  // repeating the same static middle lane. The flanking wargs and raiders
+  // retain their original lanes, roles, budget, speed and rewards.
   const flank=index%3,side=flank===0?175:flank===1?785:480;
-  const spread=flank===2?rnd(-42,42):jitter();
-  return {x:clamp(side+spread,145,815),y:(flank===2?143:163)+row*3+rnd(0,8)};
+  const sweep=flank===2&&encounter.wave>=34
+   ?(Math.floor(encounter.wave/17)%2===0?-68:68):0;
+  const spread=flank===2?rnd(-32,32):jitter();
+  return {x:clamp(side+sweep+spread,145,815),y:(flank===2?143:163)+row*3+rnd(0,8)};
  }
  if(encounter.kind==='bannerAssault'){
   if(type==='banneret')return {x:(index%2?555:405)+jitter(),y:back};
