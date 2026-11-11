@@ -98,8 +98,8 @@ for(let wave=34;wave<=340;wave+=17){
  if(enc.kind!=='ambush')continue;
  const phase=Math.floor(wave/17)%3,center=h.formationPosition(enc,2,'raider');
  const left=h.formationPosition(enc,0,'warg'),right=h.formationPosition(enc,1,'raider');
- const centerBase=phase===1?126:phase===2?163:143;
- const flankBase=phase===1?169:phase===2?150:163;
+ const centerBase=phase===1?169:phase===2?126:143;
+ const flankBase=phase===1?126:phase===2?169:163;
  assert(center.y>=centerBase&&center.y<=centerBase+8,'Center feint has the expected approach depth');
  assert(left.y>=flankBase&&left.y<=flankBase+8,'Left warg follows the alternate rank depth');
  assert(right.y>=flankBase&&right.y<=flankBase+8,'Right raider follows the alternate rank depth');
@@ -108,6 +108,13 @@ for(let wave=34;wave<=340;wave+=17){
  phaseSeen.add(phase);
 }
 assert.equal(phaseSeen.size,3,'All three real ambush approach-depth variants are exercised');
+// Larger screen-y means nearer the wall: verify the leading tactic is real.
+for(const [wave,centerLeads] of [[68,true],[136,false]]){
+ const enc=h.encounterDirector(wave,4);
+ assert.equal(enc.kind,'ambush','Tactical lead test requires a real ambush');
+ const center=h.formationPosition(enc,2,'raider'),flank=h.formationPosition(enc,0,'warg');
+ assert.equal(center.y>flank.y,centerLeads,'Actual forward group must match the advertised ambush tactic');
+}
 
 assert.equal(JSON.stringify(p),original,'Inspecting territory formation plans does not change character progression');
 for(let tier=1;tier<=30;tier++){

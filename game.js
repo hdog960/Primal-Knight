@@ -1618,12 +1618,12 @@ function formationPosition(encounter,spawned,type,isBoss=false,relicGuardian=fal
    ?(Math.floor(encounter.wave/17)%2===0?-68:68):0;
   const spread=flank===2?rnd(-32,32):jitter();
   // Later ambushes develop a second genuine tactic: the center feint
-  // sometimes advances first, sometimes hides behind the flanks. Alternating
+  // sometimes advances first, sometimes hides behind the flanks. Higher screen-y means closer to the wall, so the leading group must spawn farther forward. Alternating
   // rank depth forces different interception orders without new enemies,
   // stat multipliers, currencies or save fields. Wave 17 stays untouched.
   const depthPhase=encounter.wave>=34?Math.floor(encounter.wave/17)%3:0;
-  const centerBase=depthPhase===1?126:depthPhase===2?163:143;
-  const flankBase=depthPhase===1?169:depthPhase===2?150:163;
+  const centerBase=depthPhase===1?169:depthPhase===2?126:143;
+  const flankBase=depthPhase===1?126:depthPhase===2?169:163;
   const rankStagger=encounter.wave>=34?(row%2===0?0:6):row*3;
   return {x:clamp(side+sweep+spread,145,815),
    y:(flank===2?centerBase:flankBase)+rankStagger+rnd(0,8)};
