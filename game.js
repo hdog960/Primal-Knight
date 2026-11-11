@@ -4934,39 +4934,68 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  for(const s of run.shots){ctx.beginPath();ctx.lineWidth=s.kind==='lightning'?3:2;ctx.strokeStyle=s.kind==='lightning'?'#90f2ff':s.kind==='ballista'?'#ffd285':'#ffe8a9';ctx.moveTo(s.x,s.y);const history=s.trailHead*2;ctx.lineTo(s.trailCount?s.trail[history]:s.x-7,s.trailCount?s.trail[history+1]:s.y+6);ctx.stroke();ctx.fillStyle='#fff5b9';ctx.fillRect(s.x-2,s.y-2,4,4);}
  for(const t of run.particles){ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.fillRect(t.x,t.y,t.size,t.size)}ctx.globalAlpha=1;
  for(const f of run.floats){ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y)}ctx.globalAlpha=1;
- // First Watch hero frame study: three readable combat poses and a subtle
- // guarded idle. All poses are derived from the existing real attack flash.
- // The painted fortress and single hero remain unchanged; no new state.
+ // First Watch: authored four-stage hero bow sequence. Frame timing is
+ // derived only from the existing live attack flash; no gameplay state added.
+ // Draw the defender's equipment as a foreground layer behind the battlements.
  if(run.phase==='fighting'){
   const flash=clamp(Number(run.flashes)||0,0,1);
-  const firing=flash>0;
-  const phase=firing?(flash>.65?'release':flash>.28?'followthrough':'recover'):'guard';
-  const motion=reduceMotion?0:1;
-  const breathe=motion&&!firing?Math.sin(run.time*2.2)*1.2:0;
-  const pull=phase==='release'?14:phase==='followthrough'?8:phase==='recover'?3:0;
-  const lean=phase==='release'?-5:phase==='followthrough'?4:0;
-  ctx.save();ctx.translate(540,360+breathe);ctx.imageSmoothingEnabled=false;
-  // Dark pixel-outline arm, bronze bracer, and three-point bowstring
-  // preserve a crisp 32-bit silhouette even on narrow iPhone viewports.
-  ctx.fillStyle='#182534';ctx.fillRect(-20+lean,-8,13,7);
-  ctx.fillStyle='#7e9eb1';ctx.fillRect(-18+lean,-7,9,4);
-  ctx.fillStyle='#e4bd7c';ctx.fillRect(-11+lean,-5,7,3);
-  ctx.strokeStyle='#302632';ctx.lineWidth=5;ctx.beginPath();
-  ctx.moveTo(-15,-24);ctx.quadraticCurveTo(14+pull,-6,9,23);ctx.stroke();
+  const phase=flash>.68?'release':flash>.35?'followthrough':flash>0?'recover':'guard';
+  const moving=!reduceMotion;
+  const breathe=moving&&phase==='guard'?Math.sin(run.time*2.2)*1.1:0;
+  const recoil=phase==='release'?-7:phase==='followthrough'?4:phase==='recover'?1:0;
+  const draw=phase==='guard'?11:phase==='release'?0:phase==='followthrough'?2:7;
+  ctx.save();ctx.translate(540+recoil,360+breathe);ctx.imageSmoothingEnabled=false;
+  // The planted shield-side arm and layered shoulder give the lone hero a
+  // readable, armored silhouette, not a floating bow on a static backdrop.
+  ctx.fillStyle='#172331';ctx.fillRect(-29,-12,20,12);
+  ctx.fillStyle='#627d91';ctx.fillRect(-26,-10,15,8);
+  ctx.fillStyle='#b1c6cf';ctx.fillRect(-24,-9,9,3);
+  ctx.fillStyle='#243344';ctx.fillRect(-16,-8,15,10);
+  ctx.fillStyle='#bd9860';ctx.fillRect(-14,-6,8,5);
+  // Different arm angles for guard, release, follow-through and recovery.
+  const elbow=phase==='release'?-9:phase==='followthrough'?4:phase==='recover'?-2:-6;
+  ctx.strokeStyle='#182330';ctx.lineWidth=10;ctx.beginPath();
+  ctx.moveTo(-11,-3);ctx.lineTo(-4+elbow,3);ctx.lineTo(2+draw,0);ctx.stroke();
+  ctx.strokeStyle='#7e9eb1';ctx.lineWidth=6;ctx.beginPath();
+  ctx.moveTo(-10,-3);ctx.lineTo(-4+elbow,3);ctx.lineTo(2+draw,0);ctx.stroke();
+  ctx.fillStyle='#e6c18c';ctx.fillRect(draw,-3,5,6);
+  // Bow limbs bend visibly under tension; the release snaps the string
+  // forward. Every frame retains a dark pixel outline.
+  const bend=phase==='guard'?17:phase==='release'?5:phase==='followthrough'?8:13;
+  ctx.strokeStyle='#302632';ctx.lineWidth=6;ctx.beginPath();
+  ctx.moveTo(-13,-28);ctx.quadraticCurveTo(bend,-5,10,27);ctx.stroke();
   ctx.strokeStyle='#dba55b';ctx.lineWidth=3;ctx.beginPath();
-  ctx.moveTo(-15,-24);ctx.quadraticCurveTo(14+pull,-6,9,23);ctx.stroke();
-  ctx.strokeStyle='#fff0cf';ctx.lineWidth=1.6;ctx.beginPath();
-  ctx.moveTo(-15,-24);ctx.lineTo(-10+pull,0);ctx.lineTo(9,23);ctx.stroke();
-  // An arrow is nocked while guarding, then departs with the real flash.
-  ctx.fillStyle='#e7c68c';ctx.fillRect(-11+pull,-2,20,3);
-  ctx.fillStyle='#f4e5c4';ctx.beginPath();ctx.moveTo(12+pull,-4);
-  ctx.lineTo(18+pull,0);ctx.lineTo(12+pull,3);ctx.fill();
-  if(firing&&motion){
-   const alpha=phase==='release'?.75:phase==='followthrough'?.4:.18;
-   ctx.globalAlpha=alpha;ctx.strokeStyle='#ffdf92';ctx.lineWidth=2;
-   ctx.beginPath();ctx.arc(1,0,22+(1-flash)*12,-.75,.48);ctx.stroke();
-   ctx.globalAlpha=alpha*.65;ctx.fillStyle='#fff1bb';
-   for(let i=0;i<3;i++)ctx.fillRect(19+i*8,-6+i*5,5,2);
+  ctx.moveTo(-13,-28);ctx.quadraticCurveTo(bend,-5,10,27);ctx.stroke();
+  const stringX=phase==='guard'?-10:phase==='release'?1:phase==='followthrough'?4:-5;
+  ctx.strokeStyle='#fff0cf';ctx.lineWidth=1.5;ctx.beginPath();
+  ctx.moveTo(-13,-28);ctx.lineTo(stringX,0);ctx.lineTo(10,27);ctx.stroke();
+  // A nocked arrow exists only before firing. In release and follow-through
+  // it travels outward with the actual flash, never while merely guarding.
+  if(phase==='guard'||phase==='recover'){
+   ctx.fillStyle='#e7c68c';ctx.fillRect(stringX,-2,23,3);
+   ctx.fillStyle='#f4e5c4';ctx.beginPath();ctx.moveTo(stringX+27,-3);
+   ctx.lineTo(stringX+33,0);ctx.lineTo(stringX+27,3);ctx.fill();
+   ctx.fillStyle='#c4d7de';ctx.fillRect(stringX-3,-4,4,2);
+   ctx.fillRect(stringX-3,2,4,2);
+  }else{
+   const travel=phase==='release'?24:47;
+   ctx.globalAlpha=phase==='release'?1:.62;
+   ctx.fillStyle='#ffe1a3';ctx.fillRect(travel,-2,24,3);
+   ctx.fillStyle='#fff4d0';ctx.beginPath();ctx.moveTo(travel+24,-4);
+   ctx.lineTo(travel+33,0);ctx.lineTo(travel+24,3);ctx.fill();
+   if(moving){
+    ctx.strokeStyle='#ffdf92';ctx.lineWidth=2;ctx.beginPath();
+    ctx.moveTo(travel-12,0);ctx.lineTo(travel-2,0);ctx.stroke();
+    ctx.fillStyle='#f4dca6';ctx.fillRect(travel-9,-7,4,3);
+   }
+   ctx.globalAlpha=1;
+  }
+  // Impact shimmer follows the real combat flash and respects reduced motion.
+  if(flash>0&&moving){
+   ctx.globalAlpha=phase==='release'?.7:phase==='followthrough'?.35:.14;
+   ctx.strokeStyle='#ffdf92';ctx.lineWidth=2;ctx.beginPath();
+   ctx.arc(2,0,22+(1-flash)*10,-.75,.48);ctx.stroke();
+   ctx.globalAlpha=1;
   }
   ctx.restore();
  }ctx.restore();}
