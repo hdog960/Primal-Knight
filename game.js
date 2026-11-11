@@ -3299,7 +3299,7 @@ function initRun(){run.wave=1;run.tier=chosenTier;run.maxHealth=maxWall();run.he
  run.wavePressureStart=null;run.wavePressureSamples=[];
  run.explorationEnabled=false;run.discoveryCurrent=null;run.discoveryWardenKilled=false;run.echoCurrent=null;run.echoDefeatedMask=0;run.cartographerStages=0;run.cartographerBroken=false;run.cartographerCurrent=null;run.totalSpecialistBreaks=0;run.totalBreaches=0;run.bossVictories=0;run.bossEscapes=0;run.bossesKilledThisWave=0;run.sapperBlasts=0;run.doctrineClock=3.5;run.doctrineCasts=0;run.doctrineHeldSeconds=0;run.doctrineHoldEvents=0;run.doctrineHolding=false;run.doctrineCastReasons={};
 }
-function beginWave(){if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.discoveryCurrent=activeLostSignal(run.tier,run.wave);run.discoveryWardenKilled=false;if(run.wave===1001){run.cartographerStages=0;run.cartographerBroken=false;}run.cartographerCurrent=activeCartographerOath(run.tier,run.wave);run.echoCurrent=activeEchoReturn(run.tier,run.wave);run.echoDefeatedMask=0;run.bossesKilledThisWave=0;run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;run.doctrineHolding=false;startWavePressure();message((run.echoCurrent?'✦ ECHO RETURN · MEMORY ANCHOR + REVENANT COURIER':run.cartographerCurrent?'✦ CARTOGRAPHER OATH · STAGE '+run.cartographerCurrent.step+' / 3':run.discoveryCurrent?'✦ '+run.discoveryCurrent.name+' · '+run.discoveryCurrent.guardian.name:hasNativeVanguard(run.encounter)?territoryVanguard(run.tier).name+' · '+nativeMarchOrder(run.tier).name:run.encounter.label)+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
+function beginWave(){deathEchoes.length=0;if(run.phase==='fighting'||run.phase==='fallen'||run.phase==='completed'||run.wave>MAX_WAVE)return;run.maxHealth=maxWall();run.health=clamp(run.health,0,run.maxHealth);run.phase='fighting';run.spawned=0;run.kills=0;run.breaches=0;run.enemies=[];run.shots=[];run.spawnClock=.35;run.heroChill=0;run.encounter=encounterDirector(run.wave,run.tier);run.discoveryCurrent=activeLostSignal(run.tier,run.wave);run.discoveryWardenKilled=false;if(run.wave===1001){run.cartographerStages=0;run.cartographerBroken=false;}run.cartographerCurrent=activeCartographerOath(run.tier,run.wave);run.echoCurrent=activeEchoReturn(run.tier,run.wave);run.echoDefeatedMask=0;run.bossesKilledThisWave=0;run.total=Math.min(run.encounter.kind==='chapterBoss'?22:24,waveEnemyCount(run.wave));run.reinforcementPhase=false;run.bossCounters=0;run.doctrineHolding=false;startWavePressure();message((run.echoCurrent?'✦ ECHO RETURN · MEMORY ANCHOR + REVENANT COURIER':run.cartographerCurrent?'✦ CARTOGRAPHER OATH · STAGE '+run.cartographerCurrent.step+' / 3':run.discoveryCurrent?'✦ '+run.discoveryCurrent.name+' · '+run.discoveryCurrent.guardian.name:hasNativeVanguard(run.encounter)?territoryVanguard(run.tier).name+' · '+nativeMarchOrder(run.tier).name:run.encounter.label)+' · '+run.encounter.faction.toUpperCase());refreshHUD();}
 function spawnEnemy(){
  const encounter=run.encounter&&run.encounter.wave===run.wave?run.encounter:encounterDirector(run.wave,run.tier);
  const isBoss=!!encounter.bossType&&run.wave%5===0&&!run.reinforcementPhase&&run.spawned===run.total-1;
@@ -3426,7 +3426,16 @@ function nearestShockTarget(origin,enemies=run.enemies){
  }
  return closest;
 }
-function kill(e){if(e.y>=365)run.lastLineKills=(run.lastLineKills||0)+1;e.dead=true;if(e.discoveryWarden)run.discoveryWardenKilled=true;if(e.echoRole)run.echoDefeatedMask|=(e.echoRole==='shield'?1:2);run.kills++;run.enemiesDefeated=(run.enemiesDefeated||0)+1;if(e.isBoss)run.bossesKilledThisWave=(run.bossesKilledThisWave||0)+1;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(tierReward(run.tier))*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));if(e.golden){amount*=2;}else if(Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((isSiegeBoss(e)?70:8)*(1+run.wave*.055)*(tierReward(run.tier))));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
+// Lightweight, bounded original-sprite death silhouettes. Purely visual and never saved.
+const deathEchoes=[];
+function queueDeathEcho(e){
+ if(reduceMotion||!e||deathEchoes.length>=18)return;
+ const key=e.type==='warlord'&&e.bossStyle?'warlord_'+e.bossStyle:e.type;
+ const im=sprites[key];if(!im||!im.complete||!im.naturalWidth)return;
+ const scale=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'||e.type==='banneret'?1.18:1);
+ deathEchoes.push({x:e.x,y:e.y,image:im,w:im.naturalWidth*scale,h:im.naturalHeight*scale,age:0,duration:e.isBoss?.65:.38,heavy:e.isBoss||e.type==='ogre'||e.type==='siegebeast'});
+}
+function kill(e){queueDeathEcho(e);if(e.y>=365)run.lastLineKills=(run.lastLineKills||0)+1;e.dead=true;if(e.discoveryWarden)run.discoveryWardenKilled=true;if(e.echoRole)run.echoDefeatedMask|=(e.echoRole==='shield'?1:2);run.kills++;run.enemiesDefeated=(run.enemiesDefeated||0)+1;if(e.isBoss)run.bossesKilledThisWave=(run.bossesKilledThisWave||0)+1;effect(e.x,e.y,e.type==='skeleton'?'#e7ded0':'#caa673',14);let amount=Math.ceil(e.valued*(1+t('gold')*.028+skill('fortune')*.08+socketValue('fortune')*4+res('bounties')*.03+lr('goldenTouch')*.04)*(1+run.wave*.09)*(tierReward(run.tier))*(1+dominionBonus('gold'))*(1+oathRank('sovereignTribute')*.0125));if(e.golden){amount*=2;}else if(Math.random()<skill('midas')*.02+station('midas')*.013){amount*=3;float(e.x,e.y-35,'GOLDEN!', '#ffcd59')}p.gold+=amount;xpAdd(Math.ceil((isSiegeBoss(e)?70:8)*(1+run.wave*.055)*(tierReward(run.tier))));float(e.x,e.y-10,'+'+fmt(amount)+' GOLD','#f4c864');}
 function projectileCount(){return Math.min(12,1+Math.floor(t('multishot')/8)+Math.floor(ascRank('volley')/6));}
 // Seven history points in one fixed-size ring, allocated only at shot creation.
 function shoot(target,power=damage(),kind='arrow',originX=496,originY=390){
@@ -3540,6 +3549,7 @@ function specialEnemyMotion(e,dt){
 function advanceBattleVisuals(dt){
  if(!Number.isFinite(dt)||dt<=0)return;
  run.shakes=Math.max(0,run.shakes-dt*.96);
+ for(let i=deathEchoes.length-1;i>=0;i--){const echo=deathEchoes[i];echo.age+=dt;if(echo.age>=echo.duration)deathEchoes.splice(i,1);}
  run.flashes=Math.max(0,run.flashes-dt);
  for(let i=run.particles.length-1;i>=0;i--){
   const particle=run.particles[i];
@@ -4736,6 +4746,17 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  // Optional visual-only tactical lens: one static veil behind enemies.
  // Preserves painted depth, original boss staging and all attack markers.
  if(clarityLensEnabled){ctx.fillStyle='rgba(9,17,27,.34)';ctx.fillRect(0,96,960,340);}
+ // Defeated enemies briefly fall and dissolve in their own original sprite silhouette.
+ // Render below living units; no dead actors remain in targeting or collision.
+ if(!reduceMotion)for(const echo of deathEchoes){
+  const progress=clamp(echo.age/echo.duration,0,1);
+  ctx.save();ctx.globalAlpha=(1-progress)*.82;ctx.imageSmoothingEnabled=false;
+  ctx.translate(echo.x,echo.y+echo.h*.5);
+  ctx.rotate((echo.heavy?-.24:-.55)*progress);
+  ctx.scale(1+progress*.14,Math.max(.08,1-progress*(echo.heavy?.65:.82)));
+  ctx.drawImage(echo.image,-echo.w/2,-echo.h,echo.w,echo.h);
+  ctx.restore();
+ }
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
  for(const e of sortedRenderEnemies()){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'||e.type==='banneret'?1.18:1);let im=sprites[e.type==='warlord'&&e.bossStyle?'warlord_'+e.bossStyle:e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;
  // Visual-only marching silhouettes: grounded foot pivot, distinct gait by
