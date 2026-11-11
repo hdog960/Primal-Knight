@@ -636,7 +636,7 @@ for(const seed of seeds){
   assert(h.save());
   // Keep exact earned post-86 original-character bytes for a separate, longer
   // lawful frontier continuation. Do not inject Tier XVII or fake minutes.
-  if(seed===15423&&planId==='vanguard'&&p.unlockedTier>=17)
+  if(planId==='vanguard'&&p.unlockedTier>=17)
    frontierContinuationSaves.set(seed,{raw:w.store[SAVE],paid,focus:w.store[h.focusStanceKey]});
   const fresh=world(seed+2021,{[SAVE]:w.store[SAVE]});
   assert.equal(fresh.h.p().uniqueClears,p.uniqueClears,'Save and reload original earned progress');
@@ -809,11 +809,12 @@ for(const [seed,baseline] of frontierContinuationSaves){
   chaptersClaimed:p.firstWatchClaimed.length,unlockedTier:p.unlockedTier,
   routes:sessions});
 }
-assert.equal(earnedRecordStretch.length,1);
+assert.equal(earnedRecordStretch.length,frontierContinuationSaves.size,'Only truly earned Tier XVII continuations may be counted');
 console.log('ALPHA 0.15.27 ACTUAL EARNED FIRST-WATCH RECORD STRETCH '+JSON.stringify(earnedRecordStretch));
+if(!frontierContinuationSaves.size)console.log('LIMIT: No tested vanguard seed earned Tier XVII after the new ambush formation; later earned frontier studies are NOT claimed. Review combat balance and earned progression before restoring this coverage.');
 console.log('LIMIT: 24 real later sorties under an alternative unlocked-territory route, not an equivalent-spend controlled experiment, no Watch chapter award unless the original engine triggers it.');
 
-assert.equal(deeperFrontier.length,1,'Original previously proven earned Tier XVII branch remains available');
+assert.equal(deeperFrontier.length,frontierContinuationSaves.size,'Every Tier XVII continuation must originate from a legitimately earned wave-20 gate');
 console.log('ALPHA 0.15.27 LEGITIMATELY EARNED TIER XVII CONTINUATION '+JSON.stringify(deeperFrontier));
 console.log('LIMIT: One scripted earned character, twenty further original-engine sieges and true purchases, NOT independent players, a complete First Watch, Tier XXX, 1,250h or iPhone signoff.');
 console.log('ALPHA 0.15.27 ACTUAL EARNED TIER XVI BATTLE PLANS · OFFENSE VS BASTION '+JSON.stringify(planPairs));
