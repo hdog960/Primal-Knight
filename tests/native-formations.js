@@ -70,10 +70,25 @@ for(const [wave,center] of [[34,412],[51,548],[68,412],[85,548]]){
  for(let i=0;i<18;i++){
   const pos=h.formationPosition(enc,i,i%3===0?'warg':'raider');
   if(i%3===2)assert(Math.abs(pos.x-center)<=32,'Later ambush center feint sweeps into its planned lane');
-  if(i%3===0)assert(pos.x>=157&&pos.x<=193,'Warg flank remains left');
-  if(i%3===1)assert(pos.x>=767&&pos.x<=803,'Raider flank remains right');
+  const tighter=Math.floor(wave/17)%2===1;
+  const left=tighter?225:175,right=tighter?735:785;
+  if(i%3===0)assert(Math.abs(pos.x-left)<=9,'Warg flank alternates outer and inner approach');
+  if(i%3===1)assert(Math.abs(pos.x-right)<=9,'Raider flank alternates outer and inner approach');
  }
 }
+// Verify actual alternating geometry on eligible ambush waves, without
+// accidentally skipping every candidate due to higher-priority encounters.
+let checkedWide=0,checkedTight=0;
+for(let wave=34;wave<=170;wave+=17){
+ const enc=h.encounterDirector(wave,4);
+ if(enc.kind!=='ambush')continue;
+ const tight=Math.floor(wave/17)%2===1;
+ const left=h.formationPosition(enc,0,'warg'),right=h.formationPosition(enc,1,'raider');
+ assert(Math.abs(left.x-(tight?225:175))<=9,'Left flank respects alternating approach');
+ assert(Math.abs(right.x-(tight?735:785))<=9,'Right flank respects alternating approach');
+ if(tight)checkedTight++;else checkedWide++;
+}
+assert(checkedWide>0&&checkedTight>0,'Both later ambush formation variants must be exercised');
 assert.equal(JSON.stringify(p),original,'Inspecting territory formation plans does not change character progression');
 for(let tier=1;tier<=30;tier++){
  const w=world(),g=w.h,r=g.run(),plan=g.nativeMarchOrder(tier);

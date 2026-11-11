@@ -1608,7 +1608,12 @@ function formationPosition(encounter,spawned,type,isBoss=false,relicGuardian=fal
   // Later ambushes sweep their center feint across the approach instead of
   // repeating the same static middle lane. The flanking wargs and raiders
   // retain their original lanes, roles, budget, speed and rewards.
-  const flank=index%3,side=flank===0?175:flank===1?785:480;
+  const flank=index%3;
+  // Later ambushes alternate between a wide envelopment and a tighter
+  // crossfire. Both flank groups remain on their own sides of the field;
+  // no units, damage, speed, reward or saved state are added.
+  const tightening=encounter.wave>=34&&Math.floor(encounter.wave/17)%2===1;
+  const side=flank===0?(tightening?225:175):flank===1?(tightening?735:785):480;
   const sweep=flank===2&&encounter.wave>=34
    ?(Math.floor(encounter.wave/17)%2===0?-68:68):0;
   const spread=flank===2?rnd(-32,32):jitter();
