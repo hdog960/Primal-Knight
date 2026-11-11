@@ -103,7 +103,7 @@ for(let wave=34;wave<=340;wave+=17){
  assert(center.y>=centerBase&&center.y<=centerBase+8,'Center feint has the expected approach depth');
  assert(left.y>=flankBase&&left.y<=flankBase+8,'Left warg follows the alternate rank depth');
  assert(right.y>=flankBase&&right.y<=flankBase+8,'Right raider follows the alternate rank depth');
- const second=h.formationPosition(enc,5,'raider');
+ const second=h.formationPosition(enc,8,'raider'); // center slot in the second six-unit rank (row 1)
  assert(second.y>=centerBase+6&&second.y<=centerBase+14,'Second rank visibly staggers behind the first');
  phaseSeen.add(phase);
 }
