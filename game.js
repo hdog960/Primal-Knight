@@ -4934,8 +4934,22 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  for(const s of run.shots){ctx.beginPath();ctx.lineWidth=s.kind==='lightning'?3:2;ctx.strokeStyle=s.kind==='lightning'?'#90f2ff':s.kind==='ballista'?'#ffd285':'#ffe8a9';ctx.moveTo(s.x,s.y);const history=s.trailHead*2;ctx.lineTo(s.trailCount?s.trail[history]:s.x-7,s.trailCount?s.trail[history+1]:s.y+6);ctx.stroke();ctx.fillStyle='#fff5b9';ctx.fillRect(s.x-2,s.y-2,4,4);}
  for(const t of run.particles){ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.fillRect(t.x,t.y,t.size,t.size)}ctx.globalAlpha=1;
  for(const f of run.floats){ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y)}ctx.globalAlpha=1;
- // Animated bow glow and string release marks the single hero as the shooter.
- if(run.flashes>0&&!reduceMotion){ctx.fillStyle=`rgba(255,226,142,${clamp(run.flashes*3,0,.68)})`;ctx.beginPath();ctx.arc(540,360,20+run.flashes*70,0,Math.PI*2);ctx.fill();}ctx.restore();}
+ // The lone defender's bow now visibly recoils and recovers with each real
+ // attack flash. All geometry stays in the foreground firing position and
+ // is purely visual: no new projectile, timer, damage or saved state.
+ if(run.flashes>0&&!reduceMotion){
+  const recoil=clamp(run.flashes*5,0,1),release=1-recoil;
+  ctx.save();ctx.translate(540,360);ctx.rotate(-.16*recoil);
+  ctx.globalAlpha=.42+.52*recoil;
+  ctx.strokeStyle='#ffd88d';ctx.lineWidth=3;ctx.beginPath();
+  ctx.moveTo(-12,-16);ctx.quadraticCurveTo(12+9*recoil,-4,7,17);ctx.stroke();
+  ctx.strokeStyle='#fff4cf';ctx.lineWidth=1.5;ctx.beginPath();
+  ctx.moveTo(-12,-16);ctx.lineTo(-7+13*recoil,0);ctx.lineTo(7,17);ctx.stroke();
+  ctx.fillStyle='#fff1b6';ctx.fillRect(-8+13*recoil,-2,11,3);
+  ctx.globalAlpha=.35*recoil;ctx.strokeStyle='#ffe29a';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,18+release*18,-.65,.45);ctx.stroke();
+  ctx.restore();
+ }ctx.restore();}
 /* Alpha 0.12.14 — truthful specialist cast timer and interruption progress.
    Uses only the same live enemy windup and damage fields as combat; never
    interpolates fake warning time, changes enemy mechanics, or saves state. */
