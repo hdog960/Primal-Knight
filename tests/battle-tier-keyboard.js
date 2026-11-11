@@ -50,10 +50,12 @@ key('Home'); assert.equal(active, buttons[0]);
 key('End'); assert.equal(active, buttons[5]);
 key('ArrowRight'); assert.equal(active, buttons[5], 'boundary clamps');
 key('ArrowUp'); assert.equal(active, buttons[2]);
+key('PageUp'); assert.equal(active, buttons[0], 'PageUp moves toward earlier unlocked tiers');
+key('PageDown'); assert.equal(active, buttons[5], 'PageDown moves toward later unlocked tiers');
 const before = prevented;
 key('Enter'); assert.equal(prevented, before, 'native activation is preserved');
 key('ArrowRight', {name:'unrelated'}); assert.equal(prevented, before, 'unrelated targets ignored');
-assert.equal(scrolls, 9);
+assert.equal(scrolls, 11);
 for (const modifier of ['altKey', 'ctrlKey', 'metaKey', 'shiftKey']) {
   const previous = active, count = prevented;
   key('ArrowRight', active, {[modifier]: true});
