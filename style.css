@@ -3613,6 +3613,13 @@
   }
 }
 
+/* On ultra-short landscape phones the launch footer can grow taller than its
+   nominal clearance when iOS enlarges text. Keep it in normal document flow
+   instead of allowing a sticky footer to cover the final rest controls. */
+@media (orientation:landscape) and (max-height:460px) and (max-width:540px) {
+  .tier-lobby .lobby-footer { position:relative; bottom:auto; }
+}
+
 /* Alpha 0.15.29 — short-landscape Battle detail containment. The territory
    illustration and rest controls must occupy normal flow, never paint over
    the next section or force a horizontal page pan on narrow iPhones. */
