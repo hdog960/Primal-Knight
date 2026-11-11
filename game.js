@@ -4746,8 +4746,16 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
   const caster=['shaman','frostbinder','thornweaver'].includes(e.type);
   const casting=caster&&(e.frostWindup>0||e.thornWindup>0||e.ritualClock<.35);
   const stride=Math.sin(e.wobble*(heavy?.85:caster?1.1:1.7));
-  const lean=(e.type==='raider'&&e.dashTime>0?.11:casting?-.07:stride*(heavy?.018:.042));
-  const squash=1+Math.abs(stride)*(heavy?.014:.035);
+  // Boss tells are tied to real active attack windups, not invented timers.
+  // The body braces before a crush, recoils for fury and twists before blink.
+  const crushing=e.type==='siegebeast'&&e.crushWindup>0;
+  const furious=e.type==='warlord'&&e.bossFuryWindup>0;
+  const blinking=e.type==='warlord'&&e.bossBlinkWindup>0;
+  const attackPose=crushing||furious||blinking;
+  const lean=attackPose?(crushing?-.085:furious?.075:-.11):
+   (e.type==='raider'&&e.dashTime>0?.11:casting?-.07:stride*(heavy?.018:.042));
+  const squash=attackPose?(crushing?1.09:furious?.94:1.02):
+   1+Math.abs(stride)*(heavy?.014:.035);
   const footY=py+sh;
   ctx.translate(e.x,footY);
   ctx.rotate(lean);
@@ -4770,6 +4778,18 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
     ctx.fillRect(Math.round(x),Math.round(y),Math.max(2,3*s),Math.max(2,3*s));
    }
    ctx.restore();
+  }else if(isSiegeBoss(e)&&(e.crushWindup>0||e.bossFuryWindup>0||e.bossBlinkWindup>0)){
+   // World-space anticipation arc follows the same combat state as the
+   // existing boss warning ring; its direction distinguishes each attack.
+   const crush=e.crushWindup>0,fury=e.bossFuryWindup>0;
+   ctx.save();ctx.strokeStyle=crush?'rgba(255,203,145,.86)':
+    fury?'rgba(255,145,110,.86)':'rgba(204,175,255,.86)';
+   ctx.lineWidth=Math.max(2,3*s);
+   const radius=Math.max(16,sw*.36),cy=py+sh*.3;
+   ctx.beginPath();ctx.arc(e.x,cy,radius,
+    crush?Math.PI*.12:fury?Math.PI*.65:Math.PI*1.2,
+    crush?Math.PI*.88:fury?Math.PI*1.35:Math.PI*1.8);
+   ctx.stroke();ctx.restore();
   }else if(e.type==='raider'&&e.dashTime>0){
    ctx.save();ctx.strokeStyle='rgba(250,184,112,.65)';ctx.lineWidth=Math.max(1.5,2*s);
    for(let i=0;i<2;i++){
