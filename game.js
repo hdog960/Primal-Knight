@@ -4737,7 +4737,24 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  // Preserves painted depth, original boss staging and all attack markers.
  if(clarityLensEnabled){ctx.fillStyle='rgba(9,17,27,.34)';ctx.fillRect(0,96,960,340);}
  // Moving battle units: distinct image sprites, shadow, perspective, HP and state effects.
- for(const e of sortedRenderEnemies()){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'||e.type==='banneret'?1.18:1);let im=sprites[e.type==='warlord'&&e.bossStyle?'warlord_'+e.bossStyle:e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;ctx.drawImage(im,e.x-sw/2,py,sw,sh);ctx.restore();
+ for(const e of sortedRenderEnemies()){let s=clamp(.28+(e.y-105)/300*.83,.27,1.18)*(e.type==='siegebeast'?2.28:e.type==='warlord'?2.05:e.type==='ogre'?2.25:e.type==='guardian'||e.type==='banneret'?1.18:1);let im=sprites[e.type==='warlord'&&e.bossStyle?'warlord_'+e.bossStyle:e.type];if(!im||!im.complete)continue;let sw=im.naturalWidth*s,sh=im.naturalHeight*s,py=e.y-sh/2+Math.sin(e.wobble*1.3)*(e.type==='imp'?6:1);ctx.fillStyle='rgba(14,26,20,.43)';ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.43,Math.max(3,6*s),0,0,Math.PI*2);ctx.fill();ctx.save();ctx.shadowColor='rgba(10,18,26,.75)';ctx.shadowBlur=Math.max(3,6*s);if(e.buildup>0)ctx.filter='brightness(1.8)';if(e.golden)ctx.filter='sepia(1) saturate(2) hue-rotate(340deg) brightness(1.15)';ctx.imageSmoothingEnabled=false;
+ // Visual-only marching silhouettes: grounded foot pivot, distinct gait by
+ // creature mass, and brief cast/dash poses. Never change combat coordinates.
+ // Reduced-motion preference leaves the original still sprite untouched.
+ if(!reduceMotion&&run.phase==='fighting'){
+  const heavy=e.type==='ogre'||e.type==='siegebeast'||e.type==='warlord';
+  const caster=['shaman','frostbinder','thornweaver'].includes(e.type);
+  const casting=caster&&(e.frostWindup>0||e.thornWindup>0||e.ritualClock<.35);
+  const stride=Math.sin(e.wobble*(heavy?.85:caster?1.1:1.7));
+  const lean=(e.type==='raider'&&e.dashTime>0?.11:casting?-.07:stride*(heavy?.018:.042));
+  const squash=1+Math.abs(stride)*(heavy?.014:.035);
+  const footY=py+sh;
+  ctx.translate(e.x,footY);
+  ctx.rotate(lean);
+  ctx.scale(1/squash,squash);
+  ctx.drawImage(im,-sw/2,-sh,sw,sh);
+ }else ctx.drawImage(im,e.x-sw/2,py,sw,sh);
+ ctx.restore();
  if(e===castFocus&&run.phase==='fighting'&&castFocusActive(e,castFocusKind)){
   // One static cast-specific target marker; no extra images or HUD panel.
   const color=castFocusColors[castFocusKind]||'#ffd899',by=Math.max(114,py-32);
