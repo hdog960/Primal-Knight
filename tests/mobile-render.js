@@ -192,3 +192,10 @@ assert(css.includes('.boss-cast-track[hidden],.battle-paused[hidden]'),'Boss met
 assert(css.includes('.boss-cast-track[data-ward="true"]'),'Defensive ward has its own timer treatment');
 assert(html.includes('id="bossCastTrack"')&&html.includes('id="battlePauseStatus"'),'Real game HTML includes battle pause and boss timer');
 console.log('PASS: Alpha 0.10.9 pause-safe 1×/2× selection, background/intermission pause, clear state accessibility, live Ember/ward/crusher countdowns, and automatic HUD recovery.');
+
+// First Watch hero-cloak visual regression: the animation is drawn from live
+// combat/chill state and reduced-motion preference, without persistent fields.
+assert(source.includes("const chilled=run.heroChill>0;"),'Defender cloak reacts to real hero chill');
+assert(source.includes("const capeSwing=moving?Math.sin(run.time*(chilled?1.2:3.1))*2.5:0;"),'Reduced-motion disables cape sway');
+assert(source.includes("const capeKick=phase==='release'?5:phase==='followthrough'?-3:0;"),'Cloak responds to real attack poses');
+assert(source.includes("ctx.fillStyle=chilled?'#648ea4':'#7b3444';"),'Chill changes the cloak palette');
