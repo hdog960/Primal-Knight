@@ -49,6 +49,19 @@ for(let tier=1;tier<=30;tier++){
  assert(boss.x>=457&&boss.x<=503&&boss.y>=134&&boss.y<=143,'Original vanguard elite ogre uses the legacy central boss placement');
  for(const wave of [5,10,25,37,50,100,10000])assert.equal(h.hasNativeVanguard(h.encounterDirector(wave,tier)),false,'Tutorial, bosses and other events never gain native formations');
 }
+// Night ambush: a real center feint now splits the old two-lane pincer into
+// three targetable groups, while retaining the exact existing spawn budget.
+for(const tier of [1,4,15,30]){
+ const enc=h.encounterDirector(17,tier);
+ assert.equal(enc.kind,'ambush','Wave 17 remains an existing ambush encounter');
+ for(let i=0;i<24;i++){
+  const pos=h.formationPosition(enc,i,i%3===0?'warg':'raider');
+  assert(pos.x>=145&&pos.x<=815&&pos.y>=143&&pos.y<=183,'Ambush units stay in the playable approach');
+  if(i%3===0)assert(pos.x>=157&&pos.x<=193,'Left flank approaches the left lane');
+  if(i%3===1)assert(pos.x>=767&&pos.x<=803,'Right flank approaches the right lane');
+  if(i%3===2)assert(pos.x>=438&&pos.x<=522&&pos.y<170,'Center feint deploys between the two flanks');
+ }
+}
 assert.equal(JSON.stringify(p),original,'Inspecting territory formation plans does not change character progression');
 for(let tier=1;tier<=30;tier++){
  const w=world(),g=w.h,r=g.run(),plan=g.nativeMarchOrder(tier);

@@ -1601,7 +1601,14 @@ function formationPosition(encounter,spawned,type,isBoss=false,relicGuardian=fal
  // Every troop in a qualifying native vanguard follows its regional formation.
  // The existing elite ogre and all other encounter kinds retain their original placement.
  if(hasNativeVanguard(encounter))return nativeMarchPosition(encounter,index,type);
- if(encounter.kind==='ambush')return {x:(index%2?786:174)+jitter(),y:163+row*2+rnd(0,11)};
+ if(encounter.kind==='ambush'){
+  // Night ambushes now stage a visible two-flank pincer with a center feint.
+  // Three alternating approach groups force a real targeting choice without
+  // adding enemies, changing their stats, or modifying saved progression.
+  const flank=index%3,side=flank===0?175:flank===1?785:480;
+  const spread=flank===2?rnd(-42,42):jitter();
+  return {x:clamp(side+spread,145,815),y:(flank===2?143:163)+row*3+rnd(0,8)};
+ }
  if(encounter.kind==='bannerAssault'){
   if(type==='banneret')return {x:(index%2?555:405)+jitter(),y:back};
   if(type==='guardian')return {x:(index%2?606:354)+jitter(),y:front};
