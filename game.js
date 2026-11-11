@@ -4755,6 +4755,31 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
   ctx.drawImage(im,-sw/2,-sh,sw,sh);
  }else ctx.drawImage(im,e.x-sw/2,py,sw,sh);
  ctx.restore();
+ // Combat-state silhouettes: telegraph active casts and raider lunges in
+ // world space, without altering hitboxes, damage, pathing, or saved state.
+ if(!reduceMotion&&run.phase==='fighting'){
+  const castWindup=e.frostWindup>0||e.thornWindup>0;
+  if(castWindup){
+   const pulse=.72+.28*Math.sin(run.time*12);
+   ctx.save();ctx.strokeStyle=e.frostWindup>0?'rgba(147,229,255,.9)':'rgba(201,255,145,.9)';
+   ctx.lineWidth=Math.max(1.5,2*s);ctx.globalAlpha=pulse;
+   ctx.beginPath();ctx.ellipse(e.x,py+sh*.23,sw*.58,Math.max(5,8*s),0,0,Math.PI*2);ctx.stroke();
+   for(let i=0;i<3;i++){
+    const angle=run.time*2+i*Math.PI*2/3;
+    const x=e.x+Math.cos(angle)*sw*.38,y=py+sh*.18+Math.sin(angle)*7*s;
+    ctx.fillRect(Math.round(x),Math.round(y),Math.max(2,3*s),Math.max(2,3*s));
+   }
+   ctx.restore();
+  }else if(e.type==='raider'&&e.dashTime>0){
+   ctx.save();ctx.strokeStyle='rgba(250,184,112,.65)';ctx.lineWidth=Math.max(1.5,2*s);
+   for(let i=0;i<2;i++){
+    const offset=(i+1)*sw*.24;
+    ctx.beginPath();ctx.moveTo(e.x-offset,py+sh*.55+i*3*s);
+    ctx.lineTo(e.x-offset-sw*.12,py+sh*.55+i*3*s);ctx.stroke();
+   }
+   ctx.restore();
+  }
+ }
  if(e===castFocus&&run.phase==='fighting'&&castFocusActive(e,castFocusKind)){
   // One static cast-specific target marker; no extra images or HUD panel.
   const color=castFocusColors[castFocusKind]||'#ffd899',by=Math.max(114,py-32);
