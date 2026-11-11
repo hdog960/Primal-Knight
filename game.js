@@ -1677,7 +1677,7 @@ function encounterAdvice(kind){
  treasure:'TREASURE RAID · +35% WAVE GOLD',relic:'RELIC WARDEN · NO BREACHES FOR A RUNE',
  bannerAssault:'BREAK THE BANNERS · +20% WAVE GOLD',
  arcane:'PRIORITIZE CASTERS · +18% WAVE KNOWLEDGE',
- ambush:'RUSHERS APPROACH · WATCH THE WALL'}[kind]||'';
+ ambush:'THREE-LANE PINCER · LEFT WARGS · RIGHT RAIDERS · CENTER FEINT'}[kind]||'';
 }
 // Alpha 0.12.23 — validate real specialist limits in one bounded scan,
 // not two throwaway arrays per spawn. Keep the same 3-caster / 2-role caps.
@@ -2920,7 +2920,7 @@ function renderEncounterIntel(tier){
  const native=territoryVanguard(tier);
  return `<section class="encounter-intel" aria-label="Upcoming enemy intelligence">
   <div><small>⚔ SIEGE INTELLIGENCE · CHAPTER ${roman(focus.chapter)}</small>
-   <strong>${focus.faction}</strong><p>${roles}</p><p class="encounter-intel-native"><b>✦ NATIVE VANGUARD · ${native.name}</b> · <em>${nativeMarchOrder(tier).name}</em> · ${nativeMarchOrder(tier).note} ${native.counter} Appears from wave 35 onward on ordinary vanguard waves.</p><p class="encounter-intel-objective">${upcoming&&upcoming.kind==='chapterBoss'?'✦ FLAWLESS CHAPTER BONUS · ZERO BREACHES':upcoming.kind==='relic'?'✦ RELIC HUNT · DEFEND WITHOUT BREACHES':upcoming.kind==='bannerAssault'?'✦ STANDARD ASSAULT · BREAK THE BANNERS FOR BONUS GOLD':upcoming.kind==='arcane'?'✦ ARCANE CONVERGENCE · +18% WAVE KNOWLEDGE':'Shield guards, casters and siege weapons have counterplay.'}</p>
+   <strong>${focus.faction}</strong><p>${roles}</p><p class="encounter-intel-native"><b>✦ NATIVE VANGUARD · ${native.name}</b> · <em>${nativeMarchOrder(tier).name}</em> · ${nativeMarchOrder(tier).note} ${native.counter} Appears from wave 35 onward on ordinary vanguard waves.</p><p class="encounter-intel-objective">${upcoming&&upcoming.kind==='chapterBoss'?'✦ FLAWLESS CHAPTER BONUS · ZERO BREACHES':upcoming.kind==='relic'?'✦ RELIC HUNT · DEFEND WITHOUT BREACHES':upcoming.kind==='bannerAssault'?'✦ STANDARD ASSAULT · BREAK THE BANNERS FOR BONUS GOLD':upcoming.kind==='arcane'?'✦ ARCANE CONVERGENCE · +18% WAVE KNOWLEDGE':upcoming.kind==='ambush'?'✦ NIGHT AMBUSH · LEFT WARGS · RIGHT RAIDERS · CENTER FEINT':'Shield guards, casters and siege weapons have counterplay.'}</p>
   </div><span>${upcoming?'NEXT '+upcoming.label+'<b>WAVE '+formatWave(upcoming.wave)+'</b>':'FINAL CHAPTER'} </span>
  </section>`;
 }
@@ -2930,7 +2930,7 @@ function renderSiegeCodex(){
  mire:'Rushers and wargs · kill the fastest flank first.',
  iron:'Shield guards protect nearby infantry · break their protection.',
  ash:'Shamans mend wounded troops · eliminate healers first.',
- night:'Rush formations · the hero prioritizes incoming movement threats.',
+ night:'Three-lane night pincers: wargs rush from the left, raiders pressure the right, and a central feint divides targeting. Watch all three lanes before the wall breach.',
  crown:'Mixed shields and ritualists · separate key support units.',
  frostvein:'Frostbinders announce slowing rites · stop the cast.',
  cinder:'Fuse sappers threaten the wall · interrupt the countdown.',
