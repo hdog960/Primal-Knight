@@ -1617,7 +1617,16 @@ function formationPosition(encounter,spawned,type,isBoss=false,relicGuardian=fal
   const sweep=flank===2&&encounter.wave>=34
    ?(Math.floor(encounter.wave/17)%2===0?-68:68):0;
   const spread=flank===2?rnd(-32,32):jitter();
-  return {x:clamp(side+sweep+spread,145,815),y:(flank===2?143:163)+row*3+rnd(0,8)};
+  // Later ambushes develop a second genuine tactic: the center feint
+  // sometimes advances first, sometimes hides behind the flanks. Alternating
+  // rank depth forces different interception orders without new enemies,
+  // stat multipliers, currencies or save fields. Wave 17 stays untouched.
+  const depthPhase=encounter.wave>=34?Math.floor(encounter.wave/17)%3:0;
+  const centerBase=depthPhase===1?126:depthPhase===2?163:143;
+  const flankBase=depthPhase===1?169:depthPhase===2?150:163;
+  const rankStagger=encounter.wave>=34?(row%2===0?0:6):row*3;
+  return {x:clamp(side+sweep+spread,145,815),
+   y:(flank===2?centerBase:flankBase)+rankStagger+rnd(0,8)};
  }
  if(encounter.kind==='bannerAssault'){
   if(type==='banneret')return {x:(index%2?555:405)+jitter(),y:back};

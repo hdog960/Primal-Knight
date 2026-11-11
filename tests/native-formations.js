@@ -89,6 +89,26 @@ for(let wave=34;wave<=170;wave+=17){
  if(tight)checkedTight++;else checkedWide++;
 }
 assert(checkedWide>0&&checkedTight>0,'Both later ambush formation variants must be exercised');
+// Real combat geometry: later ambushes alternate center-first, flank-first
+// and classic staggered arrival depth. Test every phase with a valid event,
+// and prove wave 17 remains backward-compatible.
+const phaseSeen=new Set();
+for(let wave=34;wave<=340;wave+=17){
+ const enc=h.encounterDirector(wave,4);
+ if(enc.kind!=='ambush')continue;
+ const phase=Math.floor(wave/17)%3,center=h.formationPosition(enc,2,'raider');
+ const left=h.formationPosition(enc,0,'warg'),right=h.formationPosition(enc,1,'raider');
+ const centerBase=phase===1?126:phase===2?163:143;
+ const flankBase=phase===1?169:phase===2?150:163;
+ assert(center.y>=centerBase&&center.y<=centerBase+8,'Center feint has the expected approach depth');
+ assert(left.y>=flankBase&&left.y<=flankBase+8,'Left warg follows the alternate rank depth');
+ assert(right.y>=flankBase&&right.y<=flankBase+8,'Right raider follows the alternate rank depth');
+ const second=h.formationPosition(enc,5,'raider');
+ assert(second.y>=centerBase+6&&second.y<=centerBase+14,'Second rank visibly staggers behind the first');
+ phaseSeen.add(phase);
+}
+assert.equal(phaseSeen.size,3,'All three real ambush approach-depth variants are exercised');
+
 assert.equal(JSON.stringify(p),original,'Inspecting territory formation plans does not change character progression');
 for(let tier=1;tier<=30;tier++){
  const w=world(),g=w.h,r=g.run(),plan=g.nativeMarchOrder(tier);
