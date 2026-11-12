@@ -199,3 +199,10 @@ assert(source.includes("const chilled=run.heroChill>0;"),'Defender cloak reacts 
 assert(source.includes("const capeSwing=moving?Math.sin(run.time*(chilled?1.2:3.1))*2.5:0;"),'Reduced-motion disables cape sway');
 assert(source.includes("const capeKick=phase==='release'?5:phase==='followthrough'?-3:0;"),'Cloak responds to real attack poses');
 assert(source.includes("ctx.fillStyle=chilled?'#648ea4':'#7b3444';"),'Chill changes the cloak palette');
+
+// First Watch grounded marching animation remains a bounded render-only
+// effect, keyed to existing wobble and omitted for reduced-motion players.
+assert(source.includes("const pace=mass?.85:caster?1.1:1.7;"),'Marching cadence distinguishes heavy and caster units');
+assert(source.includes("const step=Math.sin(e.wobble*pace),contact=Math.abs(step);"),'Alternating footfalls follow existing enemy motion');
+assert(source.includes("if(contact>.84&&!caster){"),'Dust is bounded to planted non-caster footsteps');
+assert(source.includes("if(!reduceMotion&&run.phase==='fighting'&&e.y<370){"),'Marching effects respect reduced motion and battle state');
