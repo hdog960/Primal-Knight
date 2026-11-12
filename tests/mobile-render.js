@@ -206,3 +206,12 @@ assert(source.includes("const pace=mass?.85:caster?1.1:1.7;"),'Marching cadence 
 assert(source.includes("const step=Math.sin(e.wobble*pace),contact=Math.abs(step);"),'Alternating footfalls follow existing enemy motion');
 assert(source.includes("if(contact>.84&&!caster){"),'Dust is bounded to planted non-caster footsteps');
 assert(source.includes("if(!reduceMotion&&run.phase==='fighting'&&e.y<370){"),'Marching effects respect reduced motion and battle state');
+
+// Shaman ritual visual: real heal events tag only the healed allies, while
+// the cast sigil counts down using the original 6-second ritual clock.
+assert(source.includes("caster.ritualVisualUntil=run.time+.38;"),'Ritual flash follows real successful heal');
+assert(source.includes("first.ritualFlashUntil=run.time+.38;"),'Primary actual heal target receives flash');
+assert(source.includes("second.ritualFlashUntil=run.time+.38;"),'Secondary actual heal target receives flash');
+assert(source.includes("e.ritualClock>0&&e.ritualClock<=1.2"),'Preparation glyph is tied to actual shaman ritual countdown');
+assert(source.includes("e.ritualFlashUntil>run.time"),'Ally flash expires on original combat clock');
+assert(source.includes("ctx.globalAlpha=fade*.75"),'Healed-ally effect fades instead of lingering');
