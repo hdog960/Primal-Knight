@@ -4802,6 +4802,35 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
     const x=e.x+Math.cos(angle)*sw*.38,y=py+sh*.18+Math.sin(angle)*7*s;
     ctx.fillRect(Math.round(x),Math.round(y),Math.max(2,3*s),Math.max(2,3*s));
    }
+   // Specialist counterplay: three unmistakable ground glyphs linked to
+   // live cast state, not cosmetic timers. Frost encloses a cold diamond;
+   // thorn spreads a jagged root fan. Neither changes spell targeting.
+   const frost=e.frostWindup>0,remaining=frost?e.frostWindup:e.thornWindup;
+   const total=frost?.95:.85,charge=clamp(1-remaining/total,0,1);
+   const groundY=e.y+sh*.4,rad=Math.max(13,sw*.56);
+   ctx.save();ctx.globalAlpha=.58+.32*charge;
+   ctx.strokeStyle=frost?'#9ceaff':'#d4f5a0';
+   ctx.lineWidth=Math.max(2,2.5*s);ctx.beginPath();
+   if(frost){
+    ctx.moveTo(e.x,groundY-rad*.52);ctx.lineTo(e.x+rad,groundY);
+    ctx.lineTo(e.x,groundY+rad*.52);ctx.lineTo(e.x-rad,groundY);
+    ctx.closePath();
+    for(let k=-1;k<=1;k++){const xx=e.x+k*rad*.4;
+     ctx.moveTo(xx,groundY-6*s);ctx.lineTo(xx,groundY+6*s);}
+   }else{
+    ctx.moveTo(e.x,groundY-6*s);ctx.lineTo(e.x,groundY+rad*.3);
+    for(const side of [-1,1]){
+     ctx.moveTo(e.x,groundY);ctx.lineTo(e.x+side*rad*.65,groundY-rad*.4);
+     ctx.lineTo(e.x+side*rad,groundY-rad*.13);
+     ctx.moveTo(e.x+side*rad*.65,groundY-rad*.4);
+     ctx.lineTo(e.x+side*rad*.42,groundY-rad*.7);
+    }
+   }
+   ctx.stroke();
+   ctx.fillStyle=frost?'#d7f8ff':'#f0ffbe';
+   const pip=Math.max(2,3*s);
+   ctx.fillRect(e.x-pip/2,groundY-pip/2,pip,pip);
+   ctx.restore();
    ctx.restore();
   }else if(isSiegeBoss(e)&&(e.crushWindup>0||e.bossFuryWindup>0||e.bossBlinkWindup>0)){
    // World-space anticipation arc follows the same combat state as the
@@ -4929,7 +4958,21 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
   ctx.strokeStyle='rgba(165,227,127,.72)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(e.x,e.y+sh*.4,sw*.58,Math.max(5,8*s),0,0,Math.PI*2);ctx.stroke();
  }
  if(e.type==='riftstalker'&&e.blinkWindup>0){
-  ctx.strokeStyle='#d4b5ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.x,py+sh*.2,14,0,Math.PI*2*(1-e.blinkWindup/.95));ctx.stroke();
+  // A split-portal floor glyph telegraphs the actual blink windup.
+  // It remains visible in crowded encounters without moving the enemy.
+  const charge=clamp(1-e.blinkWindup/.95,0,1);
+  const gy=e.y+sh*.4,span=Math.max(14,sw*.6);
+  ctx.save();ctx.globalAlpha=.55+.4*charge;
+  ctx.strokeStyle='#d4b5ff';ctx.lineWidth=Math.max(2,2.4*s);
+  for(const side of [-1,1]){
+   const cx=e.x+side*span*.65;
+   ctx.beginPath();ctx.ellipse(cx,gy,span*.25,Math.max(5,7*s),0,0,Math.PI*2);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(cx,gy-10*s);ctx.lineTo(cx+side*4*s,gy-15*s);
+   ctx.lineTo(cx-side*3*s,gy-20*s);ctx.stroke();
+  }
+  ctx.fillStyle='#f3e6ff';ctx.fillRect(e.x-2*s,gy-2*s,4*s,4*s);
+  ctx.restore();
+  ctx.strokeStyle='#d4b5ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.x,py+sh*.2,14,0,Math.PI*2*charge);ctx.stroke();
  }
  if(e.bossExposedTimer>0&&isSiegeBoss(e)){
   ctx.strokeStyle='rgba(255,223,134,.9)';ctx.lineWidth=3;
