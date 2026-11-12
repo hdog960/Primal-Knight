@@ -4968,7 +4968,43 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  // Fortress battlements and hero are their own painted foreground layer.
  // Draw AFTER enemies: attackers remain behind the wall, never over it.
  if(foreground.complete&&foreground.naturalWidth){ctx.drawImage(foreground,0,0,w,h);}const heraldry=fortressHeraldryImage(sceneTier);if(heraldry&&heraldry.complete&&heraldry.naturalWidth)ctx.drawImage(heraldry,0,0,w,h);
- for(const s of run.shots){ctx.beginPath();ctx.lineWidth=s.kind==='lightning'?3:2;ctx.strokeStyle=s.kind==='lightning'?'#90f2ff':s.kind==='ballista'?'#ffd285':'#ffe8a9';ctx.moveTo(s.x,s.y);const history=s.trailHead*2;ctx.lineTo(s.trailCount?s.trail[history]:s.x-7,s.trailCount?s.trail[history+1]:s.y+6);ctx.stroke();ctx.fillStyle='#fff5b9';ctx.fillRect(s.x-2,s.y-2,4,4);}
+ // First Watch: attack silhouettes use the actual projectile direction and type.
+ // These are canvas-only effects: projectile coordinates, collision and damage are untouched.
+ for(const s of run.shots){
+  const history=s.trailHead*2;
+  const tailX=s.trailCount?s.trail[history]:s.x-7;
+  const tailY=s.trailCount?s.trail[history+1]:s.y+6;
+  const dx=s.x-tailX,dy=s.y-tailY;
+  const length=Math.hypot(dx,dy)||1;
+  const ux=dx/length,uy=dy/length,px=-uy,py=ux;
+  ctx.save();ctx.lineCap='square';ctx.lineJoin='miter';
+  if(s.kind==='lightning'){
+   // A broken electric path is distinct from the straight physical bolts.
+   ctx.strokeStyle='#78dfff';ctx.lineWidth=3;ctx.beginPath();
+   ctx.moveTo(tailX,tailY);
+   ctx.lineTo((tailX+s.x)/2+px*4,(tailY+s.y)/2+py*4);
+   ctx.lineTo(s.x,s.y);ctx.stroke();
+   ctx.fillStyle='#e3ffff';ctx.fillRect(Math.round(s.x)-2,Math.round(s.y)-2,4,4);
+  }else{
+   const heavy=s.kind==='ballista',shaft=heavy?18:11,wing=heavy?6:4;
+   ctx.strokeStyle=heavy?'#b46b3b':'#ad794e';
+   ctx.lineWidth=heavy?4:2;ctx.beginPath();
+   ctx.moveTo(s.x-ux*shaft,s.y-uy*shaft);ctx.lineTo(s.x,s.y);ctx.stroke();
+   // Distinct triangular steel tip, and a two-feather tail.
+   ctx.fillStyle=heavy?'#ffe0a0':'#f5e7c8';ctx.beginPath();
+   ctx.moveTo(s.x+ux*(heavy?7:5),s.y+uy*(heavy?7:5));
+   ctx.lineTo(s.x-ux*3+px*wing,s.y-uy*3+py*wing);
+   ctx.lineTo(s.x-ux*3-px*wing,s.y-uy*3-py*wing);
+   ctx.closePath();ctx.fill();
+   ctx.strokeStyle=heavy?'#f7ba6b':'#d8d9b2';ctx.lineWidth=2;
+   ctx.beginPath();ctx.moveTo(s.x-ux*shaft,s.y-uy*shaft);
+   ctx.lineTo(s.x-ux*(shaft-5)+px*wing,s.y-uy*(shaft-5)+py*wing);
+   ctx.moveTo(s.x-ux*shaft,s.y-uy*shaft);
+   ctx.lineTo(s.x-ux*(shaft-5)-px*wing,s.y-uy*(shaft-5)-py*wing);
+   ctx.stroke();
+  }
+  ctx.restore();
+ }
  for(const t of run.particles){ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.fillRect(t.x,t.y,t.size,t.size)}ctx.globalAlpha=1;
  for(const f of run.floats){ctx.globalAlpha=clamp(f.life,0,1);ctx.fillStyle='#17101a';ctx.font='bold 15px Arial';ctx.fillText(f.text,f.x+1,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y)}ctx.globalAlpha=1;
  // First Watch: authored four-stage hero bow sequence. Frame timing is
