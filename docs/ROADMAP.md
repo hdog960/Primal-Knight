@@ -1,5 +1,11 @@
 # Roadmap — PRIMAL KNIGHT
 
+## CURRENT DEVELOPMENT CHECKPOINT — 2026-11-11 (First Watch shaman ritual and heal readability)
+Active locked milestone: Priority 0.2 First Watch combat art / mobile visual acceptance, **not complete or creator-approved**. Starting main 160bca01 had green gameplay, full quality and Pages GitHub Actions (runs 43144877391, 43144877517, 43144877325). This session added a real-time shaman ritual preparation floor sigil during the final 1.2 seconds of the existing 6-second cast, plus a .38-second fade on only the allies actually healed by healShamanAllies. Added mobile-render regression guards. These are transient enemy object art timestamps, not protected save fields; no healing amounts, combat clocks, drops, progression, tiers or currency changed. Commits 5b808683 and a4f556e. Final-head CI and Pages must be checked independently; rendered iPhone acceptance remains open.
+
+**Next exact coding step:** Check gameplay, full-quality and Pages Actions on the final checkpoint HEAD; repair any completed red workflow first. Capture actual iPhone-landscape frames for shaman countdown/healed ally effects, enemy marching, hero bow/cape, specialist warnings and Tier IV Battle lobby overlap; correct occlusion and readability. Continue genuinely earned Tier XVI–XVII progression analysis with the existing original-engine tests, preserving all chapter and wave gates. Do not claim mobile creator approval.
+
+
 ## CURRENT DEVELOPMENT CHECKPOINT — 2026-11-11 (First Watch marching footfalls)
 Active locked goal: Priority 0.2 visual standard / First Watch combat and visual acceptance; **not accepted or complete**. Verified initial main 583010eb; its gameplay, full quality and Pages workflows were all green. Added render-only enemy boot-contact animation and bounded dust on planted non-caster footsteps in game.js (5b985788), plus four mobile-render regression guards (2c829ce0). Existing wobble drives light/heavy/caster cadence, and reduced-motion disables the new effect. No movement, damage, currency, reward, tier, wave or save-schema change intended. Final-head GitHub checks and deployment must be independently verified; no rendered iPhone or creator approval is claimed.
 
