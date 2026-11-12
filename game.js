@@ -3612,8 +3612,12 @@ function healShamanAllies(caster,enemies=run.enemies){
   }
  }
  if(!first)return 0;
+ // Transient combat-art timestamps only: never included in the character save.
+ // Actual healed allies, not nearby bystanders, receive the visible ritual link.
+ caster.ritualVisualUntil=run.time+.38;
+ first.ritualFlashUntil=run.time+.38;
  first.hp=Math.min(first.max,first.hp+first.max*.06);effect(first.x,first.y,'#baa6ea',4);
- if(second){second.hp=Math.min(second.max,second.hp+second.max*.06);effect(second.x,second.y,'#baa6ea',4);}
+ if(second){second.ritualFlashUntil=run.time+.38;second.hp=Math.min(second.max,second.hp+second.max*.06);effect(second.x,second.y,'#baa6ea',4);}
  float(caster.x,caster.y-20,'RITUAL','#dfbfff');
  return second?2:1;
 }
@@ -4811,6 +4815,32 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
    ctx.fillRect(Math.round(e.x+planted-boot*2),Math.round(ground-boot),dust,dust);
    ctx.fillRect(Math.round(e.x+planted+boot*2),Math.round(ground-boot*2),dust,dust);
   }
+  ctx.restore();
+ }
+ // First Watch shaman ritual: an honest preparation sigil, followed by
+ // short-lived light on only the allies actually healed by the existing spell.
+ // All positions remain unchanged. No extra healing, buffs or save fields.
+ if(run.phase==='fighting'&&e.type==='shaman'&&e.ritualClock>0&&e.ritualClock<=1.2){
+  const charge=clamp(1-e.ritualClock/1.2,0,1),ground=e.y+sh*.4;
+  ctx.save();ctx.imageSmoothingEnabled=false;
+  ctx.globalAlpha=.48+charge*.42;ctx.strokeStyle='#d8b7ff';
+  ctx.lineWidth=Math.max(2,2*s);
+  const radius=Math.max(12,sw*(.33+.14*charge));
+  ctx.beginPath();ctx.ellipse(e.x,ground,radius,Math.max(5,7*s),0,0,Math.PI*2);ctx.stroke();
+  // Four corner runes close inward as the real ritual timer reaches zero.
+  for(let k=0;k<4;k++){
+   const angle=k*Math.PI/2,dx=Math.cos(angle)*radius,dy=Math.sin(angle)*Math.max(6,9*s);
+   const size=Math.max(2,Math.round((3+charge*2)*s));
+   ctx.fillStyle='#ead5ff';
+   ctx.fillRect(Math.round(e.x+dx-size/2),Math.round(ground+dy-size/2),size,size);
+  }
+  ctx.restore();
+ }
+ if(run.phase==='fighting'&&e.ritualFlashUntil>run.time){
+  const fade=clamp((e.ritualFlashUntil-run.time)/.38,0,1);
+  ctx.save();ctx.strokeStyle='#e6c9ff';ctx.globalAlpha=fade*.75;
+  ctx.lineWidth=Math.max(1.5,2*s);ctx.beginPath();
+  ctx.ellipse(e.x,py+sh*.3,sw*.53,Math.max(5,8*s),0,0,Math.PI*2);ctx.stroke();
   ctx.restore();
  }
  // Combat-state silhouettes: telegraph active casts and raider lunges in
