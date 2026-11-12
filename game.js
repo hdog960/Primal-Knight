@@ -4788,6 +4788,31 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
   ctx.drawImage(im,-sw/2,-sh,sw,sh);
  }else ctx.drawImage(im,e.x-sw/2,py,sw,sh);
  ctx.restore();
+ // Grounded First Watch marching footfalls: two alternating pixel-art boot
+ // contacts, with a bounded dust puff on the planted foot. This is entirely
+ // visual; it reads the existing per-enemy wobble and never alters movement.
+ // Keep feet under the sprite and avoid particles on reduced-motion devices.
+ if(!reduceMotion&&run.phase==='fighting'&&e.y<370){
+  const mass=e.type==='siegebeast'||e.type==='ogre'||e.type==='warlord';
+  const caster=['shaman','frostbinder','thornweaver'].includes(e.type);
+  const pace=mass?.85:caster?1.1:1.7;
+  const step=Math.sin(e.wobble*pace),contact=Math.abs(step);
+  const boot=Math.max(2,Math.round(3*s)),spread=sw*(mass?.19:.16);
+  const ground=e.y+sh*.4;
+  ctx.save();ctx.imageSmoothingEnabled=false;
+  ctx.fillStyle=mass?'#51463c':'#504b43';
+  ctx.globalAlpha=.65;
+  ctx.fillRect(Math.round(e.x-spread-boot/2),Math.round(ground+(step>0?0:-2*s)),boot*2,boot);
+  ctx.fillRect(Math.round(e.x+spread-boot/2),Math.round(ground+(step<0?0:-2*s)),boot*2,boot);
+  if(contact>.84&&!caster){
+   const planted=step>0?-spread:spread;
+   const dust=Math.max(2,Math.round(3*s));
+   ctx.fillStyle='#c0ae88';ctx.globalAlpha=(contact-.84)*2.3;
+   ctx.fillRect(Math.round(e.x+planted-boot*2),Math.round(ground-boot),dust,dust);
+   ctx.fillRect(Math.round(e.x+planted+boot*2),Math.round(ground-boot*2),dust,dust);
+  }
+  ctx.restore();
+ }
  // Combat-state silhouettes: telegraph active casts and raider lunges in
  // world space, without altering hitboxes, damage, pathing, or saved state.
  if(!reduceMotion&&run.phase==='fighting'){
