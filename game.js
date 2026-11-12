@@ -3440,7 +3440,7 @@ function projectileCount(){return Math.min(12,1+Math.floor(t('multishot')/8)+Mat
 // Seven history points in one fixed-size ring, allocated only at shot creation.
 function shoot(target,power=damage(),kind='arrow',originX=496,originY=390){
  if(!target||run.shots.length>=48)return;
- run.shots.push({x:originX,y:originY,target,power,kind,life:1.8,
+ run.shots.push({x:originX,y:originY,originX,originY,target,power,kind,life:1.8,
   trail:new Float32Array(14),trailHead:0,trailCount:0});
  run.flashes=.13;
  run.projectilesFired=(run.projectilesFired||0)+1;
@@ -5014,6 +5014,29 @@ function draw(){let w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.save();if(ru
  // First Watch: attack silhouettes use the actual projectile direction and type.
  // These are canvas-only effects: projectile coordinates, collision and damage are untouched.
  for(const s of run.shots){
+  // First Watch station discharge: the actual ballista/thunder launch point
+  // blooms for the first 0.12s of a real projectile, with no new timers.
+  // Station effects do not create extra damage, targeting or allocations.
+  if(!reduceMotion&&(s.kind==='ballista'||s.kind==='lightning')&&s.life>1.68){
+   const glow=clamp((s.life-1.68)/.12,0,1);
+   const x=s.originX,y=s.originY;
+   const electric=s.kind==='lightning';
+   ctx.save();ctx.globalAlpha=glow*.9;
+   ctx.strokeStyle=electric?'#8eeaff':'#ffca79';
+   ctx.lineWidth=electric?2:3;ctx.beginPath();
+   const reach=(electric?22:16)*(1.3-glow*.3);
+   for(let ray=0;ray<(electric?6:4);ray++){
+    const a=(ray/(electric?6:4))*Math.PI*2;
+    const cx=Math.cos(a),cy=Math.sin(a);
+    ctx.moveTo(x+cx*5,y+cy*5);
+    ctx.lineTo(x+cx*reach,y+cy*reach);
+   }
+   ctx.stroke();
+   ctx.fillStyle=electric?'#e6ffff':'#fff0b7';
+   const core=electric?6:5;
+   ctx.fillRect(Math.round(x-core/2),Math.round(y-core/2),core,core);
+   ctx.restore();
+  }
   const history=s.trailHead*2;
   const tailX=s.trailCount?s.trail[history]:s.x-7;
   const tailY=s.trailCount?s.trail[history+1]:s.y+6;
